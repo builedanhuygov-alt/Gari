@@ -1,0 +1,56 @@
+{
+  "Bacterial_spot": {
+    "summary": "Xuất hiện các đốm nhỏ 1-3mm, màu nâu sẫm hoặc đen, mép có quầng vàng nhạt úng nước.",
+    "details": [
+      "Đốm nhỏ hình tròn hoặc góc cạnh, phân bố rải rác trên bề mặt phiến lá.",
+      "Trong điều kiện ẩm ướt, đốm có biểu hiện sũng nước, mặt dưới có thể hơi bóng.",
+      "Các đốm liên kết lại làm lá cháy khô và rụng sớm từ tầng lá dưới lên."
+    ]
+  },
+  "Early_blight": {
+    "summary": "Vết bệnh đặc trưng bởi các vòng tròn đồng tâm hình đĩa bia, màu nâu đen, bắt đầu từ lá già.",
+    "details": [
+      "Vết đốm nâu đen có các vân tròn đồng tâm rõ rệt (dạng bia bắn target-spot).",
+      "Mép vết bệnh có quầng vàng hẹp bao quanh, mô lá xung quanh dần chuyển vàng.",
+      "Xuất hiện đầu tiên trên tầng lá sát mặt đất do bào tử nấm từ đất bắn lên."
+    ]
+  },
+  "Late_blight": {
+    "summary": "Vết thâm úng nước màu xanh xám loang nhanh, mặt dưới có lớp mốc trắng mỏng như sương.",
+    "details": [
+      "Vết bệnh ban đầu úng nước màu xanh tái, sau chuyển sang thâm nâu đen cháy xém.",
+      "Lan nhanh khắp phiến lá trong điều kiện thời tiết lạnh ẩm hoặc sau đợt mưa kéo dài.",
+      "Sáng sớm hoặc khi độ ẩm cao, quan sát thấy lớp tơ nấm trắng mỏng ở viền vết bệnh mặt dưới lá."
+    ]
+  },
+  "Powdery_mildew": {
+    "summary": "Bề mặt lá phủ lớp phấn trắng xám như rắc bột mì, làm lá khô cong queo.",
+    "details": [
+      "Lớp phấn trắng xuất hiện ở mặt trên lá, lan nhanh tạo thành mảng lớn.",
+      "Lá bị nhiễm mất khả năng quang hợp, chuyển sang vàng nâu, giòn và rụng sớm.",
+      "Thường phát triển mạnh khi trời hanh khô xen kẽ sương mù ban đêm."
+    ]
+  },
+  "Downy_mildew": {
+    "summary": "Mặt trên lá xuất hiện các vệt vàng góc cạnh giới hạn bởi gân lá, mặt dưới có lớp mốc tím xám.",
+    "details": [
+      "Vệt vàng hình đa giác bị chặn bởi các gân phụ của lá.",
+      "Mặt dưới phiến lá mọc lớp mốc mịn màu tím nhạt hoặc xám tro khi trời ẩm.",
+      "Lá chuyển nâu khô giòn từ giữa phiến lá lan ra mép."
+    ]
+  },
+  "Healthy": {
+    "summary": "Phiến lá xanh đều, mặt phẳng mịn, không có vết đốm hay biến dạng.",
+    "details": [
+      "Màu sắc diệp lục tươi tốt, đồng nhất trên toàn bộ phiến lá.",
+      "Gân lá và mép lá phát triển bình thường, không có dấu vết chích hút hay nấm bệnh."
+    ]
+  },
+  "Default": {
+    "summary": "Có dấu hiệu tổn thương hoặc đổi màu bất thường trên phiến lá cây trồng.",
+    "details": [
+      "Xuất hiện đốm đổi màu hoặc tổn thương mô tế bào diệp lục trên mặt lá.",
+      "Cần theo dõi sự lây lan sang các lá lân cận."
+    ]
+  }
+}

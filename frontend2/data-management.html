@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Dữ Liệu Cá Nhân (DSR) — Gari AI Lab</title>
+    <meta name="description" content="Trung tâm thực thi quyền chủ thể dữ liệu theo Nghị định 13/2023/NĐ-CP: Xuất dữ liệu, quản lý sự đồng ý và yêu cầu xóa vĩnh viễn.">
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <style>
+        .dsr-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 36px 20px 80px 20px;
+        }
+        .dsr-header {
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .dsr-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+        .dsr-subtitle {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .dsr-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 22px;
+            box-shadow: var(--shadow-card);
+        }
+        .dsr-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .dsr-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dsr-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .dsr-meta-item {
+            background: var(--surface-muted);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+        }
+        .dsr-meta-label {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .dsr-meta-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 4px;
+        }
+        .danger-zone {
+            border-color: var(--danger-border);
+            background: linear-gradient(180deg, var(--surface) 0%, rgba(220,38,38,0.02) 100%);
+        }
+        .consent-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .consent-table th, .consent-table td {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .consent-table th {
+            background: var(--surface-muted);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="dsr-container">
+        <!-- Breadcrumb -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <a href="/frontend2/index.html" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
+                ← Quay lại Dashboard Gari
+            </a>
+            <div style="display:flex; gap:8px;">
+                <a href="/frontend2/privacy-policy.html" class="btn btn-ghost btn-sm">Xem Chính sách Bảo mật</a>
+                <a href="/frontend2/terms-of-service.html" class="btn btn-ghost btn-sm">Điều khoản Dịch vụ</a>
+            </div>
+        </div>
+
+        <div class="dsr-header">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <span class="pill pill-success">CƠ CHẾ BẢO MẬT BẮT BUỘC</span>
+                <span class="pill pill-neutral">NGHỊ ĐỊNH 13/2023/NĐ-CP</span>
+            </div>
+            <h1 class="dsr-title">Trung Tâm Quản Lý Dữ Liệu Cá Nhân & Quyền Riêng Tư</h1>
+            <p class="dsr-subtitle">
+                Tại Gari AI Lab, bạn nắm toàn quyền sở hữu và kiểm soát đối với thông tin cá nhân, hồ sơ nông trại và ảnh mẫu lá của mình.
+            </p>
+        </div>
+
+        <!-- Card 1: Overview of Stored Personal Data -->
+        <div class="dsr-card">
+            <div class="dsr-card-head">
+                <div class="dsr-card-title">
+                    <span>👤</span>
+                    <span>1. Tổng Quan Dữ Liệu Lưu Trữ Thuộc Về Bạn</span>
+                </div>
+                <span class="pill pill-success" id="accountStatusPill">Tài khoản hoạt động</span>
+            </div>
+
+            <div class="dsr-meta-grid">
+                <div class="dsr-meta-item">
+                    <div class="dsr-meta-label">Chủ tài khoản</div>
+                    <div class="dsr-meta-val" id="userFullName">Đang tải...</div>
+                </div>
+                <div class="dsr-meta-item">
+                    <div class="dsr-meta-label">Email đã xác thực</div>
+                    <div class="dsr-meta-val" id="userEmail">Đang tải...</div>
+                </div>
+                <div class="dsr-meta-item">
+                    <div class="dsr-meta-label">Loại tài khoản</div>
+                    <div class="dsr-meta-val" id="userAccountType">Đang tải...</div>
+                </div>
+                <div class="dsr-meta-item">
+                    <div class="dsr-meta-label">Mẫu lá chẩn đoán</div>
+                    <div class="dsr-meta-val" id="diagnosesCount">Đang kiểm tra...</div>
+                </div>
+            </div>
+
+            <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">
+                * Dữ liệu trên được bảo vệ bằng mã hóa PBKDF2-HMAC-SHA256 trên máy chủ đặt tại Việt Nam. Không có thông tin tài chính hay dữ liệu nhạy cảm nào bị lưu trữ ngoài ý muốn.
+            </p>
+        </div>
+
+        <!-- Card 2: Data Portability (Export) -->
+        <div class="dsr-card">
+            <div class="dsr-card-head">
+                <div class="dsr-card-title">
+                    <span>📥</span>
+                    <span>2. Quyền Xuất Dữ Liệu Cá Nhân (Data Portability)</span>
+                </div>
+                <span class="pill pill-neutral">Điều 9 Khoản 4</span>
+            </div>
+            <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:14px; line-height:1.6;">
+                Bạn có quyền nhận bản sao toàn bộ thông tin cá nhân, danh sách nông trại, nhật ký các ca bệnh lá và lịch sử sự đồng ý dưới định dạng chuẩn <strong>.JSON</strong> có thể đọc được bằng máy tính.
+            </p>
+            <button type="button" class="btn btn-secondary" id="btnExportData" style="display:inline-flex; align-items:center; gap:8px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Tải xuống bản sao dữ liệu cá nhân (.JSON)
+            </button>
+        </div>
+
+        <!-- Card 3: Consent Audit Trail & Withdrawal -->
+        <div class="dsr-card">
+            <div class="dsr-card-head">
+                <div class="dsr-card-title">
+                    <span>📜</span>
+                    <span>3. Lịch Sử Sự Đồng Ý & Rút Lại Quyền (Consent Management)</span>
+                </div>
+                <span class="pill pill-neutral">Có thể kiểm chứng</span>
+            </div>
+            <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:14px;">
+                Ghi nhận nhật ký đồng ý của bạn theo thời gian thực per Nghị định 13/2023/NĐ-CP:
+            </p>
+            <div style="overflow-x:auto;">
+                <table class="consent-table">
+                    <thead>
+                        <tr>
+                            <th>Mục đích xử lý</th>
+                            <th>Phiên bản</th>
+                            <th>Trạng thái</th>
+                            <th>Thời gian ghi nhận</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="consentTableBody">
+                        <tr><td colspan="5" style="text-align:center; padding:16px; color:var(--text-muted);">Đang tải lịch sử đồng ý...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Card 4: Right to Erasure (Delete Account & Images) -->
+        <div class="dsr-card danger-zone">
+            <div class="dsr-card-head">
+                <div class="dsr-card-title" style="color:var(--danger);">
+                    <span>⚠️</span>
+                    <span>4. Quyền Xóa Dữ Liệu Vĩnh Viễn (Right to Erasure)</span>
+                </div>
+                <span class="pill pill-danger">Hành động không thể đảo ngược</span>
+            </div>
+            <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:14px; line-height:1.6;">
+                Theo Điều 9 Khoản 7 Nghị định 13/2023/NĐ-CP, khi bạn thực hiện xóa dữ liệu:
+            </p>
+            <ul style="padding-left:22px; font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.6;">
+                <li><strong>Toàn bộ ảnh chụp phiến lá vật lý</strong> trong thư mục lưu trữ trên máy chủ sẽ bị xóa vĩnh viễn khỏi ổ cứng.</li>
+                <li>Lịch sử chẩn đoán, thông tin các lô vườn và phiên làm việc sẽ bị xóa hoàn toàn.</li>
+                <li>Tài khoản của bạn sẽ bị vô hiệu hóa và ẩn danh hóa, không thể đăng nhập lại.</li>
+            </ul>
+
+            <div style="background:var(--surface); border:1px solid var(--danger-border); border-radius:var(--radius-md); padding:16px; max-width:540px;">
+                <label for="inputConfirmDelete" style="display:block; font-size:12.5px; font-weight:700; color:var(--text-main); margin-bottom:6px;">
+                    Để xác nhận, vui lòng nhập chính xác chữ: <span style="color:var(--danger); font-family:monospace; font-size:14px;">XÓA DỮ LIỆU</span>
+                </label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="inputConfirmDelete" class="input" placeholder="XÓA DỮ LIỆU" style="border-color:var(--danger-border); font-weight:600;" />
+                    <button type="button" class="btn btn-danger" id="btnExecuteDelete" style="white-space:nowrap;">
+                        Xác nhận xóa
+                    </button>
+                </div>
+                <div id="deleteErrorMsg" style="font-size:12px; color:var(--danger); margin-top:6px; display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { fetchJSON, toast, checkAuth, logout } from '/static/frontend2/app.js';
+
+        let currentUser = null;
+
+        async function initPage() {
+            try {
+                currentUser = await checkAuth(true);
+                if (!currentUser) return;
+
+                document.getElementById('userFullName').textContent = currentUser.full_name || 'Người dùng Gari';
+                document.getElementById('userEmail').textContent = currentUser.email || '--';
+                document.getElementById('userAccountType').textContent = currentUser.account_type || 'Nông hộ';
+
+                loadConsents();
+                loadStats();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetchJSON('/api/dashboard/stats');
+                const totalDiags = res.total_diagnoses ?? res.diagnoses_count ?? 0;
+                document.getElementById('diagnosesCount').textContent = `${totalDiags} bản ghi ảnh`;
+            } catch {
+                document.getElementById('diagnosesCount').textContent = 'Đã kết nối';
+            }
+        }
+
+        async function loadConsents() {
+            const tbody = document.getElementById('consentTableBody');
+            try {
+                const res = await fetchJSON('/api/privacy/my-consents');
+                const list = res.consents || [];
+
+                if (list.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td>Điều khoản dịch vụ & Chính sách bảo mật</td>
+                            <td>v1.0.0</td>
+                            <td><span class="pill pill-success">Đã cấp (Granted)</span></td>
+                            <td>Mặc định lúc đăng ký</td>
+                            <td>--</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(c => {
+                    const isGranted = c.status === 'granted';
+                    const canWithdraw = c.consent_type === 'marketing_opt_in' && isGranted;
+
+                    let typeLabel = c.consent_type;
+                    if (c.consent_type === 'terms_of_service') typeLabel = 'Điều khoản dịch vụ';
+                    else if (c.consent_type === 'privacy_policy') typeLabel = 'Chính sách bảo mật';
+                    else if (c.consent_type === 'marketing_opt_in') typeLabel = 'Bản tin khuyến nông & Khảo sát mùa vụ';
+
+                    return `
+                        <tr>
+                            <td><strong>${typeLabel}</strong></td>
+                            <td>${c.policy_version}</td>
+                            <td>
+                                <span class="pill ${isGranted ? 'pill-success' : 'pill-neutral'}">
+                                    ${isGranted ? 'Đang cấp quyền' : 'Đã rút lại'}
+                                </span>
+                            </td>
+                            <td style="font-size:12px; color:var(--text-muted);">${c.created_at || 'Gần đây'}</td>
+                            <td>
+                                ${canWithdraw ? `
+                                    <button class="btn btn-ghost btn-sm btn-withdraw" data-type="${c.consent_type}" style="color:var(--danger); padding:4px 8px; font-size:12px;">
+                                        Rút lại
+                                    </button>
+                                ` : '<span style="font-size:12px; color:var(--text-muted);">Cốt lõi</span>'}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                document.querySelectorAll('.btn-withdraw').forEach(btn => {
+                    btn.onclick = async () => {
+                        const type = btn.dataset.type;
+                        if (confirm(`Bạn có chắc muốn rút lại sự đồng ý cho "${type}"?`)) {
+                            try {
+                                await fetchJSON('/api/privacy/consent/withdraw', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ consent_type: type })
+                                });
+                                toast('Đã rút lại quyền thành công.');
+                                loadConsents();
+                            } catch (e) {
+                                toast(e.message, 'error');
+                            }
+                        }
+                    };
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:12px; color:var(--text-muted);">${err.message}</td></tr>`;
+            }
+        }
+
+        // Export Data (.JSON)
+        document.getElementById('btnExportData').onclick = async () => {
+            toast('Đang khởi tạo gói dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP...');
+            try {
+                const token = localStorage.getItem('gari_token');
+                const res = await fetch('/api/user/data-export', {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                if (!res.ok) throw new Error('Không thể tải gói xuất dữ liệu');
+
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `gari_data_export_${currentUser?.id || 'user'}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                toast('Tải xuống gói dữ liệu thành công!');
+            } catch (err) {
+                toast(err.message, 'error');
+            }
+        };
+
+        // Right to Erasure
+        document.getElementById('btnExecuteDelete').onclick = async () => {
+            const input = document.getElementById('inputConfirmDelete');
+            const errEl = document.getElementById('deleteErrorMsg');
+            errEl.style.display = 'none';
+
+            const val = input.value.trim().toUpperCase();
+            if (val !== 'XÓA DỮ LIỆU' && val !== 'XOA DU LIEU') {
+                errEl.textContent = 'Vui lòng gõ chính xác cụm từ: XÓA DỮ LIỆU';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            if (!confirm('CẢNH BÁO CUỐI CÙNG: Mọi ảnh mẫu lá, lô đất, ca bệnh và tài khoản của bạn sẽ bị xóa vĩnh viễn khỏi máy chủ. Bạn có chắc chắn muốn tiếp tục?')) {
+                return;
+            }
+
+            try {
+                const res = await fetchJSON('/api/user/data-delete-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ confirm_text: val, reason: 'Người dùng yêu cầu xóa vĩnh viễn' })
+                });
+
+                alert(res.message);
+                localStorage.clear();
+                window.location.href = '/frontend2/login.html';
+            } catch (err) {
+                errEl.textContent = errEl.textContent = err.message;
+                errEl.style.display = 'block';
+            }
+        };
+
+        initPage();
+    </script>
+</body>
+</html>

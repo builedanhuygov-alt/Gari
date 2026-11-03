@@ -1,0 +1,2188 @@
+[
+  {
+    "crop_id": "Apple",
+    "crop_name": "Apple",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98955504,
+    "classes_count": 8,
+    "classes": [
+      "Apple_Scab_rust",
+      "Apple___gray_spot",
+      "Apple___scab",
+      "Brown_spot",
+      "alternaria_leaf_spot",
+      "healthy",
+      "marsonina_blotch",
+      "root_rot_collar_rot"
+    ],
+    "labels": [
+      "Apple Scab & Rust",
+      "Gray Spot",
+      "Apple Scab",
+      "Brown Spot",
+      "Alternaria Leaf Spot",
+      "Healthy",
+      "Marssonina Blotch",
+      "Root Rot / Collar Rot"
+    ],
+    "accuracy": 0.9922,
+    "macro_f1": 0.9886,
+    "test_images": 2308,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 713.34,
+    "output_shape": [
+      1,
+      8
+    ]
+  },
+  {
+    "crop_id": "Apricot",
+    "crop_name": "Apricot",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.36,
+    "weight_size_bytes": 98947806,
+    "classes_count": 3,
+    "classes": [
+      "Blight",
+      "Healthy",
+      "Shot_hole"
+    ],
+    "labels": [
+      "Blight",
+      "Healthy",
+      "Shot Hole"
+    ],
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "test_images": 277,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 874.49,
+    "output_shape": [
+      1,
+      3
+    ]
+  },
+  {
+    "crop_id": "Banana",
+    "crop_name": "Banana",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98958588,
+    "classes_count": 10,
+    "classes": [
+      "Augmented Banana Bract Mosaic Virus Disease",
+      "Augmented Banana Healthy Leaf",
+      "Augmented Banana Insect Pest Disease",
+      "Augmented Banana Moko Disease",
+      "Augmented Banana Yellow Sigatoka Disease",
+      "Banana_black_streak",
+      "Banana_bunchy_top",
+      "Banana_cordana_spot",
+      "Banana_fruit_anthracnose",
+      "Banana_panama_disease"
+    ],
+    "labels": [
+      "Bract Mosaic Virus Disease",
+      "Healthy",
+      "Insect Pest Damage",
+      "Moko Disease",
+      "Yellow Sigatoka Disease",
+      "Black Streak",
+      "Bunchy Top",
+      "Cordana Spot",
+      "Fruit Anthracnose",
+      "Panama Disease (Fusarium Wilt)"
+    ],
+    "accuracy": 0.988,
+    "macro_f1": 0.9847,
+    "test_images": 748,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 900.79,
+    "output_shape": [
+      1,
+      10
+    ]
+  },
+  {
+    "crop_id": "Betel",
+    "crop_name": "Betel",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98949344,
+    "classes_count": 4,
+    "classes": [
+      "Bacterial_leaf_disease",
+      "Dried_leaf",
+      "Fungal_brown_spot",
+      "Healthy"
+    ],
+    "labels": [
+      "Bacterial Leaf Disease",
+      "Dried Leaf",
+      "Fungal Brown Spot",
+      "Healthy"
+    ],
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "test_images": 376,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 900.0,
+    "output_shape": [
+      1,
+      4
+    ]
+  },
+  {
+    "crop_id": "Bitter_gourd",
+    "crop_name": "Bitter Gourd",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98950890,
+    "classes_count": 5,
+    "classes": [
+      "Downy_mildew",
+      "Fusarium_wilt",
+      "Healthy",
+      "Mosaic_virus",
+      "Nutrient_deficiency"
+    ],
+    "labels": [
+      "Downy Mildew",
+      "Fusarium Wilt",
+      "Healthy",
+      "Mosaic Virus",
+      "Nutrient Deficiency"
+    ],
+    "accuracy": 0.9492,
+    "macro_f1": 0.9532,
+    "test_images": 413,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 887.5,
+    "output_shape": [
+      1,
+      5
+    ]
+  },
+  {
+    "crop_id": "Black_Pepper",
+    "crop_name": "Black Pepper",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.36,
+    "weight_size_bytes": 98947806,
+    "classes_count": 3,
+    "classes": [
+      "Healthy",
+      "leaf_blight",
+      "yellow_mottle_virus"
+    ],
+    "labels": [
+      "Healthy",
+      "Leaf Blight",
+      "Yellow Mottle Virus"
+    ],
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "test_images": 84,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 924.83,
+    "output_shape": [
+      1,
+      3
+    ]
+  },
+  {
+    "crop_id": "Bottle_gourd",
+    "crop_name": "Bottle Gourd",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98952428,
+    "classes_count": 6,
+    "classes": [
+      "Alternaria_leaf_blight",
+      "Anthracnose",
+      "Downy_mildew",
+      "Healthy",
+      "Mosaic_virus",
+      "Nutrient_deficiency"
+    ],
+    "labels": [
+      "Alternaria Leaf Blight",
+      "Anthracnose",
+      "Downy Mildew",
+      "Healthy",
+      "Mosaic Virus",
+      "Nutrient Deficiency"
+    ],
+    "accuracy": 0.9276,
+    "macro_f1": 0.9006,
+    "test_images": 428,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 909.89,
+    "output_shape": [
+      1,
+      6
+    ]
+  },
+  {
+    "crop_id": "Brinjal",
+    "crop_name": "Brinjal",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98955504,
+    "classes_count": 8,
+    "classes": [
+      "Eggplant begomovirus",
+      "Eggplant verticillium wilt",
+      "Nutrient deficiency",
+      "eggplant__FB",
+      "eggplant__MIT_EB",
+      "eggplant__healthy",
+      "eggplant_cercospora_spot",
+      "eggplant_phomopsis_fruit_rot"
+    ],
+    "labels": [
+      "Begomovirus",
+      "Verticillium Wilt",
+      "Nutrient Deficiency",
+      "Shoot and Fruit Borer",
+      "MIT/EB Pest Damage",
+      "Healthy",
+      "Cercospora Spot",
+      "Phomopsis Fruit Rot"
+    ],
+    "accuracy": 0.9796,
+    "macro_f1": 0.9757,
+    "test_images": 587,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 874.63,
+    "output_shape": [
+      1,
+      8
+    ]
+  },
+  {
+    "crop_id": "Cashew",
+    "crop_name": "Cashew",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98950890,
+    "classes_count": 5,
+    "classes": [
+      "Cashew_anthracnose",
+      "Cashew_gumosis",
+      "Cashew_healthy",
+      "Cashew_leaf_miner",
+      "Cashew_red_rust"
+    ],
+    "labels": [
+      "Anthracnose",
+      "Gummosis",
+      "Healthy",
+      "Leaf Miner",
+      "Red Rust"
+    ],
+    "accuracy": 0.9744,
+    "macro_f1": 0.9784,
+    "test_images": 820,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 919.13,
+    "output_shape": [
+      1,
+      5
+    ]
+  },
+  {
+    "crop_id": "Cassava",
+    "crop_name": "Cassava",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98950890,
+    "classes_count": 5,
+    "classes": [
+      "Healthy",
+      "bacterial_blight",
+      "brown_spot",
+      "green_mite",
+      "mosaic_virus"
+    ],
+    "labels": [
+      "Healthy",
+      "Bacterial Blight",
+      "Brown Spot",
+      "Green Mite",
+      "Mosaic Virus"
+    ],
+    "accuracy": 0.9528,
+    "macro_f1": 0.9547,
+    "test_images": 721,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 898.64,
+    "output_shape": [
+      1,
+      5
+    ]
+  },
+  {
+    "crop_id": "Cherry",
+    "crop_name": "Cherry",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98952428,
+    "classes_count": 6,
+    "classes": [
+      "Cherry_Leaf_Scorch",
+      "Cherry___healthy",
+      "Cherry___powdery_mildew",
+      "Cherry_brown_spot",
+      "Cherry_purple_spot",
+      "Cherry_shot_hole"
+    ],
+    "labels": [
+      "Leaf Scorch",
+      "Healthy",
+      "Powdery Mildew",
+      "Brown Spot",
+      "Purple Spot",
+      "Shot Hole"
+    ],
+    "accuracy": 0.9938,
+    "macro_f1": 0.9918,
+    "test_images": 1126,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 905.81,
+    "output_shape": [
+      1,
+      6
+    ]
+  },
+  {
+    "crop_id": "Chrysanthemum",
+    "crop_name": "Chrysanthemum",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.36,
+    "weight_size_bytes": 98947806,
+    "classes_count": 3,
+    "classes": [
+      "Bacterial_leaf_spot",
+      "Healthy",
+      "Septoria_leaf_spot"
+    ],
+    "labels": [
+      "Bacterial Leaf Spot",
+      "Healthy",
+      "Septoria Leaf Spot"
+    ],
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "test_images": 372,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 883.62,
+    "output_shape": [
+      1,
+      3
+    ]
+  },
+  {
+    "crop_id": "Citrus",
+    "crop_name": "Citrus",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98955504,
+    "classes_count": 8,
+    "classes": [
+      "Bacterial_blight",
+      "Black_spot",
+      "Canker",
+      "Dry_leaf",
+      "Healthy",
+      "Leaf_curl_virus",
+      "Sooty_mould",
+      "Spider_mites"
+    ],
+    "labels": [
+      "Bacterial Blight",
+      "Black Spot",
+      "Canker",
+      "Dry Leaf",
+      "Healthy",
+      "Leaf Curl Virus",
+      "Sooty Mould",
+      "Spider Mites"
+    ],
+    "accuracy": 0.9953,
+    "macro_f1": 0.9948,
+    "test_images": 425,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 885.47,
+    "output_shape": [
+      1,
+      8
+    ]
+  },
+  {
+    "crop_id": "Coconut",
+    "crop_name": "Coconut",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.38,
+    "weight_size_bytes": 98960126,
+    "classes_count": 11,
+    "classes": [
+      "Bud Root Dropping",
+      "Bud Rot",
+      "CCI_Caterpillars",
+      "CCI_Leaflets",
+      "Gray Leaf Spot",
+      "Healthy_Leaves",
+      "Leaf Rot",
+      "Stem Bleeding",
+      "WCLWD_DryingofLeaflets",
+      "WCLWD_Flaccidity",
+      "WCLWD_Yellowing"
+    ],
+    "labels": [
+      "Bud Root Dropping",
+      "Bud Rot",
+      "Coconut Caterpillar Infestation (caterpillars)",
+      "Coconut Caterpillar Infestation (leaflet damage)",
+      "Gray Leaf Spot",
+      "Healthy",
+      "Leaf Rot",
+      "Stem Bleeding",
+      "Weligama Coconut Leaf Wilt \u2014 drying of leaflets",
+      "Weligama Coconut Leaf Wilt \u2014 flaccidity",
+      "Weligama Coconut Leaf Wilt \u2014 yellowing"
+    ],
+    "accuracy": 0.9986,
+    "macro_f1": 0.9981,
+    "test_images": 1402,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 926.19,
+    "output_shape": [
+      1,
+      11
+    ]
+  },
+  {
+    "crop_id": "Coffee",
+    "crop_name": "Coffee",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98953966,
+    "classes_count": 7,
+    "classes": [
+      "Berry_blotch",
+      "Cercospora_brown_eye_spot",
+      "Healthy",
+      "Leaf_miner",
+      "Phoma",
+      "Red_spider_mite",
+      "Rust"
+    ],
+    "labels": [
+      "Berry Blotch",
+      "Cercospora Brown Eye Spot",
+      "Healthy",
+      "Leaf Miner",
+      "Phoma",
+      "Red Spider Mite",
+      "Rust"
+    ],
+    "accuracy": 0.9466,
+    "macro_f1": 0.8086,
+    "test_images": 506,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 896.63,
+    "output_shape": [
+      1,
+      7
+    ]
+  },
+  {
+    "crop_id": "Cucumber",
+    "crop_name": "Cucumber",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98955504,
+    "classes_count": 8,
+    "classes": [
+      "Angular_leaf_spot",
+      "Anthracnose",
+      "Bacterial_wilt",
+      "Downy_mildew",
+      "Gummy_stem_blight",
+      "Healthy",
+      "Nutrient_deficiency",
+      "Powdery_mildew"
+    ],
+    "labels": [
+      "Angular Leaf Spot",
+      "Anthracnose",
+      "Bacterial Wilt",
+      "Downy Mildew",
+      "Gummy Stem Blight",
+      "Healthy",
+      "Nutrient Deficiency",
+      "Powdery Mildew"
+    ],
+    "accuracy": 0.9792,
+    "macro_f1": 0.971,
+    "test_images": 819,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 879.89,
+    "output_shape": [
+      1,
+      8
+    ]
+  },
+  {
+    "crop_id": "Cucurbit",
+    "crop_name": "Cucurbit",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98949344,
+    "classes_count": 4,
+    "classes": [
+      "Downy_mildew",
+      "Healthy",
+      "Leaf_curl",
+      "Mosaic_virus"
+    ],
+    "labels": [
+      "Downy Mildew",
+      "Healthy",
+      "Leaf Curl",
+      "Mosaic Virus"
+    ],
+    "accuracy": 0.9928,
+    "macro_f1": 0.9923,
+    "test_images": 556,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1111.13,
+    "output_shape": [
+      1,
+      4
+    ]
+  },
+  {
+    "crop_id": "Custard_apple",
+    "crop_name": "Custard Apple",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98955504,
+    "classes_count": 8,
+    "classes": [
+      "Athracnose",
+      "Blank Canker",
+      "Custard_apple Healthy",
+      "Custurd_apple Stressed",
+      "Diplodia Rot",
+      "Leaf spot on Leaves",
+      "Leaf spot on fruit",
+      "Mealy Bug"
+    ],
+    "labels": [
+      "Anthracnose",
+      "Black Canker",
+      "Healthy",
+      "Stressed Plant",
+      "Diplodia Rot",
+      "Leaf Spot (leaves)",
+      "Leaf Spot (fruit)",
+      "Mealy Bug"
+    ],
+    "accuracy": 0.9938,
+    "macro_f1": 0.9945,
+    "test_images": 1129,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1713.5,
+    "output_shape": [
+      1,
+      8
+    ]
+  },
+  {
+    "crop_id": "detectors/new",
+    "crop_name": "New",
+    "kind": "crop_detector",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.41,
+    "weight_size_bytes": 98998576,
+    "classes_count": 36,
+    "classes": [
+      "Apple",
+      "Apricot",
+      "Betel",
+      "Bitter_gourd",
+      "Black_Pepper",
+      "Bottle_gourd",
+      "Cashew",
+      "Cassava",
+      "Cherry",
+      "Chrysanthemum",
+      "Citrus",
+      "Coffee",
+      "Cucumber",
+      "Cucurbit",
+      "Fig",
+      "Grape",
+      "Loquat",
+      "Maize",
+      "Mango",
+      "Peach",
+      "Pear",
+      "Pepper",
+      "Potato",
+      "Raspberry",
+      "Rice",
+      "Ridge_gourd",
+      "Rose",
+      "Snake_gourd",
+      "Sorghum",
+      "Soybean",
+      "Squash",
+      "Strawberry",
+      "Sugarcane",
+      "Tea",
+      "Tomato",
+      "Walnut"
+    ],
+    "labels": [
+      "Apple",
+      "Apricot",
+      "Betel",
+      "Bitter_gourd",
+      "Black_Pepper",
+      "Bottle_gourd",
+      "Cashew",
+      "Cassava",
+      "Cherry",
+      "Chrysanthemum",
+      "Citrus",
+      "Coffee",
+      "Cucumber",
+      "Cucurbit",
+      "Fig",
+      "Grape",
+      "Loquat",
+      "Maize",
+      "Mango",
+      "Peach",
+      "Pear",
+      "Pepper",
+      "Potato",
+      "Raspberry",
+      "Rice",
+      "Ridge_gourd",
+      "Rose",
+      "Snake_gourd",
+      "Sorghum",
+      "Soybean",
+      "Squash",
+      "Strawberry",
+      "Sugarcane",
+      "Tea",
+      "Tomato",
+      "Walnut"
+    ],
+    "accuracy": 0.9835,
+    "macro_f1": 0.9807,
+    "test_images": 6167,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1212.07,
+    "output_shape": [
+      1,
+      36
+    ]
+  },
+  {
+    "crop_id": "detectors/original",
+    "crop_name": "Original",
+    "kind": "crop_detector",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.38,
+    "weight_size_bytes": 98967816,
+    "classes_count": 16,
+    "classes": [
+      "Apple",
+      "Banana",
+      "Brinjal",
+      "Cashew",
+      "Castard_apple",
+      "Cherry",
+      "Coconut",
+      "Guava",
+      "Mango",
+      "Mulberry",
+      "Papaya",
+      "Rose",
+      "Strawberry",
+      "Watermelon",
+      "okra",
+      "pomegranate"
+    ],
+    "labels": [
+      "Apple",
+      "Banana",
+      "Brinjal",
+      "Cashew",
+      "Castard_apple",
+      "Cherry",
+      "Coconut",
+      "Guava",
+      "Mango",
+      "Mulberry",
+      "Papaya",
+      "Rose",
+      "Strawberry",
+      "Watermelon",
+      "okra",
+      "pomegranate"
+    ],
+    "accuracy": 0.9977,
+    "macro_f1": 0.9975,
+    "test_images": 2621,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1063.67,
+    "output_shape": [
+      1,
+      16
+    ]
+  },
+  {
+    "crop_id": "Fig",
+    "crop_name": "Fig",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98949344,
+    "classes_count": 4,
+    "classes": [
+      "Blight",
+      "Brown_spot",
+      "Healthy",
+      "Rust"
+    ],
+    "labels": [
+      "Blight",
+      "Brown Spot",
+      "Healthy",
+      "Rust"
+    ],
+    "accuracy": 0.9946,
+    "macro_f1": 0.9933,
+    "test_images": 372,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1146.28,
+    "output_shape": [
+      1,
+      4
+    ]
+  },
+  {
+    "crop_id": "Grape",
+    "crop_name": "Grape",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.38,
+    "weight_size_bytes": 98960126,
+    "classes_count": 11,
+    "classes": [
+      "Anthracnose",
+      "Bacterial_rot",
+      "Black_rot",
+      "Brown_spot",
+      "Downy_mildew",
+      "Esca_black_measles",
+      "Healthy",
+      "Leaf_blight",
+      "Mites",
+      "Powdery_mildew",
+      "Shot_hole"
+    ],
+    "labels": [
+      "Anthracnose",
+      "Bacterial Rot",
+      "Black Rot",
+      "Brown Spot",
+      "Downy Mildew",
+      "Esca Black Measles",
+      "Healthy",
+      "Leaf Blight",
+      "Mites",
+      "Powdery Mildew",
+      "Shot Hole"
+    ],
+    "accuracy": 0.9405,
+    "macro_f1": 0.9417,
+    "test_images": 1461,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1107.07,
+    "output_shape": [
+      1,
+      11
+    ]
+  },
+  {
+    "crop_id": "Guava",
+    "crop_name": "Guava",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98952428,
+    "classes_count": 6,
+    "classes": [
+      "Guava Healthy",
+      "Guava_Rust_leaf_spot",
+      "Tea_Mosquito_Bug_Thrips",
+      "anthracnose",
+      "multiple",
+      "yld"
+    ],
+    "labels": [
+      "Healthy",
+      "Rust / Leaf Spot",
+      "Tea Mosquito Bug / Thrips",
+      "Anthracnose",
+      "Multiple Diseases",
+      "YLD"
+    ],
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "test_images": 1345,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1048.06,
+    "output_shape": [
+      1,
+      6
+    ]
+  },
+  {
+    "crop_id": "Loquat",
+    "crop_name": "Loquat",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.36,
+    "weight_size_bytes": 98946268,
+    "classes_count": 2,
+    "classes": [
+      "Healthy",
+      "Leaf_spot"
+    ],
+    "labels": [
+      "Healthy",
+      "Leaf Spot"
+    ],
+    "accuracy": 0.9623,
+    "macro_f1": 0.9607,
+    "test_images": 212,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1102.21,
+    "output_shape": [
+      1,
+      2
+    ]
+  },
+  {
+    "crop_id": "Maize",
+    "crop_name": "Maize",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.38,
+    "weight_size_bytes": 98960126,
+    "classes_count": 11,
+    "classes": [
+      "Common_rust",
+      "Fall_armyworm",
+      "Grasshopper_damage",
+      "Gray_leaf_spot",
+      "Healthy",
+      "Holcus_leaf_spot",
+      "Leaf_beetle",
+      "Maize_lethal_necrosis",
+      "Maize_streak_virus",
+      "Northern_leaf_blight",
+      "Smut"
+    ],
+    "labels": [
+      "Common Rust",
+      "Fall Armyworm",
+      "Grasshopper Damage",
+      "Gray Leaf Spot",
+      "Healthy",
+      "Holcus Leaf Spot",
+      "Leaf Beetle",
+      "Lethal Necrosis",
+      "Streak Virus",
+      "Northern Leaf Blight",
+      "Smut"
+    ],
+    "accuracy": 0.929,
+    "macro_f1": 0.9363,
+    "test_images": 1281,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 962.44,
+    "output_shape": [
+      1,
+      11
+    ]
+  },
+  {
+    "crop_id": "Mango",
+    "crop_name": "Mango",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98955504,
+    "classes_count": 8,
+    "classes": [
+      "Anthracnose",
+      "Bacterial Canker",
+      "Cutting Weevil",
+      "Die Back",
+      "Gall Midge",
+      "Mango Healthy",
+      "Powdery Mildew",
+      "Sooty Mould"
+    ],
+    "labels": [
+      "Anthracnose",
+      "Bacterial Canker",
+      "Cutting Weevil",
+      "Die Back",
+      "Gall Midge",
+      "Healthy",
+      "Powdery Mildew",
+      "Sooty Mould"
+    ],
+    "accuracy": 0.9981,
+    "macro_f1": 0.998,
+    "test_images": 527,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1050.73,
+    "output_shape": [
+      1,
+      8
+    ]
+  },
+  {
+    "crop_id": "Mulberry",
+    "crop_name": "Mulberry",
+    "kind": "variety",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98958588,
+    "classes_count": 10,
+    "classes": [
+      "01 ChiangMai60",
+      "02 RedKing",
+      "03 WhiteKing",
+      "04 BlackOodTurkey",
+      "05 TaiwanStraberry",
+      "06 BlackAustralia",
+      "07 Buriram60",
+      "08 Kamphaengsaeng42",
+      "09 TaiwanMeacho",
+      "10 ChiangMaiBuriram60"
+    ],
+    "labels": [
+      "ChiangMai60 (variety)",
+      "RedKing (variety)",
+      "WhiteKing (variety)",
+      "BlackOodTurkey (variety)",
+      "Taiwan Strawberry (variety)",
+      "BlackAustralia (variety)",
+      "Buriram60 (variety)",
+      "Kamphaengsaeng42 (variety)",
+      "TaiwanMeacho (variety)",
+      "ChiangMaiBuriram60 (variety)"
+    ],
+    "accuracy": 0.9776,
+    "macro_f1": 0.9774,
+    "test_images": 671,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1008.45,
+    "output_shape": [
+      1,
+      10
+    ]
+  },
+  {
+    "crop_id": "okra",
+    "crop_name": "Okra",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98952428,
+    "classes_count": 6,
+    "classes": [
+      "Alternaria Leaf Spot",
+      "Cercospora Leaf Spot",
+      "Downy Mildew",
+      "Healthy",
+      "Leaf curly virus",
+      "Phyllosticta leaf spot"
+    ],
+    "labels": [
+      "Alternaria Leaf Spot",
+      "Cercospora Leaf Spot",
+      "Downy Mildew",
+      "Healthy",
+      "Leaf Curl Virus",
+      "Phyllosticta Leaf Spot"
+    ],
+    "accuracy": 0.9749,
+    "macro_f1": 0.9773,
+    "test_images": 399,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1097.13,
+    "output_shape": [
+      1,
+      6
+    ]
+  },
+  {
+    "crop_id": "Papaya",
+    "crop_name": "Papaya",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98955504,
+    "classes_count": 8,
+    "classes": [
+      "Anthracnose",
+      "BacterialSpot",
+      "Curl",
+      "Healthy",
+      "Mealybug",
+      "Mite disease",
+      "Mosaic",
+      "Ringspot"
+    ],
+    "labels": [
+      "Anthracnose",
+      "Bacterial Spot",
+      "Leaf Curl",
+      "Healthy",
+      "Mealybug",
+      "Mite Disease",
+      "Mosaic",
+      "Ringspot"
+    ],
+    "accuracy": 0.9708,
+    "macro_f1": 0.9728,
+    "test_images": 2023,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1120.08,
+    "output_shape": [
+      1,
+      8
+    ]
+  },
+  {
+    "crop_id": "Peach",
+    "crop_name": "Peach",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98949344,
+    "classes_count": 4,
+    "classes": [
+      "Bacterial_spot",
+      "Brown_rot",
+      "Healthy",
+      "Leaf_curl"
+    ],
+    "labels": [
+      "Bacterial Spot",
+      "Brown Rot",
+      "Healthy",
+      "Leaf Curl"
+    ],
+    "accuracy": 0.9824,
+    "macro_f1": 0.9744,
+    "test_images": 284,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1076.73,
+    "output_shape": [
+      1,
+      4
+    ]
+  },
+  {
+    "crop_id": "Pear",
+    "crop_name": "Pear",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98950890,
+    "classes_count": 5,
+    "classes": [
+      "Black_spot",
+      "Fire_blight",
+      "Healthy",
+      "Leaf_spot",
+      "Pear_slug"
+    ],
+    "labels": [
+      "Black Spot",
+      "Fire Blight",
+      "Healthy",
+      "Leaf Spot",
+      "Slug"
+    ],
+    "accuracy": 0.9683,
+    "macro_f1": 0.9724,
+    "test_images": 631,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1012.96,
+    "output_shape": [
+      1,
+      5
+    ]
+  },
+  {
+    "crop_id": "pomrgranet",
+    "crop_name": "Pomrgranet",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98950890,
+    "classes_count": 5,
+    "classes": [
+      "Alternaria",
+      "Anthracnose",
+      "Bacterial_Blight",
+      "Cercospora",
+      "Healthy"
+    ],
+    "labels": [
+      "Alternaria",
+      "Anthracnose",
+      "Bacterial Blight",
+      "Cercospora",
+      "Healthy"
+    ],
+    "accuracy": 0.9922,
+    "macro_f1": 0.9909,
+    "test_images": 638,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1111.18,
+    "output_shape": [
+      1,
+      5
+    ]
+  },
+  {
+    "crop_id": "Potato",
+    "crop_name": "Potato",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.36,
+    "weight_size_bytes": 98947806,
+    "classes_count": 3,
+    "classes": [
+      "Early_blight",
+      "Healthy",
+      "Late_blight"
+    ],
+    "labels": [
+      "Early Blight",
+      "Healthy",
+      "Late Blight"
+    ],
+    "accuracy": 0.9595,
+    "macro_f1": 0.9712,
+    "test_images": 247,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 967.72,
+    "output_shape": [
+      1,
+      3
+    ]
+  },
+  {
+    "crop_id": "Rice",
+    "crop_name": "Rice",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.38,
+    "weight_size_bytes": 98964740,
+    "classes_count": 14,
+    "classes": [
+      "Bacterial_blight",
+      "Bacterial_leaf_streak",
+      "Bacterial_panicle_blight",
+      "Blast",
+      "Brown_spot",
+      "Dead_heart",
+      "Downy_mildew",
+      "Healthy",
+      "Hispa",
+      "Leaf_scald",
+      "Narrow_brown_leaf_spot",
+      "Neck_blast",
+      "Sheath_blight",
+      "Tungro"
+    ],
+    "labels": [
+      "Bacterial Blight",
+      "Bacterial Leaf Streak",
+      "Bacterial Panicle Blight",
+      "Blast",
+      "Brown Spot",
+      "Dead Heart",
+      "Downy Mildew",
+      "Healthy",
+      "Hispa",
+      "Leaf Scald",
+      "Narrow Brown Leaf Spot",
+      "Neck Blast",
+      "Sheath Blight",
+      "Tungro"
+    ],
+    "accuracy": 0.9354,
+    "macro_f1": 0.9395,
+    "test_images": 1579,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 994.57,
+    "output_shape": [
+      1,
+      14
+    ]
+  },
+  {
+    "crop_id": "Ridge_gourd",
+    "crop_name": "Ridge Gourd",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98949344,
+    "classes_count": 4,
+    "classes": [
+      "Healthy",
+      "Leaf_miner",
+      "Mosaic_virus",
+      "Nutrient_deficiency"
+    ],
+    "labels": [
+      "Healthy",
+      "Leaf Miner",
+      "Mosaic Virus",
+      "Nutrient Deficiency"
+    ],
+    "accuracy": 0.9099,
+    "macro_f1": 0.9239,
+    "test_images": 477,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1010.45,
+    "output_shape": [
+      1,
+      4
+    ]
+  },
+  {
+    "crop_id": "Rose",
+    "crop_name": "Rose",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98955504,
+    "classes_count": 8,
+    "classes": [
+      "Black Spot",
+      "Downy Mildew",
+      "Insect Hole",
+      "Rose___healthy",
+      "Rose___rust",
+      "Rose___slug_sawfly",
+      "Yellow Mosaic Virus",
+      "blight"
+    ],
+    "labels": [
+      "Black Spot",
+      "Downy Mildew",
+      "Insect Hole",
+      "Healthy",
+      "Rust",
+      "Rose Slug (Sawfly)",
+      "Yellow Mosaic Virus",
+      "Blight"
+    ],
+    "accuracy": 0.9927,
+    "macro_f1": 0.9924,
+    "test_images": 1097,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1116.28,
+    "output_shape": [
+      1,
+      8
+    ]
+  },
+  {
+    "crop_id": "Snake_gourd",
+    "crop_name": "Snake Gourd",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98949344,
+    "classes_count": 4,
+    "classes": [
+      "Anthracnose",
+      "Healthy",
+      "Nutrient_deficiency",
+      "Yellowing"
+    ],
+    "labels": [
+      "Anthracnose",
+      "Healthy",
+      "Nutrient Deficiency",
+      "Yellowing"
+    ],
+    "accuracy": 0.9342,
+    "macro_f1": 0.9396,
+    "test_images": 152,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1032.64,
+    "output_shape": [
+      1,
+      4
+    ]
+  },
+  {
+    "crop_id": "Soybean",
+    "crop_name": "Soybean",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98952428,
+    "classes_count": 6,
+    "classes": [
+      "Downy_mildew",
+      "Frogeye_leaf_spot",
+      "Healthy",
+      "Mosaic_virus",
+      "Rust",
+      "Septoria_brown_spot"
+    ],
+    "labels": [
+      "Downy Mildew",
+      "Frogeye Leaf Spot",
+      "Healthy",
+      "Mosaic Virus",
+      "Rust",
+      "Septoria Brown Spot"
+    ],
+    "accuracy": 0.9167,
+    "macro_f1": 0.8814,
+    "test_images": 336,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1073.23,
+    "output_shape": [
+      1,
+      6
+    ]
+  },
+  {
+    "crop_id": "Strawberry",
+    "crop_name": "Strawberry",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.36,
+    "weight_size_bytes": 98947806,
+    "classes_count": 3,
+    "classes": [
+      "Strawberry___healthy",
+      "Strawberry___leaf_scorch",
+      "Strawberry_anthracnose"
+    ],
+    "labels": [
+      "Healthy",
+      "Leaf Scorch",
+      "Anthracnose"
+    ],
+    "accuracy": 0.9978,
+    "macro_f1": 0.9954,
+    "test_images": 459,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1097.31,
+    "output_shape": [
+      1,
+      3
+    ]
+  },
+  {
+    "crop_id": "Sugarcane",
+    "crop_name": "Sugarcane",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.38,
+    "weight_size_bytes": 98960126,
+    "classes_count": 11,
+    "classes": [
+      "Banded_Chlorosis",
+      "Brown_Rust",
+      "Brown_Spot",
+      "Dried_Leaves",
+      "Grassy_shoot",
+      "Healthy",
+      "Pokkah_Boeng",
+      "Sett_Rot",
+      "Smut",
+      "Yellow_Leaf",
+      "mosaic_virus"
+    ],
+    "labels": [
+      "Banded Chlorosis",
+      "Brown Rust",
+      "Brown Spot",
+      "Dried Leaves",
+      "Grassy Shoot",
+      "Healthy",
+      "Pokkah Boeng",
+      "Sett Rot",
+      "Smut",
+      "Yellow Leaf",
+      "Mosaic Virus"
+    ],
+    "accuracy": 0.926,
+    "macro_f1": 0.8988,
+    "test_images": 689,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1131.04,
+    "output_shape": [
+      1,
+      11
+    ]
+  },
+  {
+    "crop_id": "Tea",
+    "crop_name": "Tea",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98949344,
+    "classes_count": 4,
+    "classes": [
+      "Healthy",
+      "Red_leaf_spot",
+      "Red_scab",
+      "leaf_blight"
+    ],
+    "labels": [
+      "Healthy",
+      "Red Leaf Spot",
+      "Red Scab",
+      "Leaf Blight"
+    ],
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "test_images": 160,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1100.05,
+    "output_shape": [
+      1,
+      4
+    ]
+  },
+  {
+    "crop_id": "Tomato",
+    "crop_name": "Tomato",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.38,
+    "weight_size_bytes": 98963202,
+    "classes_count": 13,
+    "classes": [
+      "Bacterial_spot",
+      "Early_blight",
+      "Fusarium_wilt",
+      "Healthy",
+      "Late_blight",
+      "Leaf_miner",
+      "Leaf_mold",
+      "Mosaic_virus",
+      "Septoria_leaf_spot",
+      "Spider_mites",
+      "Target_spot",
+      "Verticillium_wilt",
+      "Yellow_leaf_curl_virus"
+    ],
+    "labels": [
+      "Bacterial Spot",
+      "Early Blight",
+      "Fusarium Wilt",
+      "Healthy",
+      "Late Blight",
+      "Leaf Miner",
+      "Leaf Mold",
+      "Mosaic Virus",
+      "Septoria Leaf Spot",
+      "Spider Mites",
+      "Target Spot",
+      "Verticillium Wilt",
+      "Yellow Leaf Curl Virus"
+    ],
+    "accuracy": 0.9343,
+    "macro_f1": 0.9322,
+    "test_images": 1796,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1066.72,
+    "output_shape": [
+      1,
+      13
+    ]
+  },
+  {
+    "crop_id": "Walnut",
+    "crop_name": "Walnut",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98950890,
+    "classes_count": 5,
+    "classes": [
+      "Anthracnose",
+      "Blotch",
+      "Gall_mite",
+      "Healthy",
+      "Shot_hole"
+    ],
+    "labels": [
+      "Anthracnose",
+      "Blotch",
+      "Gall Mite",
+      "Healthy",
+      "Shot Hole"
+    ],
+    "accuracy": 0.9966,
+    "macro_f1": 0.9955,
+    "test_images": 582,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1048.68,
+    "output_shape": [
+      1,
+      5
+    ]
+  },
+  {
+    "crop_id": "Watermelon",
+    "crop_name": "Watermelon",
+    "kind": "disease",
+    "arch": "convnext_small",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 94.37,
+    "weight_size_bytes": 98949344,
+    "classes_count": 4,
+    "classes": [
+      "watermelon___anthracnose",
+      "watermelon___downy_mildew",
+      "watermelon___healthy",
+      "watermelon___mosaic_virus"
+    ],
+    "labels": [
+      "Anthracnose",
+      "Downy Mildew",
+      "Healthy",
+      "Mosaic Virus"
+    ],
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "test_images": 300,
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "loadable": true,
+    "load_error": null,
+    "test_latency_ms": 1044.75,
+    "output_shape": [
+      1,
+      4
+    ]
+  }
+]

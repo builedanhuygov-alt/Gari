@@ -1,0 +1,264 @@
+{
+  "model_name": "PlantVillage-ViT-Leaf-Disease",
+  "directory": "D:\\leaf-diseases-detector-main\\models\\Model tong",
+  "architecture": "ViTForImageClassification",
+  "base_model": "google/vit-base-patch16-224-in21k",
+  "framework": "PyTorch / Transformers / HuggingFace",
+  "task": "Image Classification (Single-shot crop and disease classification)",
+  "input_dimensions": [
+    3,
+    224,
+    224
+  ],
+  "patch_size": 16,
+  "weights_file": "model.safetensors (327.4 MB)",
+  "normalization": {
+    "mean": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "std": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "size": {
+      "height": 224,
+      "width": 224
+    }
+  },
+  "total_classes": 38,
+  "total_crops": 14,
+  "classes_by_crop": {
+    "Apple": [
+      {
+        "id": 0,
+        "raw_label": "Apple___Apple_scab",
+        "disease": "Apple_scab"
+      },
+      {
+        "id": 1,
+        "raw_label": "Apple___Black_rot",
+        "disease": "Black_rot"
+      },
+      {
+        "id": 2,
+        "raw_label": "Apple___Cedar_apple_rust",
+        "disease": "Cedar_apple_rust"
+      },
+      {
+        "id": 3,
+        "raw_label": "Apple___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Blueberry": [
+      {
+        "id": 4,
+        "raw_label": "Blueberry___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Cherry": [
+      {
+        "id": 5,
+        "raw_label": "Cherry_(including_sour)___Powdery_mildew",
+        "disease": "Powdery_mildew"
+      },
+      {
+        "id": 6,
+        "raw_label": "Cherry_(including_sour)___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Corn": [
+      {
+        "id": 7,
+        "raw_label": "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
+        "disease": "Cercospora_leaf_spot Gray_leaf_spot"
+      },
+      {
+        "id": 8,
+        "raw_label": "Corn_(maize)___Common_rust_",
+        "disease": "Common_rust_"
+      },
+      {
+        "id": 9,
+        "raw_label": "Corn_(maize)___Northern_Leaf_Blight",
+        "disease": "Northern_Leaf_Blight"
+      },
+      {
+        "id": 10,
+        "raw_label": "Corn_(maize)___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Grape": [
+      {
+        "id": 11,
+        "raw_label": "Grape___Black_rot",
+        "disease": "Black_rot"
+      },
+      {
+        "id": 12,
+        "raw_label": "Grape___Esca_(Black_Measles)",
+        "disease": "Esca_(Black_Measles)"
+      },
+      {
+        "id": 13,
+        "raw_label": "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)",
+        "disease": "Leaf_blight_(Isariopsis_Leaf_Spot)"
+      },
+      {
+        "id": 14,
+        "raw_label": "Grape___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Orange": [
+      {
+        "id": 15,
+        "raw_label": "Orange___Haunglongbing_(Citrus_greening)",
+        "disease": "Haunglongbing_(Citrus_greening)"
+      }
+    ],
+    "Peach": [
+      {
+        "id": 16,
+        "raw_label": "Peach___Bacterial_spot",
+        "disease": "Bacterial_spot"
+      },
+      {
+        "id": 17,
+        "raw_label": "Peach___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Pepper": [
+      {
+        "id": 18,
+        "raw_label": "Pepper,_bell___Bacterial_spot",
+        "disease": "Bacterial_spot"
+      },
+      {
+        "id": 19,
+        "raw_label": "Pepper,_bell___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Potato": [
+      {
+        "id": 20,
+        "raw_label": "Potato___Early_blight",
+        "disease": "Early_blight"
+      },
+      {
+        "id": 21,
+        "raw_label": "Potato___Late_blight",
+        "disease": "Late_blight"
+      },
+      {
+        "id": 22,
+        "raw_label": "Potato___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Raspberry": [
+      {
+        "id": 23,
+        "raw_label": "Raspberry___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Soybean": [
+      {
+        "id": 24,
+        "raw_label": "Soybean___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Squash": [
+      {
+        "id": 25,
+        "raw_label": "Squash___Powdery_mildew",
+        "disease": "Powdery_mildew"
+      }
+    ],
+    "Strawberry": [
+      {
+        "id": 26,
+        "raw_label": "Strawberry___Leaf_scorch",
+        "disease": "Leaf_scorch"
+      },
+      {
+        "id": 27,
+        "raw_label": "Strawberry___healthy",
+        "disease": "healthy"
+      }
+    ],
+    "Tomato": [
+      {
+        "id": 28,
+        "raw_label": "Tomato___Bacterial_spot",
+        "disease": "Bacterial_spot"
+      },
+      {
+        "id": 29,
+        "raw_label": "Tomato___Early_blight",
+        "disease": "Early_blight"
+      },
+      {
+        "id": 30,
+        "raw_label": "Tomato___Late_blight",
+        "disease": "Late_blight"
+      },
+      {
+        "id": 31,
+        "raw_label": "Tomato___Leaf_Mold",
+        "disease": "Leaf_Mold"
+      },
+      {
+        "id": 32,
+        "raw_label": "Tomato___Septoria_leaf_spot",
+        "disease": "Septoria_leaf_spot"
+      },
+      {
+        "id": 33,
+        "raw_label": "Tomato___Spider_mites Two-spotted_spider_mite",
+        "disease": "Spider_mites Two-spotted_spider_mite"
+      },
+      {
+        "id": 34,
+        "raw_label": "Tomato___Target_Spot",
+        "disease": "Target_Spot"
+      },
+      {
+        "id": 35,
+        "raw_label": "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+        "disease": "Tomato_Yellow_Leaf_Curl_Virus"
+      },
+      {
+        "id": 36,
+        "raw_label": "Tomato___Tomato_mosaic_virus",
+        "disease": "Tomato_mosaic_virus"
+      },
+      {
+        "id": 37,
+        "raw_label": "Tomato___healthy",
+        "disease": "healthy"
+      }
+    ]
+  },
+  "evaluation_metrics": {
+    "overall_accuracy": 0.9979,
+    "overall_macro_f1": 0.996,
+    "dataset": "PlantVillage (43,456 train / 10,849 test)"
+  },
+  "capabilities": {
+    "performs_object_detection": false,
+    "performs_segmentation": false,
+    "performs_classification": true,
+    "attention_visualization_capable": true
+  }
+}

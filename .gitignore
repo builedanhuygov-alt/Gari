@@ -1,0 +1,55 @@
+node_modules/
+.vscode/
+dist/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+
+# Model files - downloaded from HuggingFace at runtime
+*.h5
+model/*.h5
+efficientnetb0_notop.h5
+plant_disease_model.h5
+mango_model.h5
+
+# Model artifact patterns
+*.pth
+*.pt
+*.onnx
+*.pickle
+*.joblib
+*.ckpt
+*.sav
+
+# Ignore any model folders and artifacts
+model/
+model/**/*
+models/
+models/**/*
+uploads/
+uploads/**/*
+artifacts/
+artifacts/**/*
+
+# Virtual environment
+.venv/
+
+# Large files
+*.exe
+cloudflared.exe
+
+# Database, uploads and backups
+*.db
+database/disease_detector.db
+database/uploads/
+database/backups/
+db.sqlite
+database/*.txt
+database/*.log
+database/*.jsonl
+
+# Environment files - never commit real secrets (keep only .env.example tracked)
+.env
+.env.*
+!.env.example

@@ -1,0 +1,11 @@
+{
+  "test_frontend": "PASSED",
+  "report_header_verified": "KẾT QUẢ KIỂM TRA LÁ",
+  "crop_identification_verified": "Khoai tây",
+  "crop_correction_verified": "Cà chua",
+  "quality_rejection_verified": "Hình ảnh quá mờ (độ sắc nét LapVar = 2.0 < 15.0). Vui lòng chụp rõ nét hơn.",
+  "localization_tabs_verified": true,
+  "history_persistence_verified": true,
+  "history_record_count": 5,
+  "latest_record": "#DG-48 -- Vùng trồng chung Cà chua Bệnh đốm lá Septoria | TRUNG BÌNH | 69.5% 2026-10-30 15:05:08"
+}

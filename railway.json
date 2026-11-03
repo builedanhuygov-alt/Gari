@@ -1,0 +1,12 @@
+{
+    "$schema": "https://railway.com/schema.json",
+    "build": {
+        "builder": "NIXPACKS",
+        "buildCommand": "npm --prefix server ci --include=dev && npm --prefix server run build"
+    },
+    "deploy": {
+        "numReplicas": 1,
+        "startCommand": "node server/dist/index.js",
+        "healthcheckPath": "/health"
+    }
+}

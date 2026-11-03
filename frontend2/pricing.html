@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng giá & Gói dịch vụ • Gari AgriTech</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head" style="text-align:center; display:block; margin-bottom:32px;">
+                    <div style="display:inline-block; margin-bottom:8px;">
+                        <span class="pill pill-success" style="font-size:12px; font-weight:700;">🌱 MÔ HÌNH DOANH THU 10 HƯỚNG • GIAI ĐOÀN THỰC NGHIỆM</span>
+                    </div>
+                    <h1 class="page-head-title" style="font-size:26px; font-weight:800; margin-bottom:8px;">Giải Pháp Công Nghệ Cho Mọi Quy Mô Nông Nghiệp</h1>
+                    <p class="page-head-sub" style="max-width:680px; margin:0 auto; font-size:14px; line-height:1.6;">
+                        Từ nông hộ cá thể, kỹ sư nông học độc lập đến các hợp tác xã, chuỗi cung ứng vật tư và tập đoàn chế biến xuất khẩu.
+                    </p>
+                </div>
+
+                <!-- Active Subscription & Quota Card (Dynamic) -->
+                <div id="userSubscriptionCard" class="card" style="display:none; padding:20px; margin-bottom:28px; border:1px solid var(--primary); background:linear-gradient(135deg, rgba(16,185,129,0.06), rgba(2,132,199,0.04));">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; margin-bottom:14px;">
+                        <div>
+                            <span class="pill pill-neutral" style="font-size:11px; margin-bottom:6px;">THÔNG TIN THUÊ BAO CỦA BẠN</span>
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <h2 style="font-size:20px; font-weight:800; margin:0;" id="userPlanName">Đang tải...</h2>
+                                <span class="pill pill-success" id="userSubStatusBadge" style="font-weight:700;">Đang hoạt động</span>
+                            </div>
+                        </div>
+                        <div id="subActionButtons" style="display:flex; gap:8px; align-items:center;">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnCancelSub" style="display:none;" onclick="window.handleCancelSub()">
+                                Hủy vào cuối kỳ
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="btnReactivateSub" style="display:none;" onclick="window.handleReactivateSub()">
+                                Tiếp tục duy trì gói
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Cancellation at period end notice banner -->
+                    <div id="cancelWarningBanner" style="display:none; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12.5px; color:var(--text-main);">
+                        ⚠️ <strong>Thuê bao sẽ kết thúc vào cuối kỳ:</strong> Bạn vẫn được hưởng trọn vẹn toàn bộ tính năng và hạn ngạch của gói cho đến <span id="cancelEndDateText" style="font-weight:700;"></span>.
+                    </div>
+
+                    <!-- Usage and Period Details Grid -->
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; font-size:12.5px;">
+                        <div style="background:var(--surface); padding:10px 14px; border-radius:8px; border:1px solid var(--border);">
+                            <div style="color:var(--text-muted); font-size:11.5px; margin-bottom:4px;">Hạn ngạch phân loại</div>
+                            <div style="font-size:16px; font-weight:700; color:var(--primary);" id="subUsageStats">-- / --</div>
+                            <div style="color:var(--text-muted); font-size:11px;" id="subRemainingText">Đang làm mới...</div>
+                        </div>
+                        <div style="background:var(--surface); padding:10px 14px; border-radius:8px; border:1px solid var(--border);">
+                            <div style="color:var(--text-muted); font-size:11.5px; margin-bottom:4px;">Kỳ hiện tại</div>
+                            <div style="font-size:13px; font-weight:600; color:var(--text-main);" id="subPeriodDates">Theo ngày (24 giờ)</div>
+                            <div style="color:var(--text-muted); font-size:11px;" id="subResetTime">Làm mới tự động</div>
+                        </div>
+                        <div style="background:var(--surface); padding:10px 14px; border-radius:8px; border:1px solid var(--border);">
+                            <div style="color:var(--text-muted); font-size:11.5px; margin-bottom:4px;">Phương thức thanh toán</div>
+                            <div style="font-size:13px; font-weight:600; color:var(--text-main);" id="subPaymentMethod">Thủ công / Pilot Beta</div>
+                            <div style="color:var(--text-muted); font-size:11px;">Cổng online: Chưa cấu hình</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transparent Beta Program Alert -->
+                <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:10px; padding:14px 18px; margin-bottom:28px; display:flex; align-items:center; gap:14px;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(16,185,129,0.15); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </div>
+                    <div style="font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+                        <strong style="color:var(--text-main);">Chính sách minh bạch & Kích hoạt quyền truy cập:</strong> Hệ thống Gari AI Lab cam kết <strong>không giả lập thanh toán</strong>. Cổng thanh toán trực tuyến hiện chưa mở công khai; bạn có thể kích hoạt gói cước chính thức bằng <strong>Mã Voucher do Quản trị viên cấp</strong> bên dưới hoặc liên hệ ban quản trị tại <code>contact@gari.vn</code>.
+                    </div>
+                </div>
+
+                <!-- Voucher Redemption Card -->
+                <div class="card" style="padding:22px; margin-bottom:28px; border:1px solid var(--border); border-radius:12px; background:var(--surface);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:38px; height:38px; border-radius:8px; background:rgba(16,185,129,0.12); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:20px;">
+                                🎟️
+                            </div>
+                            <div>
+                                <h3 style="font-size:16px; font-weight:800; margin:0; color:var(--text-main);">Kích Hoạt Gói Bằng Mã Voucher</h3>
+                                <p style="font-size:12px; color:var(--text-muted); margin:0;">Nhập mã voucher để mở khóa toàn bộ quyền lợi gói Cá nhân hoặc Doanh nghiệp miễn phí.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <form id="voucherRedeemForm" onsubmit="window.handleRedeemVoucher(event)" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start;">
+                        <div style="flex:1; min-width:260px;">
+                            <input type="text" class="form-control" id="voucherCodeInput" placeholder="VD: GARI-PERS-XXXX-XXXX" style="font-family:monospace; font-weight:700; text-transform:uppercase; letter-spacing:1px;" required>
+                            <div id="voucherErrorMsg" style="display:none; color:#ef4444; font-size:12px; margin-top:6px; font-weight:600;"></div>
+                            <div id="voucherSuccessMsg" style="display:none; color:#10b981; font-size:12px; margin-top:6px; font-weight:600;"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnRedeemVoucher" style="height:40px; padding:0 22px; font-weight:700;">
+                            Kích hoạt Voucher
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 5 Pricing Cards Grid -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:18px; margin-bottom:36px;">
+                    <!-- Plan 0: Guest Trial -->
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--border); border-radius:12px; padding:20px;">
+                        <div>
+                            <span class="pill pill-neutral" style="margin-bottom:12px;">Dùng Thử Nhanh</span>
+                            <h3 style="font-size:20px; font-weight:800; margin-bottom:6px;">0 đ <span style="font-size:12px; font-weight:500; color:var(--text-muted);">/ không cần tài khoản</span></h3>
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Trải nghiệm tức thì chẩn đoán lá cây không cần đăng nhập.</p>
+                            
+                            <ul style="padding-left:18px; margin:0; font-size:12px; color:var(--text-secondary); line-height:1.7;">
+                                <li><strong>3 lượt phân loại</strong> mỗi 24 giờ (theo IP)</li>
+                                <li>Mô hình toàn cục chuẩn</li>
+                                <li>Cổng lọc ảnh lá cây tự động</li>
+                                <li>Đánh giá độ chắc chắn</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top:20px;">
+                            <a href="/frontend2/predict.html" class="btn btn-secondary" style="width:100%; justify-content:center;">Thử ngay</a>
+                        </div>
+                    </div>
+
+                    <!-- Plan 1: Free -->
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--border); border-radius:12px; padding:20px;">
+                        <div>
+                            <span class="pill pill-neutral" style="margin-bottom:12px;">Nông Hộ Cá Thể (Free)</span>
+                            <h3 style="font-size:20px; font-weight:800; margin-bottom:6px;">0 đ <span style="font-size:12px; font-weight:500; color:var(--text-muted);">/ trọn đời</span></h3>
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Dành cho nông dân cá thể, chủ ruộng và người làm vườn gia đình.</p>
+                            
+                            <ul style="padding-left:18px; margin:0; font-size:12px; color:var(--text-secondary); line-height:1.7;">
+                                <li><strong>5 lượt phân loại</strong> mỗi 24 giờ</li>
+                                <li>Nhật ký đồng ruộng & theo dõi mùa vụ</li>
+                                <li>Xuất nhật ký chẩn đoán cá nhân</li>
+                                <li>Mô hình chuẩn & mô hình 7 cây ưu tiên</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top:20px;">
+                            <a href="/frontend2/predict.html" class="btn btn-secondary" style="width:100%; justify-content:center;" id="btnCurrentFree">Đang sử dụng</a>
+                        </div>
+                    </div>
+
+                    <!-- Plan 2: Personal (Cá nhân - 129,000 VND) -->
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; border:2px solid var(--primary); border-radius:12px; padding:20px; position:relative; box-shadow:0 8px 24px rgba(16,185,129,0.12);">
+                        <div style="position:absolute; top:-12px; right:16px;">
+                            <span class="pill pill-success" style="font-weight:700;">Gói Cá Nhân</span>
+                        </div>
+                        <div>
+                            <span class="pill pill-warning" style="margin-bottom:12px;">Cá Nhân (Personal)</span>
+                            <h3 style="font-size:20px; font-weight:800; color:var(--primary); margin-bottom:6px;">129.000 đ <span style="font-size:12px; font-weight:500; color:var(--text-muted);">/ tháng</span></h3>
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Dành cho kỹ sư nông học, khuyến nông cơ sở và chủ vườn chuyên canh.</p>
+                            
+                            <ul style="padding-left:18px; margin:0; font-size:12px; color:var(--text-secondary); line-height:1.7;">
+                                <li><strong>150 lượt phân loại</strong> mỗi 24 giờ</li>
+                                <li><strong>Toàn quyền Model VIP:</strong> Model 2 & Model 4</li>
+                                <li>Phân tích thị giác Grad-CAM Heatmap</li>
+                                <li>Nhật ký đồng ruộng không giới hạn & xuất dữ liệu</li>
+                                <li>Hỗ trợ kỹ thuật ưu tiên</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                            <button type="button" class="btn btn-primary" style="width:100%; justify-content:center;" onclick="window.handleStartCheckout('personal')">
+                                Đăng ký 129.000 đ/tháng
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="window.scrollToVoucher()">
+                                Nhập mã Voucher miễn phí
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Plan 3: Business (Doanh nghiệp - 299,000 VND) -->
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--border); border-radius:12px; padding:20px;">
+                        <div>
+                            <span class="pill pill-info" style="margin-bottom:12px;">Doanh Nghiệp (Business)</span>
+                            <h3 style="font-size:20px; font-weight:800; margin-bottom:6px;">299.000 đ <span style="font-size:12px; font-weight:500; color:var(--text-muted);">/ tháng</span></h3>
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Dành cho Hợp tác xã, chuỗi đại lý vật tư BVTV và trang trại có đội ngũ.</p>
+                            
+                            <ul style="padding-left:18px; margin:0; font-size:12px; color:var(--text-secondary); line-height:1.7;">
+                                <li><strong>800 lượt phân loại chia sẻ</strong> mỗi 24 giờ</li>
+                                <li><strong>10 thành viên</strong> trong tổ chức</li>
+                                <li>Phân quyền quản trị: Owner, Admin, Member, Viewer</li>
+                                <li><strong>API-as-a-Service:</strong> 5 Khóa kết nối API IoT</li>
+                                <li>Đo lường viễn trắc (Usage Telemetry) & Model VIP</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                            <button type="button" class="btn btn-primary" style="width:100%; justify-content:center;" onclick="window.handleStartCheckout('business')">
+                                Đăng ký 299.000 đ/tháng
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="window.scrollToVoucher()">
+                                Nhập mã Voucher miễn phí
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Plan 4: Enterprise -->
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--border); border-radius:12px; padding:20px;">
+                        <div>
+                            <span class="pill pill-neutral" style="margin-bottom:12px;">Tập Đoàn (Enterprise)</span>
+                            <h3 style="font-size:18px; font-weight:800; margin-bottom:6px;">Hợp đồng B2B <span style="font-size:11.5px; font-weight:500; color:var(--text-muted);">(Tùy biến)</span></h3>
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Tập đoàn chế biến xuất khẩu, đơn vị chuyển đổi số nông nghiệp.</p>
+                            
+                            <ul style="padding-left:18px; margin:0; font-size:12px; color:var(--text-secondary); line-height:1.7;">
+                                <li><strong>Hạn mức linh hoạt hoặc không giới hạn</strong></li>
+                                <li>Không giới hạn số lượng thành viên</li>
+                                <li>Tùy biến thương hiệu (Custom Branding)</li>
+                                <li>Cam kết SLA 99.9% & Kỹ sư chuyên trách</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top:20px;">
+                            <button type="button" class="btn btn-secondary" style="width:100%; justify-content:center;" onclick="window.contactUpgrade('Doanh nghiệp Enterprise')">
+                                Liên hệ đàm phán hợp đồng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10 Revenue Architecture Roadmap Explanation -->
+                <div class="card" style="padding:24px;">
+                    <h3 style="font-size:16px; font-weight:800; margin-bottom:14px;">Bản đồ hỗ trợ 10 Hướng Doanh thu Nông nghiệp Công nghệ cao (AgriTech Roadmap)</h3>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; font-size:12.5px; color:var(--text-secondary); line-height:1.6;">
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">1. B2C Subscription:</strong> Gói Pro dành cho kỹ sư và chủ vườn cần chẩn đoán chuyên sâu và model Pro.
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">2. B2B SaaS:</strong> Nền tảng quản trị phân quyền cho HTX quản lý vùng trồng tập trung.
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">3. B2B2C Allocations:</strong> Cửa hàng vật tư phân bổ lượt quét miễn phí cho khách hàng thân thiết.
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">4. API-as-a-Service:</strong> Cho phép hệ sinh thái IoT, drone phun thuốc tích hợp động cơ thị giác AI.
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">5. White-label:</strong> Tùy chỉnh màu sắc, logo và tên ứng dụng cho doanh nghiệp xuất khẩu.
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">6. Enterprise Contracts:</strong> Hợp đồng chuyển đổi số nông nghiệp lớn với cam kết bảo mật & SLA.
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">7. Marketplace:</strong> Kết nối dịch vụ phân bón, chế phẩm sinh học sau chẩn đoán (giai đoạn sau).
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">8. Expert Consultation:</strong> Thu phí tư vấn 1-1 cùng chuyên gia đầu ngành bảo vệ thực vật.
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">9. Software/Model Licensing:</strong> Cấp phép chạy mô hình nơ-ron Offline tại máy chủ rìa/trại giống.
+                        </div>
+                        <div style="padding:12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border);">
+                            <strong style="color:var(--text-main);">10. Institutional Partnerships:</strong> Dự án giám sát dịch tễ cùng Chi cục Trồng trọt & BVTV.
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, toast } from '/static/frontend2/app.js';
+
+        let currentSubData = null;
+
+        async function fetchSubscriptionData() {
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) return;
+
+            try {
+                const res = await fetch('/api/billing/subscription', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data.success) return;
+                currentSubData = data;
+                renderSubscriptionCard(data);
+            } catch (err) {
+                console.error("Failed to load subscription data", err);
+            }
+        }
+
+        function renderSubscriptionCard(data) {
+            const card = document.getElementById('userSubscriptionCard');
+            if (!card) return;
+            card.style.display = 'block';
+
+            const sub = data.subscription || {};
+            const ent = data.entitlement || {};
+            const quota = data.quota || {};
+
+            document.getElementById('userPlanName').textContent = ent.plan_name || sub.plan_id || 'Miễn Phí';
+
+            const statusBadge = document.getElementById('userSubStatusBadge');
+            const status = sub.status || ent.subscription_status || 'active';
+            const statusMap = {
+                'active': { text: 'Đang hiệu lực', cls: 'pill-success' },
+                'trialing': { text: 'Dùng thử', cls: 'pill-info' },
+                'cancel_at_period_end': { text: 'Đã đặt hủy cuối kỳ', cls: 'pill-warning' },
+                'past_due': { text: 'Quá hạn thanh toán', cls: 'pill-warning' },
+                'suspended': { text: 'Đang tạm dừng', cls: 'pill-danger' },
+                'expired': { text: 'Đã hết hạn', cls: 'pill-neutral' }
+            };
+            const meta = statusMap[status] || { text: status, cls: 'pill-neutral' };
+            statusBadge.textContent = meta.text;
+            statusBadge.className = `pill ${meta.cls}`;
+
+            // Buttons & Warning
+            const btnCancel = document.getElementById('btnCancelSub');
+            const btnReactivate = document.getElementById('btnReactivateSub');
+            const banner = document.getElementById('cancelWarningBanner');
+
+            if (status === 'cancel_at_period_end') {
+                banner.style.display = 'block';
+                document.getElementById('cancelEndDateText').textContent = sub.current_period_end || 'hết chu kỳ';
+                btnCancel.style.display = 'none';
+                btnReactivate.style.display = 'inline-flex';
+            } else if (status === 'active' && sub.id) {
+                banner.style.display = 'none';
+                btnCancel.style.display = 'inline-flex';
+                btnReactivate.style.display = 'none';
+            } else {
+                banner.style.display = 'none';
+                btnCancel.style.display = 'none';
+                btnReactivate.style.display = 'none';
+            }
+
+            // Quota
+            if (quota.is_unlimited) {
+                document.getElementById('subUsageStats').textContent = 'Không giới hạn';
+                document.getElementById('subRemainingText').textContent = 'Đã dùng ' + (quota.used_count || 0) + ' lượt';
+            } else {
+                document.getElementById('subUsageStats').textContent = `${quota.used_count || 0} / ${quota.quota_limit || '--'} lượt`;
+                document.getElementById('subRemainingText').textContent = `Còn lại ${quota.remaining !== null ? quota.remaining : '--'} lượt hôm nay`;
+            }
+
+            // Period
+            if (sub.current_period_start && sub.current_period_end) {
+                document.getElementById('subPeriodDates').textContent = `${sub.current_period_start.slice(0, 10)} → ${sub.current_period_end.slice(0, 10)}`;
+            } else {
+                document.getElementById('subPeriodDates').textContent = 'Theo ngày (24 giờ)';
+            }
+            document.getElementById('subResetTime').textContent = quota.resets_in_human ? `Làm mới sau ${quota.resets_in_human}` : 'Làm mới tự động';
+
+            // Payment method & access source
+            let methodText = 'Miễn phí cơ bản';
+            if (ent.access_source === 'voucher') {
+                methodText = 'Mã Voucher Ưu Đãi (Miễn phí)';
+            } else if (ent.access_source === 'subscription') {
+                methodText = sub.is_paid ? 'Đã thanh toán (Thủ công)' : (sub.commercial_intent === 'pilot_active' ? 'Pilot thử nghiệm (Chưa thu phí)' : 'Đăng ký trả phí');
+            }
+            document.getElementById('subPaymentMethod').textContent = methodText;
+        }
+
+        window.scrollToVoucher = function() {
+            const input = document.getElementById('voucherCodeInput');
+            if (input) {
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                input.focus();
+            }
+        };
+
+        window.handleRedeemVoucher = async function(event) {
+            event.preventDefault();
+            const input = document.getElementById('voucherCodeInput');
+            const errBox = document.getElementById('voucherErrorMsg');
+            const successBox = document.getElementById('voucherSuccessMsg');
+            const btn = document.getElementById('btnRedeemVoucher');
+
+            const code = input.value.trim().toUpperCase();
+            if (!code) return;
+
+            errBox.style.display = 'none';
+            successBox.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = 'Đang xác thực...';
+
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) {
+                errBox.textContent = 'Vui lòng đăng nhập tài khoản trước khi kích hoạt voucher.';
+                errBox.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Kích hoạt Voucher';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/vouchers/redeem', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ code: code })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || 'Không thể kích hoạt voucher.');
+                }
+
+                successBox.textContent = `🎉 ${data.message_vi || 'Kích hoạt thành công!'} Gói: ${data.plan_name} (${data.duration_days} ngày).`;
+                successBox.style.display = 'block';
+                input.value = '';
+                toast('Kích hoạt voucher thành công!', 'success');
+                await fetchSubscriptionData();
+            } catch (err) {
+                errBox.textContent = err.message;
+                errBox.style.display = 'block';
+                toast(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Kích hoạt Voucher';
+            }
+        };
+
+        window.copyToClipboard = function(text, label) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    toast(`Đã sao chép ${label || 'nội dung'}!`, 'info');
+                }).catch(() => {
+                    prompt(`Sao chép ${label || 'nội dung'}:`, text);
+                });
+            } else {
+                prompt(`Sao chép ${label || 'nội dung'}:`, text);
+            }
+        };
+
+        let qrPollTimer = null;
+        let qrCountdownTimer = null;
+        let currentActiveOrder = null;
+
+        window.closeBankQRModal = function() {
+            const modal = document.getElementById('modalBankQR');
+            if (modal) modal.style.display = 'none';
+            if (qrPollTimer) {
+                clearInterval(qrPollTimer);
+                qrPollTimer = null;
+            }
+            if (qrCountdownTimer) {
+                clearInterval(qrCountdownTimer);
+                qrCountdownTimer = null;
+            }
+            currentActiveOrder = null;
+        };
+
+        window.handleReportTransferred = async function() {
+            if (!currentActiveOrder) return;
+            const btn = document.getElementById('btnReportTransferred');
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Đang gửi thông báo...';
+
+            try {
+                const res = await fetch(`/api/billing/orders/${currentActiveOrder.order_code}/transferred`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.detail || 'Không thể gửi thông báo chuyển khoản.');
+                    btn.disabled = false;
+                    btn.textContent = '✓ Tôi Đã Chuyển Khoản';
+                    return;
+                }
+
+                btn.textContent = '✓ Đã Báo Chuyển Khoản (Đang Chờ Quản Trị Viên Duyệt)';
+                btn.className = 'btn btn-secondary';
+                btn.disabled = true;
+                const notice = document.getElementById('qrStatusNoticeText');
+                if (notice) {
+                    notice.textContent = 'Quản trị viên đang đối soát tài khoản ngân hàng. Gói dịch vụ sẽ tự động kích hoạt ngay khi đối soát hoàn tất.';
+                }
+                toast('Đã ghi nhận thông báo chuyển khoản. Quản trị viên đang đối soát.', 'info');
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btn.textContent = '✓ Tôi Đã Chuyển Khoản';
+                alert('Lỗi kết nối khi gửi thông báo chuyển khoản.');
+            }
+        };
+
+        window.openBankQRModal = function(order) {
+            const modal = document.getElementById('modalBankQR');
+            if (!modal) return;
+            currentActiveOrder = order;
+
+            document.getElementById('qrPlanName').textContent = order.plan_name || order.plan_id;
+            const formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.amount);
+            document.getElementById('qrAmountText').textContent = formattedAmount;
+            document.getElementById('qrAmountRaw').textContent = formattedAmount;
+            document.getElementById('qrBankId').textContent = order.bank_id || 'MoMo / VietQR (NAPAS 24/7)';
+            document.getElementById('qrAccNumber').textContent = order.account_number || '';
+            document.getElementById('qrAccName').textContent = order.account_name || '';
+            document.getElementById('qrContent').textContent = order.transfer_content || order.order_reference;
+            document.getElementById('qrOrderRef').textContent = order.order_reference;
+
+            const qrImage = document.getElementById('qrImageElement');
+            if (qrImage) {
+                qrImage.src = order.qr_code_url;
+            }
+
+            // Reset modal states
+            document.getElementById('qrModalActiveView').style.display = 'block';
+            document.getElementById('qrModalSuccessView').style.display = 'none';
+            document.getElementById('qrModalExpiredView').style.display = 'none';
+
+            const btnTransfer = document.getElementById('btnReportTransferred');
+            if (btnTransfer) {
+                btnTransfer.disabled = false;
+                btnTransfer.textContent = '✓ Tôi Đã Chuyển Khoản';
+                btnTransfer.className = 'btn btn-primary';
+                btnTransfer.style.width = '100%';
+            }
+            const noticeText = document.getElementById('qrStatusNoticeText');
+            if (noticeText) {
+                noticeText.textContent = `Mã đơn: ${order.order_reference}. Quét mã QR bằng ứng dụng ngân hàng và bấm "Tôi Đã Chuyển Khoản".`;
+            }
+
+            // Setup countdown
+            const expiresAtMs = new Date(order.expires_at).getTime();
+            if (qrCountdownTimer) clearInterval(qrCountdownTimer);
+            function updateCountdown() {
+                const now = Date.now();
+                const diff = expiresAtMs - now;
+                if (diff <= 0) {
+                    clearInterval(qrCountdownTimer);
+                    document.getElementById('qrCountdownText').textContent = 'Đã hết hạn';
+                    document.getElementById('qrModalActiveView').style.display = 'none';
+                    document.getElementById('qrModalExpiredView').style.display = 'block';
+                    if (qrPollTimer) clearInterval(qrPollTimer);
+                    return;
+                }
+                const mins = Math.floor(diff / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+                document.getElementById('qrCountdownText').textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+            updateCountdown();
+            qrCountdownTimer = setInterval(updateCountdown, 1000);
+
+            // Start polling status
+            if (qrPollTimer) clearInterval(qrPollTimer);
+            qrPollTimer = setInterval(async () => {
+                try {
+                    const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                    const res = await fetch(`/api/billing/orders/${order.order_code}/status`, { headers });
+                    if (!res.ok) return;
+                    const st = await res.json();
+                    if (!st.success || !st.order) return;
+
+                    const status = st.order.payment_status;
+                    if (status === 'paid') {
+                        clearInterval(qrPollTimer);
+                        clearInterval(qrCountdownTimer);
+                        document.getElementById('qrModalActiveView').style.display = 'none';
+                        document.getElementById('qrModalSuccessView').style.display = 'block';
+                        toast('🎉 Thanh toán đã được xác nhận! Gói cước đã được kích hoạt.', 'success');
+                        await fetchSubscriptionData();
+                    } else if (status === 'pending_review') {
+                        const btn = document.getElementById('btnReportTransferred');
+                        if (btn && !btn.disabled) {
+                            btn.textContent = '✓ Đã Báo Chuyển Khoản (Đang Chờ Quản Trị Viên Duyệt)';
+                            btn.className = 'btn btn-secondary';
+                            btn.disabled = true;
+                        }
+                        const notice = document.getElementById('qrStatusNoticeText');
+                        if (notice) {
+                            notice.textContent = 'Quản trị viên đang đối soát tài khoản ngân hàng. Gói dịch vụ sẽ tự động kích hoạt ngay khi duyệt.';
+                        }
+                    } else if (status === 'expired') {
+                        clearInterval(qrPollTimer);
+                        clearInterval(qrCountdownTimer);
+                        document.getElementById('qrModalActiveView').style.display = 'none';
+                        document.getElementById('qrModalExpiredView').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.warn("Lỗi kiểm tra trạng thái đơn:", e);
+                }
+            }, 2500);
+
+            modal.style.display = 'flex';
+        };
+
+        window.handleStartCheckout = async function(planId) {
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) {
+                toast('Vui lòng đăng nhập để nâng cấp gói cước.', 'warning');
+                window.location.href = '/frontend2/login.html';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/billing/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ plan_id: planId })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.detail || 'Cổng thanh toán chuyển khoản QR hiện chưa mở công khai. Quý khách vui lòng sử dụng Mã Voucher ưu đãi do Quản trị viên cấp hoặc liên hệ ban quản trị.');
+                    window.scrollToVoucher();
+                    return;
+                }
+
+                if (data.qr_code_url) {
+                    window.openBankQRModal(data);
+                } else if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Đã tạo đơn thanh toán mã: ' + data.order_code);
+                }
+            } catch (err) {
+                alert('Lỗi kết nối khi gửi yêu cầu nâng cấp gói.');
+            }
+        };
+
+        window.handleCancelSub = async function() {
+            const reason = prompt("Vui lòng cho biết lý do bạn muốn hủy thuê bao vào cuối kỳ:");
+            if (!reason) return;
+            if (reason.trim().length < 3) {
+                alert("Lý do quá ngắn (tối thiểu 3 ký tự).");
+                return;
+            }
+
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            try {
+                const res = await fetch('/api/billing/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ reason: reason.trim() })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.detail || "Không thể hủy thuê bao");
+                    return;
+                }
+                alert(data.message_vi || "Đã thiết lập hủy vào cuối kỳ thành công.");
+                fetchSubscriptionData();
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi kết nối khi gửi yêu cầu hủy thuê bao.");
+            }
+        };
+
+        window.handleReactivateSub = async function() {
+            if (!confirm("Bạn muốn tiếp tục duy trì gói này và hủy lệnh dừng dịch vụ cuối kỳ?")) return;
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            try {
+                const res = await fetch('/api/billing/reactivate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ reason: "Khách hàng khôi phục thuê bao qua trang bảng giá" })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.detail || "Không thể khôi phục thuê bao");
+                    return;
+                }
+                alert(data.message_vi || "Thuê bao đã được duy trì thành công.");
+                fetchSubscriptionData();
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi kết nối khi khôi phục thuê bao.");
+            }
+        };
+
+        async function verifyPostRedirectPayment() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentParam = urlParams.get('payment');
+            if (!paymentParam) return;
+
+            // Clean query parameters from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            if (paymentParam === 'cancel') {
+                toast('Giao dịch thanh toán đã được hủy.', 'info');
+                return;
+            }
+
+            if (paymentParam === 'success') {
+                toast('Đang xác thực kết quả thanh toán từ ngân hàng...', 'info');
+                // Poll backend up to 5 times (2-second intervals) to verify actual server payment confirmation
+                let attempts = 0;
+                const maxAttempts = 5;
+                const pollInterval = setInterval(async () => {
+                    attempts++;
+                    try {
+                        const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+                        if (!token) {
+                            clearInterval(pollInterval);
+                            return;
+                        }
+                        const res = await fetch('/api/billing/subscription', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            const sub = data.subscription || {};
+                            if (sub.status === 'active' && sub.is_paid) {
+                                clearInterval(pollInterval);
+                                renderSubscriptionCard(data);
+                                toast('🎉 Thanh toán thành công! Gói cước đã được kích hoạt.', 'success');
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Poll subscription error", e);
+                    }
+
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        toast('Hệ thống ngân hàng đang đồng bộ kết quả. Vui lòng tải lại trang sau 1 phút.', 'warning');
+                    }
+                }, 2000);
+            }
+        }
+
+        function init() {
+            setupSaaSShell('pricing', 'Bảng Giá & Gói Dịch Vụ');
+            fetchSubscriptionData();
+            verifyPostRedirectPayment();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        window.openPilotModal = function(planName) {
+            const modal = document.getElementById('modalPilotRequest');
+            if (modal) {
+                modal.style.display = 'flex';
+                const inputPlan = document.getElementById('pilotTargetPlan');
+                if (inputPlan && planName) inputPlan.value = planName;
+                const errBox = document.getElementById('pilotFormError');
+                if (errBox) errBox.style.display = 'none';
+                const successBox = document.getElementById('pilotFormSuccess');
+                if (successBox) successBox.style.display = 'none';
+                const form = document.getElementById('pilotRequestForm');
+                if (form) form.style.display = 'block';
+            }
+        };
+
+        window.closePilotModal = function() {
+            const modal = document.getElementById('modalPilotRequest');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.contactUpgrade = function(planName) {
+            window.openPilotModal(planName);
+        };
+
+        window.handlePilotSubmit = async function(event) {
+            event.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmitPilot');
+            const errBox = document.getElementById('pilotFormError');
+            const successBox = document.getElementById('pilotFormSuccess');
+            const form = document.getElementById('pilotRequestForm');
+
+            const name = document.getElementById('pilotName').value.trim();
+            const contact = document.getElementById('pilotContact').value.trim();
+            const customerType = document.getElementById('pilotCustomerType').value;
+            const crops = document.getElementById('pilotCrops').value.trim();
+            const region = document.getElementById('pilotRegion').value.trim();
+            const plan = document.getElementById('pilotTargetPlan').value;
+            const problem = document.getElementById('pilotProblem').value.trim();
+            const consent = document.getElementById('pilotConsent').checked;
+
+            if (!name || !contact) {
+                errBox.textContent = "Vui lòng nhập họ tên và thông tin liên hệ.";
+                errBox.style.display = 'block';
+                return;
+            }
+
+            if (!consent) {
+                errBox.textContent = "Bạn cần đồng ý lưu trữ thông tin liên hệ để nhận hỗ trợ pilot.";
+                errBox.style.display = 'block';
+                return;
+            }
+
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = "Đang gửi yêu cầu...";
+            errBox.style.display = 'none';
+
+            try {
+                const combinedProblem = plan ? `[Quan tâm gói: ${plan}] ${problem}` : problem;
+                const res = await fetch('/api/pilot/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        contact: contact,
+                        customer_type: customerType,
+                        crops_of_interest: crops,
+                        region: region,
+                        problem_statement: combinedProblem,
+                        consent_given: consent
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || "Không thể gửi yêu cầu thử nghiệm.");
+                }
+
+                form.style.display = 'none';
+                successBox.style.display = 'block';
+                document.getElementById('pilotSuccessNotice').textContent = data.notice || "Yêu cầu đã được ghi nhận. Đội ngũ Gari sẽ chủ động liên hệ thủ công.";
+            } catch (err) {
+                errBox.textContent = err.message;
+                errBox.style.display = 'block';
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "Gửi Yêu Cầu Thử Nghiệm";
+            }
+        };
+    </script>
+
+    <!-- Bank QR Payment Modal (VietQR + SePay) -->
+    <div id="modalBankQR" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
+        <div class="card" style="width:100%; max-width:640px; max-height:92vh; overflow-y:auto; padding:26px; border-radius:16px; box-shadow:0 24px 48px rgba(0,0,0,0.35); border:1px solid var(--border); background:var(--surface);">
+            <!-- Modal Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span class="pill pill-success" style="font-size:11px; font-weight:700;">MOMO / VIETQR 24/7</span>
+                    <h3 style="font-size:18px; font-weight:800; color:var(--text-main); margin:0;">Thanh Toán Chuyển Khoản Ngân Hàng</h3>
+                </div>
+                <button type="button" onclick="window.closeBankQRModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-muted); line-height:1;">&times;</button>
+            </div>
+
+            <!-- Active Pending View -->
+            <div id="qrModalActiveView">
+                <div style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(2,132,199,0.05)); border:1px solid rgba(16,185,129,0.25); border-radius:10px; padding:12px 16px; margin-bottom:16px;">
+                    <div>
+                        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Gói cước nâng cấp</div>
+                        <div style="font-size:16px; font-weight:800; color:var(--text-main);" id="qrPlanName">--</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Hạn thanh toán</div>
+                        <div style="font-size:16px; font-weight:800; color:#ef4444;" id="qrCountdownText">15:00</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:220px 1fr; gap:20px; align-items:start; margin-bottom:16px;">
+                    <!-- QR Image Column -->
+                    <div style="text-align:center;">
+                        <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid var(--border); display:inline-block; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
+                            <img id="qrImageElement" src="/static/frontend2/images/vietqr_momo.jpg" alt="MoMo VietQR Code" style="width:200px; height:200px; object-fit:contain; display:block; border-radius:6px;" />
+                        </div>
+                        <div style="font-size:11.5px; color:var(--text-muted); margin-top:8px;">
+                            Mở ứng dụng MoMo hoặc ứng dụng ngân hàng bất kỳ để quét mã VietQR và thanh toán.
+                        </div>
+                    </div>
+
+                    <!-- Transfer Details Column -->
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="background:var(--surface-muted); padding:10px 12px; border-radius:8px; border:1px solid var(--border);">
+                            <div style="font-size:11px; color:var(--text-muted);">Ngân hàng thụ hưởng</div>
+                            <div style="font-size:13.5px; font-weight:700; color:var(--text-main);" id="qrBankId">--</div>
+                        </div>
+
+                        <div style="background:var(--surface-muted); padding:10px 12px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-size:11px; color:var(--text-muted);">Số tài khoản</div>
+                                <div style="font-size:14px; font-weight:800; color:var(--text-main); font-family:monospace;" id="qrAccNumber">--</div>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="window.copyToClipboard(document.getElementById('qrAccNumber').textContent, 'Số tài khoản')">Sao chép</button>
+                        </div>
+
+                        <div style="background:var(--surface-muted); padding:10px 12px; border-radius:8px; border:1px solid var(--border);">
+                            <div style="font-size:11px; color:var(--text-muted);">Tên chủ tài khoản</div>
+                            <div style="font-size:13.5px; font-weight:700; color:var(--text-main); text-transform:uppercase;" id="qrAccName">--</div>
+                        </div>
+
+                        <div style="background:var(--surface-muted); padding:10px 12px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-size:11px; color:var(--text-muted);">Số tiền chính xác</div>
+                                <div style="font-size:15px; font-weight:800; color:var(--primary);" id="qrAmountText">-- đ</div>
+                                <span id="qrAmountRaw" style="display:none;"></span>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="window.copyToClipboard(document.getElementById('qrAmountRaw').textContent.replace(/[^\d]/g,''), 'Số tiền')">Sao chép</button>
+                        </div>
+
+                        <div style="background:rgba(239,68,68,0.06); padding:10px 12px; border-radius:8px; border:1px dashed rgba(239,68,68,0.4); display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-size:11px; color:#ef4444; font-weight:700;">Nội dung chuyển khoản (Bắt buộc)</div>
+                                <div style="font-size:15px; font-weight:900; color:#ef4444; font-family:monospace; letter-spacing:0.5px;" id="qrContent">--</div>
+                            </div>
+                            <button type="button" class="btn btn-sm" style="background:#ef4444; color:#fff;" onclick="window.copyToClipboard(document.getElementById('qrContent').textContent, 'Nội dung CK')">Sao chép</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Notice -->
+                <div style="padding:10px 12px; background:rgba(245,158,11,0.08); border-radius:8px; border:1px solid rgba(245,158,11,0.25); font-size:12px; color:var(--text-secondary); line-height:1.5; margin-bottom:14px;">
+                    ⚠️ <strong>Lưu ý quan trọng:</strong> Quý khách chuyển đúng <strong>chính xác số tiền</strong> và <strong>nội dung chuyển khoản</strong> trên. Sau khi chuyển xong trên App Ngân hàng, bấm nút <strong>"Tôi Đã Chuyển Khoản"</strong> bên dưới để gửi yêu cầu kích hoạt đến Quản trị viên.
+                </div>
+
+                <!-- User Reported Transfer Button -->
+                <button type="button" class="btn btn-primary" id="btnReportTransferred" style="width:100%; justify-content:center; margin-bottom:12px; font-weight:700; padding:12px;" onclick="window.handleReportTransferred()">
+                    ✓ Tôi Đã Chuyển Khoản
+                </button>
+
+                <!-- Live Polling & Admin Review Indicator -->
+                <div id="qrStatusIndicatorBox" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:var(--surface-muted); border-radius:8px; font-size:12.5px; color:var(--text-secondary);">
+                    <span id="qrStatusPulseDot" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981; animation:pulse 1.5s infinite;"></span>
+                    <span id="qrStatusNoticeText">Mã đơn: <strong id="qrOrderRef">--</strong>. Quét mã QR bằng App Ngân hàng và bấm "Tôi Đã Chuyển Khoản".</span>
+                </div>
+            </div>
+
+            <!-- Success Confirmed View -->
+            <div id="qrModalSuccessView" style="display:none; text-align:center; padding:32px 16px;">
+                <div style="font-size:52px; margin-bottom:12px;">🎉</div>
+                <h3 style="font-size:20px; font-weight:800; color:#10b981; margin-bottom:8px;">Thanh Toán Thành Công!</h3>
+                <p style="font-size:13.5px; color:var(--text-secondary); line-height:1.6; max-width:440px; margin:0 auto 20px;">
+                    Hệ thống đã nhận được tiền và tự động kích hoạt thành công gói dịch vụ của bạn. Toàn bộ tính năng cao cấp và hạn ngạch đã sẵn sàng.
+                </p>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <a href="/frontend2/predict.html" class="btn btn-primary">Bắt đầu chẩn đoán ngay</a>
+                    <button type="button" class="btn btn-secondary" onclick="window.closeBankQRModal()">Đóng cửa sổ</button>
+                </div>
+            </div>
+
+            <!-- Expired View -->
+            <div id="qrModalExpiredView" style="display:none; text-align:center; padding:32px 16px;">
+                <div style="font-size:52px; margin-bottom:12px;">⏰</div>
+                <h3 style="font-size:20px; font-weight:800; color:#ef4444; margin-bottom:8px;">Đơn Thanh Toán Đã Hết Hạn</h3>
+                <p style="font-size:13.5px; color:var(--text-secondary); line-height:1.6; max-width:440px; margin:0 auto 20px;">
+                    Mã QR và thông tin chuyển khoản này đã quá hạn 15 phút. Nếu bạn chưa chuyển tiền, vui lòng bấm nút bên dưới để tạo mã QR mới.
+                </p>
+                <button type="button" class="btn btn-primary" onclick="window.closeBankQRModal()">Tạo Đơn Thanh Toán Mới</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pilot / Demo Request Modal (Sprint 5) -->
+    <div id="modalPilotRequest" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:16px;">
+        <div class="card" style="width:100%; max-width:560px; max-height:90vh; overflow-y:auto; padding:26px; border-radius:14px; box-shadow:0 20px 40px rgba(0,0,0,0.3); border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:12px;">
+                <div>
+                    <span class="pill pill-success" style="font-size:11px; font-weight:700;">GARI AI LAB • PILOT VALIDATION</span>
+                    <h3 style="font-size:18px; font-weight:800; color:var(--text-main); margin-top:4px;">Đăng Ký Thử Nghiệm Pilot / Yêu Cầu Demo</h3>
+                </div>
+                <button type="button" onclick="window.closePilotModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            </div>
+
+            <div id="pilotFormError" class="alert alert-danger" style="display:none; margin-bottom:14px; font-size:12.5px; padding:10px 14px; border-radius:8px; background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3);"></div>
+
+            <div id="pilotFormSuccess" style="display:none; text-align:center; padding:24px 10px;">
+                <div style="font-size:44px; margin-bottom:10px;">🌱</div>
+                <h4 style="font-size:17px; font-weight:800; color:var(--text-main); margin-bottom:6px;">Yêu Cầu Đã Được Ghi Nhận Thành Công!</h4>
+                <p id="pilotSuccessNotice" style="font-size:13px; color:var(--text-secondary); line-height:1.6; max-width:440px; margin:0 auto 20px;">
+                    Hệ thống hiện tại chưa cấu hình máy chủ gửi email tự động. Đội ngũ kỹ thuật Gari sẽ chủ động liên hệ trực tiếp với bạn qua thông tin đã cung cấp.
+                </p>
+                <button type="button" class="btn btn-primary" onclick="window.closePilotModal()" style="display:inline-flex;">
+                    Hoàn tất & Đóng
+                </button>
+            </div>
+
+            <form id="pilotRequestForm" onsubmit="window.handlePilotSubmit(event)">
+                <input type="hidden" id="pilotTargetPlan" value="">
+                
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">
+                    💡 Chương trình thử nghiệm Pilot dành cho nông hộ, hợp tác xã và đơn vị nghiên cứu muốn kiểm chứng giải pháp nhận diện bệnh cây bằng AI tại thực địa vụ mùa 2026.
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Họ và tên *</label>
+                        <input type="text" class="form-control" id="pilotName" placeholder="Nguyễn Văn A" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Email hoặc Số điện thoại / Zalo *</label>
+                        <input type="text" class="form-control" id="pilotContact" placeholder="0912... hoặc email" required>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Loại đối tác</label>
+                        <select class="form-control" id="pilotCustomerType">
+                            <option value="farmer">Nông hộ cá thể / Chủ vườn</option>
+                            <option value="cooperative" selected>Hợp tác xã / Trang trại</option>
+                            <option value="research">Viện nghiên cứu / Khuyến nông</option>
+                            <option value="other">Đại lý VTNN / Doanh nghiệp khác</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Khu vực (Tỉnh / Huyện)</label>
+                        <input type="text" class="form-control" id="pilotRegion" placeholder="VD: Ba Vì, Hà Nội hoặc Lâm Đồng">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" style="font-size:12px; font-weight:700;">Cây trồng quan tâm (Ưu tiên 7 cây chủ lực)</label>
+                    <input type="text" class="form-control" id="pilotCrops" placeholder="VD: Lúa, Cà chua, Khoai tây, Cà phê...">
+                </div>
+
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label class="form-label" style="font-size:12px; font-weight:700;">Nhu cầu hoặc vấn đề muốn kiểm chứng (Tùy chọn)</label>
+                    <textarea class="form-control" id="pilotProblem" rows="2" placeholder="VD: Muốn kiểm tra độ nhạy bệnh đạo ôn trên ruộng lúa hè thu..."></textarea>
+                </div>
+
+                <div style="margin-bottom:18px; padding:10px 12px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border-light);">
+                    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-secondary); cursor:pointer;">
+                        <input type="checkbox" id="pilotConsent" required style="margin-top:2px;">
+                        <span>Tôi tự nguyện đồng ý để Gari AI Lab lưu trữ thông tin liên hệ trên để phục vụ công tác điều phối, liên hệ kỹ thuật và đánh giá thử nghiệm pilot.</span>
+                    </label>
+                </div>
+
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="window.closePilotModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitPilot">Gửi Yêu Cầu Thử Nghiệm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

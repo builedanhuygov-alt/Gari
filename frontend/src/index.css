@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  /* Gari AgriTech SaaS Design Tokens - Light Mode */
+  --color-primary: #166534;
+  --color-primary-dark: #14532D;
+  --color-accent: #22C55E;
+  --color-bg: #F7F9F7;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F1F4F2;
+  --color-text: #17231C;
+  --color-text-muted: #66736A;
+  --color-border: #E5EBE6;
+  --color-border-hover: #CBD5CD;
+
+  --color-card-bg: #FFFFFF;
+  --color-sidebar-bg: #F4F7F4;
+  --color-header-bg: rgba(255, 255, 255, 0.85);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  font-family: var(--font-sans);
+  color-scheme: light;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark {
+  /* Gari AgriTech SaaS Design Tokens - Dark Mode */
+  --color-primary: #22C55E;
+  --color-primary-dark: #166534;
+  --color-accent: #4ADE80;
+  --color-bg: #0B100D;
+  --color-surface: #121814;
+  --color-surface-hover: #19221C;
+  --color-text: #F1F5F2;
+  --color-text-muted: #8E9F94;
+  --color-border: #1E2821;
+  --color-border-hover: #2B3A30;
+
+  --color-card-bg: #121814;
+  --color-sidebar-bg: #0E1410;
+  --color-header-bg: rgba(18, 24, 20, 0.85);
+
+  color-scheme: dark;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.35);
+}
+
+/* Keyframes for subtle entrance micro-interactions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Utility to hide scrollbars while allowing scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

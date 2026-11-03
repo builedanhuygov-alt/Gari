@@ -1,0 +1,290 @@
+{
+  "Apple": {
+    "name_vi": "Táo tây",
+    "common_name": "Cây táo tây",
+    "scientific_name": "Malus domestica",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Apricot": {
+    "name_vi": "Mơ tây",
+    "common_name": "Cây mơ tây",
+    "scientific_name": "Prunus armeniaca",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Banana": {
+    "name_vi": "Chuối",
+    "common_name": "Cây chuối",
+    "scientific_name": "Musa acuminata",
+    "family": "Họ Chuối (Musaceae)"
+  },
+  "Betel": {
+    "name_vi": "Trầu không",
+    "common_name": "Cây trầu không",
+    "scientific_name": "Piper betle",
+    "family": "Họ Hồ tiêu (Piperaceae)"
+  },
+  "Bitter_gourd": {
+    "name_vi": "Mướp đắng (Khổ qua)",
+    "common_name": "Cây mướp đắng",
+    "scientific_name": "Momordica charantia",
+    "family": "Họ Bầu bí (Cucurbitaceae)"
+  },
+  "Black_Pepper": {
+    "name_vi": "Hồ tiêu",
+    "common_name": "Cây hồ tiêu",
+    "scientific_name": "Piper nigrum",
+    "family": "Họ Hồ tiêu (Piperaceae)"
+  },
+  "Blueberry": {
+    "name_vi": "Việt quất",
+    "common_name": "Cây việt quất",
+    "scientific_name": "Vaccinium corymbosum",
+    "family": "Họ Thạch nam (Ericaceae)"
+  },
+  "Bottle_gourd": {
+    "name_vi": "Bầu sao (Bầu nậm)",
+    "common_name": "Cây bầu",
+    "scientific_name": "Lagenaria siceraria",
+    "family": "Họ Bầu bí (Cucurbitaceae)"
+  },
+  "Brinjal": {
+    "name_vi": "Cà tím",
+    "common_name": "Cây cà tím",
+    "scientific_name": "Solanum melongena",
+    "family": "Họ Cà (Solanaceae)"
+  },
+  "Cashew": {
+    "name_vi": "Điều (Đào lộn hột)",
+    "common_name": "Cây điều",
+    "scientific_name": "Anacardium occidentale",
+    "family": "Họ Đào lộn hột (Anacardiaceae)"
+  },
+  "Cassava": {
+    "name_vi": "Sắn (Khoai mì)",
+    "common_name": "Cây sắn",
+    "scientific_name": "Manihot esculenta",
+    "family": "Họ Đại kích (Euphorbiaceae)"
+  },
+  "Cherry": {
+    "name_vi": "Anh đào (Cherry)",
+    "common_name": "Cây anh đào",
+    "scientific_name": "Prunus avium",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Chrysanthemum": {
+    "name_vi": "Hoa cúc",
+    "common_name": "Cây hoa cúc",
+    "scientific_name": "Chrysanthemum morifolium",
+    "family": "Họ Cúc (Asteraceae)"
+  },
+  "Citrus": {
+    "name_vi": "Cây có múi (Cam, Chanh, Bưởi)",
+    "common_name": "Cây có múi",
+    "scientific_name": "Citrus spp.",
+    "family": "Họ Cửu lý hương (Rutaceae)"
+  },
+  "Coconut": {
+    "name_vi": "Dừa",
+    "common_name": "Cây dừa",
+    "scientific_name": "Cocos nucifera",
+    "family": "Họ Cau (Arecaceae)"
+  },
+  "Coffee": {
+    "name_vi": "Cà phê",
+    "common_name": "Cây cà phê",
+    "scientific_name": "Coffea canephora / Coffea arabica",
+    "family": "Họ Cà phê (Rubiaceae)"
+  },
+  "Corn": {
+    "name_vi": "Ngô (Bắp)",
+    "common_name": "Cây ngô",
+    "scientific_name": "Zea mays",
+    "family": "Họ Hòa thảo (Poaceae)"
+  },
+  "Cucumber": {
+    "name_vi": "Dưa chuột (Dưa leo)",
+    "common_name": "Cây dưa chuột",
+    "scientific_name": "Cucumis sativus",
+    "family": "Họ Bầu bí (Cucurbitaceae)"
+  },
+  "Cucurbit": {
+    "name_vi": "Họ bầu bí (Bí ngô, Dưa)",
+    "common_name": "Cây họ bầu bí",
+    "scientific_name": "Cucurbita spp.",
+    "family": "Họ Bầu bí (Cucurbitaceae)"
+  },
+  "Custard_apple": {
+    "name_vi": "Mãng cầu ta (Na)",
+    "common_name": "Cây na",
+    "scientific_name": "Annona squamosa",
+    "family": "Họ Na (Annonaceae)"
+  },
+  "Fig": {
+    "name_vi": "Quả sung (Vả tây)",
+    "common_name": "Cây sung tây",
+    "scientific_name": "Ficus carica",
+    "family": "Họ Dâu tằm (Moraceae)"
+  },
+  "Grape": {
+    "name_vi": "Nho",
+    "common_name": "Cây nho",
+    "scientific_name": "Vitis vinifera",
+    "family": "Họ Nho (Vitaceae)"
+  },
+  "Guava": {
+    "name_vi": "Ổi",
+    "common_name": "Cây ổi",
+    "scientific_name": "Psidium guajava",
+    "family": "Họ Đào kim nương (Myrtaceae)"
+  },
+  "Loquat": {
+    "name_vi": "Sơn tra (Tỳ bà)",
+    "common_name": "Cây tỳ bà",
+    "scientific_name": "Eriobotrya japonica",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Maize": {
+    "name_vi": "Ngô (Bắp)",
+    "common_name": "Cây ngô",
+    "scientific_name": "Zea mays",
+    "family": "Họ Hòa thảo (Poaceae)"
+  },
+  "Mango": {
+    "name_vi": "Xoài",
+    "common_name": "Cây xoài",
+    "scientific_name": "Mangifera indica",
+    "family": "Họ Đào lộn hột (Anacardiaceae)"
+  },
+  "Mulberry": {
+    "name_vi": "Dâu tằm",
+    "common_name": "Cây dâu tằm",
+    "scientific_name": "Morus alba",
+    "family": "Họ Dâu tằm (Moraceae)"
+  },
+  "okra": {
+    "name_vi": "Đậu bắp",
+    "common_name": "Cây đậu bắp",
+    "scientific_name": "Abelmoschus esculentus",
+    "family": "Họ Cẩm quỳ (Malvaceae)"
+  },
+  "Orange": {
+    "name_vi": "Cam",
+    "common_name": "Cây cam",
+    "scientific_name": "Citrus sinensis",
+    "family": "Họ Cửu lý hương (Rutaceae)"
+  },
+  "Papaya": {
+    "name_vi": "Đu đủ",
+    "common_name": "Cây đu đủ",
+    "scientific_name": "Carica papaya",
+    "family": "Họ Đu đủ (Caricaceae)"
+  },
+  "Peach": {
+    "name_vi": "Đào",
+    "common_name": "Cây đào",
+    "scientific_name": "Prunus persica",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Pear": {
+    "name_vi": "Lê",
+    "common_name": "Cây lê",
+    "scientific_name": "Pyrus communis",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Pepper": {
+    "name_vi": "Ớt ngọt (Ớt chuông)",
+    "common_name": "Cây ớt ngọt",
+    "scientific_name": "Capsicum annuum",
+    "family": "Họ Cà (Solanaceae)"
+  },
+  "pomrgranet": {
+    "name_vi": "Lựu",
+    "common_name": "Cây lựu",
+    "scientific_name": "Punica granatum",
+    "family": "Họ Thạch lựu (Lythraceae)"
+  },
+  "Potato": {
+    "name_vi": "Khoai tây",
+    "common_name": "Cây khoai tây",
+    "scientific_name": "Solanum tuberosum",
+    "family": "Họ Cà (Solanaceae)"
+  },
+  "Raspberry": {
+    "name_vi": "Mâm xôi",
+    "common_name": "Cây mâm xôi",
+    "scientific_name": "Rubus idaeus",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Rice": {
+    "name_vi": "Lúa nước",
+    "common_name": "Cây lúa",
+    "scientific_name": "Oryza sativa",
+    "family": "Họ Hòa thảo (Poaceae)"
+  },
+  "Ridge_gourd": {
+    "name_vi": "Mướp khía",
+    "common_name": "Cây mướp khía",
+    "scientific_name": "Luffa acutangula",
+    "family": "Họ Bầu bí (Cucurbitaceae)"
+  },
+  "Rose": {
+    "name_vi": "Hoa hồng",
+    "common_name": "Cây hoa hồng",
+    "scientific_name": "Rosa spp.",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Snake_gourd": {
+    "name_vi": "Mướp rắn",
+    "common_name": "Cây mướp rắn",
+    "scientific_name": "Trichosanthes cucumerina",
+    "family": "Họ Bầu bí (Cucurbitaceae)"
+  },
+  "Soybean": {
+    "name_vi": "Đậu nành (Đậu tương)",
+    "common_name": "Cây đậu tương",
+    "scientific_name": "Glycine max",
+    "family": "Họ Đậu (Fabaceae)"
+  },
+  "Squash": {
+    "name_vi": "Bí ngô (Bí đỏ)",
+    "common_name": "Cây bí đỏ",
+    "scientific_name": "Cucurbita pepo",
+    "family": "Họ Bầu bí (Cucurbitaceae)"
+  },
+  "Strawberry": {
+    "name_vi": "Dâu tây",
+    "common_name": "Cây dâu tây",
+    "scientific_name": "Fragaria × ananassa",
+    "family": "Họ Hoa hồng (Rosaceae)"
+  },
+  "Sugarcane": {
+    "name_vi": "Mía",
+    "common_name": "Cây mía",
+    "scientific_name": "Saccharum officinarum",
+    "family": "Họ Hòa thảo (Poaceae)"
+  },
+  "Tea": {
+    "name_vi": "Chè (Trà)",
+    "common_name": "Cây chè",
+    "scientific_name": "Camellia sinensis",
+    "family": "Họ Chè (Theaceae)"
+  },
+  "Tomato": {
+    "name_vi": "Cà chua",
+    "common_name": "Cây cà chua",
+    "scientific_name": "Solanum lycopersicum",
+    "family": "Họ Cà (Solanaceae)"
+  },
+  "Walnut": {
+    "name_vi": "Óc chó",
+    "common_name": "Cây óc chó",
+    "scientific_name": "Juglans regia",
+    "family": "Họ Óc chó (Juglandaceae)"
+  },
+  "Watermelon": {
+    "name_vi": "Dưa hấu",
+    "common_name": "Cây dưa hấu",
+    "scientific_name": "Citrullus lanatus",
+    "family": "Họ Bầu bí (Cucurbitaceae)"
+  }
+}

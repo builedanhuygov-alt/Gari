@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-10-30 14:01:10",
+  "total": 10,
+  "passed": 10,
+  "results": [
+    {
+      "test_number": 1,
+      "name": "Confirm models directory exists",
+      "status": "PASS",
+      "details": "Path: D:\\leaf-diseases-detector-main\\models (exists: True)"
+    },
+    {
+      "test_number": 2,
+      "name": "Discover all model folders",
+      "status": "PASS",
+      "details": "Discovered 44 valid model directories"
+    },
+    {
+      "test_number": 3,
+      "name": "Generate the model inventory",
+      "status": "PASS",
+      "details": "model_inventory.json exists with size 43940 bytes"
+    },
+    {
+      "test_number": 4,
+      "name": "Load at least one actual local model",
+      "status": "PASS",
+      "details": "POST /api/models/Tomato/load -> HTTP 200, status: LOADED, load_time: 0ms"
+    },
+    {
+      "test_number": 5,
+      "name": "Run inference on a real test leaf image",
+      "status": "PASS",
+      "details": "Predicted: 'Bacterial Spot', Conf: 0.9488%, Time: 144.5ms, Top-3: ['Bacterial Spot', 'Target Spot', 'Late Blight']"
+    },
+    {
+      "test_number": 6,
+      "name": "Verify the prediction response structure",
+      "status": "PASS",
+      "details": "Arch: convnext_small, Model: Gari ConvNeXt (Tomato), Top-3 Count: 3, Top-1 Conf: 0.9488%"
+    },
+    {
+      "test_number": 7,
+      "name": "Verify frontend UI integrates crop selector and prediction display",
+      "status": "PASS",
+      "details": "Frontend HTTP: 200, CropSelect found: True, Top3Display found: True"
+    },
+    {
+      "test_number": 8,
+      "name": "Verify CPU fallback if CUDA is unavailable",
+      "status": "PASS",
+      "details": "Device: cpu, CUDA available: False, Cached models: ['Tomato', 'Potato']"
+    },
+    {
+      "test_number": 9,
+      "name": "Test invalid image handling",
+      "status": "PASS",
+      "details": "POST corrupted image -> HTTP 400, Error: cannot identify image file <_io.BytesIO object at 0x000001AF9859FE70>"
+    },
+    {
+      "test_number": 10,
+      "name": "Confirm unsupported models are reported correctly",
+      "status": "PASS",
+      "details": "POST unsupported crop 'NonExistentCrop123' -> HTTP 400, Error: Crop 'NonExistentCrop123' not found. Available crops: Apple, Apricot, Banana, Betel, Bitter_gourd, Black_Pepper, Bottle_gourd, Brinjal, Cashew, Cassava, Cherry, Chrysanthemum, Citrus, Coconut, Coffee, Cucumber, Cucurbit, Custard_apple, Fig, Grape, Guava, Loquat, Maize, Mango, okra, Papaya, Peach, Pear, pomrgranet, Potato, Rice, Ridge_gourd, Rose, Snake_gourd, Soybean, Strawberry, Sugarcane, Tea, Tomato, Walnut, Watermelon"
+    }
+  ]
+}

@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký tài khoản • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 24px;
+            background: radial-gradient(circle at 50% 0%, rgba(22, 101, 52, 0.08) 0%, transparent 60%), var(--bg);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+            padding: 36px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .auth-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .auth-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #166534 0%, #15803D 100%);
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3);
+        }
+
+        .auth-logo svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .auth-title {
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+
+        .auth-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .auth-alert {
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        .auth-alert.error {
+            display: flex;
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid var(--danger-border);
+        }
+
+        .auth-alert.success {
+            display: flex;
+            background: var(--success-bg);
+            color: var(--success-text);
+            border: 1px solid var(--success-border);
+        }
+
+        .account-type-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .account-type-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            user-select: none;
+        }
+
+        .account-type-card.selected {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .account-type-icon {
+            font-size: 18px;
+        }
+
+        .account-type-title {
+            font-size: 11.5px;
+            line-height: 1.2;
+        }
+
+        .auth-footer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 16px;
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <div class="auth-logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="auth-title">Đăng ký tài khoản Gari</h1>
+                    <p class="auth-subtitle">Trở thành thành viên hệ sinh thái Trí tuệ Nông nghiệp Việt Nam</p>
+                </div>
+            </div>
+
+            <!-- Error / Info Notification -->
+            <div id="authAlert" class="auth-alert"></div>
+
+            <form id="registerForm" style="display:flex; flex-direction:column; gap:14px;">
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label" for="regFullName">Họ và tên *</label>
+                    <input type="text" id="regFullName" class="input" placeholder="Nguyễn Văn An" required />
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:10px;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" for="regEmail">Email liên hệ *</label>
+                        <input type="email" id="regEmail" class="input" placeholder="an.nguyen@nongtrai.vn" required />
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" for="regPhone">Số điện thoại</label>
+                        <input type="tel" id="regPhone" class="input" placeholder="0912 345 678" />
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Loại tài khoản *</label>
+                    <div class="account-type-grid" id="accountTypeSelector">
+                        <div class="account-type-card selected" data-value="Nông hộ">
+                            <span class="account-type-icon">👨‍🌾</span>
+                            <span class="account-type-title">Nông hộ</span>
+                        </div>
+                        <div class="account-type-card" data-value="Hợp tác xã">
+                            <span class="account-type-icon">🤝</span>
+                            <span class="account-type-title">Hợp tác xã</span>
+                        </div>
+                        <div class="account-type-card" data-value="Đơn vị dịch vụ nông nghiệp">
+                            <span class="account-type-icon">🔬</span>
+                            <span class="account-type-title">Dịch vụ BVTV</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="regAccountType" value="Nông hộ" />
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" for="regPassword">Mật khẩu *</label>
+                        <input type="password" id="regPassword" class="input" placeholder="Tối thiểu 6 ký tự" required minlength="6" />
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" for="regConfirmPassword">Xác nhận mật khẩu *</label>
+                        <input type="password" id="regConfirmPassword" class="input" placeholder="Nhập lại mật khẩu" required minlength="6" />
+                    </div>
+                </div>
+
+                <div style="background:var(--surface-muted); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; font-size:12px; color:var(--text-secondary); line-height:1.5;">
+                    <strong>🔒 Minh bạch dữ liệu (Nghị định 13/2023/NĐ-CP):</strong>
+                    Gari chỉ thu thập Họ tên, Email và Số điện thoại (tùy chọn) để thiết lập tài khoản và cấp hạn ngạch quota. Chúng tôi tuyệt đối không bán dữ liệu hay thu thập thông tin tài chính cá nhân.
+                </div>
+
+                <div style="display:flex; align-items:flex-start; gap:8px; margin-top:4px;">
+                    <input type="checkbox" id="termsCheck" required style="accent-color:var(--primary); width:16px; height:16px; margin-top:2px; cursor:pointer;" />
+                    <label for="termsCheck" style="font-size:12px; color:var(--text-secondary); line-height:1.4; cursor:pointer; user-select:none;">
+                        Tôi xác nhận đã đọc, hiểu và đồng ý với 
+                        <a href="/frontend2/terms-of-service.html" target="_blank" style="color:var(--primary); font-weight:600; text-decoration:underline;">Điều khoản dịch vụ</a> 
+                        và 
+                        <a href="/frontend2/privacy-policy.html" target="_blank" style="color:var(--primary); font-weight:600; text-decoration:underline;">Chính sách bảo mật</a> của Gari AI Lab. *
+                    </label>
+                </div>
+
+                <div style="display:flex; align-items:flex-start; gap:8px;">
+                    <input type="checkbox" id="marketingCheck" style="accent-color:var(--primary); width:16px; height:16px; margin-top:2px; cursor:pointer;" />
+                    <label for="marketingCheck" style="font-size:12px; color:var(--text-muted); line-height:1.4; cursor:pointer; user-select:none;">
+                        (Tùy chọn) Tôi đồng ý nhận bản tin khuyến nông, cảnh báo dịch tễ vi khí hậu và khảo sát mùa vụ qua email.
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btnRegSubmit" style="height:42px; font-size:14px; width:100%; margin-top:6px;">
+                    Tạo tài khoản nông trại
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Đã có tài khoản? <a href="/frontend2/login.html">Đăng nhập ngay →</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Account type card selector
+        const typeCards = document.querySelectorAll('.account-type-card');
+        const hiddenTypeInput = document.getElementById('regAccountType');
+        typeCards.forEach(card => {
+            card.onclick = () => {
+                typeCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                hiddenTypeInput.value = card.dataset.value;
+            };
+        });
+
+        function showAlert(msg, type = 'error') {
+            const alert = document.getElementById('authAlert');
+            alert.className = 'auth-alert ' + type;
+            alert.textContent = msg;
+            alert.style.display = 'flex';
+        }
+
+        // Handle Register Submission
+        document.getElementById('registerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('regFullName').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const phone = document.getElementById('regPhone').value.trim();
+            const accountType = hiddenTypeInput.value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const btnSubmit = document.getElementById('btnRegSubmit');
+
+            if (password !== confirmPassword) {
+                showAlert('Mật khẩu và xác nhận mật khẩu không trùng khớp.', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAlert('Mật khẩu phải có độ dài tối thiểu 6 ký tự.', 'error');
+                return;
+            }
+
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Đang khởi tạo tài khoản...';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email: email,
+                        phone: phone || null,
+                        account_type: accountType,
+                        password: password,
+                        confirm_password: confirmPassword,
+                        terms_agreed: true,
+                        marketing_opt_in: document.getElementById('marketingCheck').checked
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    if (data.token) {
+                        localStorage.setItem('gari_token', data.token);
+                    }
+                    if (data.user) {
+                        localStorage.setItem('gari_user', JSON.stringify(data.user));
+                    }
+                    showAlert('Đăng ký tài khoản thành công! Đang chuyển đến không gian làm việc...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/frontend2/index.html';
+                    }, 500);
+                } else {
+                    showAlert(data.detail || data.message || 'Không thể đăng ký tài khoản. Vui lòng thử lại.', 'error');
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Tạo tài khoản nông trại';
+                }
+            } catch (err) {
+                showAlert('Lỗi kết nối máy chủ. Vui lòng kiểm tra lại.', 'error');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Tạo tài khoản nông trại';
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+{
+  "timestamp": "2026-10-30T15:27:05Z",
+  "dataset_summary": {
+    "total_field_records": 0,
+    "crops_count": 0,
+    "by_status": {
+      "pending": 0,
+      "reviewed": 0,
+      "verified": 0,
+      "disputed": 0
+    },
+    "by_health": {
+      "healthy": 0,
+      "abnormal": 0,
+      "unknown": 0
+    },
+    "by_environment": {},
+    "by_lighting": {},
+    "by_capture_view": {},
+    "manual_localization_annotations": 0,
+    "vietnam_8_key_crops": [
+      {
+        "crop_id": "Coffee",
+        "crop_name_vi": "Cà phê",
+        "compatible_model_exists": true,
+        "field_images_count": 0,
+        "verified_images_count": 0,
+        "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+        "category": "requires_field_data"
+      },
+      {
+        "crop_id": "Black_Pepper",
+        "crop_name_vi": "Hồ tiêu",
+        "compatible_model_exists": true,
+        "field_images_count": 0,
+        "verified_images_count": 0,
+        "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+        "category": "requires_field_data"
+      },
+      {
+        "crop_id": "Rice",
+        "crop_name_vi": "Lúa",
+        "compatible_model_exists": true,
+        "field_images_count": 0,
+        "verified_images_count": 0,
+        "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+        "category": "requires_field_data"
+      },
+      {
+        "crop_id": "Durian",
+        "crop_name_vi": "Sầu riêng",
+        "compatible_model_exists": false,
+        "field_images_count": 0,
+        "verified_images_count": 0,
+        "readiness_status": "CHƯA CÓ MÔ HÌNH (Cần dữ liệu huấn luyện & thẩm định)",
+        "category": "requires_model_and_data"
+      },
+      {
+        "crop_id": "Rubber",
+        "crop_name_vi": "Cao su",
+        "compatible_model_exists": false,
+        "field_images_count": 0,
+        "verified_images_count": 0,
+        "readiness_status": "CHƯA CÓ MÔ HÌNH (Cần dữ liệu huấn luyện & thẩm định)",
+        "category": "requires_model_and_data"
+      },
+      {
+        "crop_id": "Dragon_Fruit",
+        "crop_name_vi": "Thanh long",
+        "compatible_model_exists": false,
+        "field_images_count": 0,
+        "verified_images_count": 0,
+        "readiness_status": "CHƯA CÓ MÔ HÌNH (Cần dữ liệu huấn luyện & thẩm định)",
+        "category": "requires_model_and_data"
+      },
+      {
+        "crop_id": "Tomato",
+        "crop_name_vi": "Cà chua",
+        "compatible_model_exists": true,
+        "field_images_count": 0,
+        "verified_images_count": 0,
+        "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+        "category": "requires_field_data"
+      },
+      {
+        "crop_id": "Potato",
+        "crop_name_vi": "Khoai tây",
+        "compatible_model_exists": true,
+        "field_images_count": 0,
+        "verified_images_count": 0,
+        "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+        "category": "requires_field_data"
+      }
+    ]
+  },
+  "metrics": {
+    "total_samples": 45,
+    "crop_top1_accuracy": 1.0,
+    "crop_top3_accuracy": 1.0,
+    "crop_macro_f1": 1.0,
+    "per_class_recall": {
+      "Potato": 1.0,
+      "Tomato": 1.0,
+      "Pepper": 1.0
+    },
+    "per_class_f1": {
+      "Potato": 1.0,
+      "Tomato": 1.0,
+      "Pepper": 1.0
+    },
+    "confusion_matrix": {
+      "Potato": {
+        "Potato": 15,
+        "Tomato": 0,
+        "Pepper": 0
+      },
+      "Tomato": {
+        "Tomato": 15,
+        "Potato": 0,
+        "Pepper": 0
+      },
+      "Pepper": {
+        "Pepper": 15,
+        "Potato": 0,
+        "Tomato": 0
+      }
+    }
+  },
+  "stratified_breakdowns": {
+    "studio_background": {
+      "total": 45,
+      "correct": 45,
+      "accuracy": 1.0,
+      "status": "Evaluated on benchmark images"
+    },
+    "outdoor_background": {
+      "total": 0,
+      "correct": 0,
+      "accuracy": null,
+      "status": "Pending field collection data"
+    },
+    "natural_sunlight": {
+      "total": 45,
+      "correct": 45,
+      "accuracy": 1.0,
+      "status": "Evaluated on benchmark images"
+    },
+    "low_light": {
+      "total": 0,
+      "correct": 0,
+      "accuracy": null,
+      "status": "Pending field collection data"
+    },
+    "single_leaf": {
+      "total": 45,
+      "correct": 45,
+      "accuracy": 1.0,
+      "status": "Evaluated on benchmark images"
+    },
+    "multiple_leaves": {
+      "total": 0,
+      "correct": 0,
+      "accuracy": null,
+      "status": "Pending field collection data"
+    }
+  },
+  "quality_gate_rates": {
+    "total_valid_leaves_tested": 43,
+    "valid_leaves_rejected": 0,
+    "false_rejection_rate": 0.0,
+    "total_non_leaves_tested": 4,
+    "non_leaves_accepted": 0,
+    "false_acceptance_rate": 0.0
+  },
+  "localization_validation": {
+    "quantitative_segmentation_validated": false,
+    "mean_iou": null,
+    "mean_dice": null,
+    "manual_ground_truth_masks_count": 0,
+    "scientific_status": "PENDING_MANUAL_PIXEL_ANNOTATION",
+    "message": "Segmentation accuracy (IoU/Dice) cannot be claimed until pixel-level lesion masks are manually annotated by agronomists."
+  },
+  "crop_support_status": [
+    {
+      "crop_id": "Coffee",
+      "crop_name_vi": "Cà phê",
+      "compatible_model_exists": true,
+      "field_images_count": 0,
+      "verified_images_count": 0,
+      "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+      "category": "requires_field_data"
+    },
+    {
+      "crop_id": "Black_Pepper",
+      "crop_name_vi": "Hồ tiêu",
+      "compatible_model_exists": true,
+      "field_images_count": 0,
+      "verified_images_count": 0,
+      "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+      "category": "requires_field_data"
+    },
+    {
+      "crop_id": "Rice",
+      "crop_name_vi": "Lúa",
+      "compatible_model_exists": true,
+      "field_images_count": 0,
+      "verified_images_count": 0,
+      "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+      "category": "requires_field_data"
+    },
+    {
+      "crop_id": "Durian",
+      "crop_name_vi": "Sầu riêng",
+      "compatible_model_exists": false,
+      "field_images_count": 0,
+      "verified_images_count": 0,
+      "readiness_status": "CHƯA CÓ MÔ HÌNH (Cần dữ liệu huấn luyện & thẩm định)",
+      "category": "requires_model_and_data"
+    },
+    {
+      "crop_id": "Rubber",
+      "crop_name_vi": "Cao su",
+      "compatible_model_exists": false,
+      "field_images_count": 0,
+      "verified_images_count": 0,
+      "readiness_status": "CHƯA CÓ MÔ HÌNH (Cần dữ liệu huấn luyện & thẩm định)",
+      "category": "requires_model_and_data"
+    },
+    {
+      "crop_id": "Dragon_Fruit",
+      "crop_name_vi": "Thanh long",
+      "compatible_model_exists": false,
+      "field_images_count": 0,
+      "verified_images_count": 0,
+      "readiness_status": "CHƯA CÓ MÔ HÌNH (Cần dữ liệu huấn luyện & thẩm định)",
+      "category": "requires_model_and_data"
+    },
+    {
+      "crop_id": "Tomato",
+      "crop_name_vi": "Cà chua",
+      "compatible_model_exists": true,
+      "field_images_count": 0,
+      "verified_images_count": 0,
+      "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+      "category": "requires_field_data"
+    },
+    {
+      "crop_id": "Potato",
+      "crop_name_vi": "Khoai tây",
+      "compatible_model_exists": true,
+      "field_images_count": 0,
+      "verified_images_count": 0,
+      "readiness_status": "CÓ MÔ HÌNH - CHƯA CÓ ẢNH THỰC ĐỊA (Đang chờ thu thập mẫu)",
+      "category": "requires_field_data"
+    }
+  ]
+}

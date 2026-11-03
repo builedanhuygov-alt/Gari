@@ -1,0 +1,66 @@
+{
+  "total": 10,
+  "passed": 10,
+  "results": [
+    {
+      "id": 1,
+      "name": "Correctly identified crop",
+      "status": "PASS",
+      "details": "Bacterial Spot"
+    },
+    {
+      "id": 2,
+      "name": "Low confidence crop handling",
+      "status": "PASS",
+      "details": "Phát hiện nhiều loại cây trồng tiềm năng. Vui lòng xác nhận cây trồng của bạn."
+    },
+    {
+      "id": 3,
+      "name": "Ambiguous crop identification",
+      "status": "PASS",
+      "details": "Candidates: ['Potato', 'Cherry', 'Tomato']"
+    },
+    {
+      "id": 4,
+      "name": "Unsupported crop handling",
+      "status": "PASS",
+      "details": "Mô hình nhận diện được cây ớt ngọt, nhưng hiện chưa có mô hình phân loại bệnh chuyên biệt cho ớt ngọt trong kho mô hình."
+    },
+    {
+      "id": 5,
+      "name": "Blurry image rejection",
+      "status": "PASS",
+      "details": "Hình ảnh quá mờ (độ sắc nét LapVar = 1.7 < 15.0). Vui lòng chụp rõ nét hơn."
+    },
+    {
+      "id": 6,
+      "name": "Non-leaf rejection",
+      "status": "PASS",
+      "details": "Hình ảnh quá mờ (độ sắc nét LapVar = 0.0 < 15.0). Vui lòng chụp rõ nét hơn."
+    },
+    {
+      "id": 7,
+      "name": "Top-3 disease distribution",
+      "status": "PASS",
+      "details": "Count: 3"
+    },
+    {
+      "id": 8,
+      "name": "Model loading & caching",
+      "status": "PASS",
+      "details": "LOADED"
+    },
+    {
+      "id": 9,
+      "name": "Metadata consistency & exclusion",
+      "status": "PASS",
+      "details": "Total: 44 models"
+    },
+    {
+      "id": 10,
+      "name": "Unknown crop error handling",
+      "status": "PASS",
+      "details": "Crop 'NonExistentCrop999' not found in registry. Available c"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "field_1793374087037_1a78f2": {
+    "id": "field_1793374087037_1a78f2",
+    "filename": "field_1793374087037_1a78f2_coffee.jpg",
+    "filepath": "images/field_1793374087037_1a78f2_coffee.jpg",
+    "image_metadata": {
+      "width": 256,
+      "height": 256,
+      "channels": 3,
+      "file_size_bytes": 20183,
+      "format": "JPEG",
+      "md5_checksum": "179b88359c32acd18b02dca04586f7b7"
+    },
+    "crop": {
+      "crop_id": "Coffee",
+      "crop_name_vi": "Cà phê",
+      "scientific_name": "Coffea canephora / arabica",
+      "compatible_model_exists": true
+    },
+    "health_status": "abnormal",
+    "diagnosis": {
+      "disease_id": "Bệnh gỉ sắt cà phê (Hemileia vastatrix)",
+      "disease_name_vi": "Bệnh gỉ sắt cà phê (Hemileia vastatrix)",
+      "is_verified": true,
+      "confidence_level": "field_verified"
+    },
+    "capture_conditions": {
+      "environment": "outdoor_field",
+      "lighting": "natural_sunlight",
+      "capture_view": "single_leaf_top",
+      "device_type": "smartphone"
+    },
+    "location": {
+      "province": "Đắk Lắk",
+      "district": "Cư M'gar",
+      "agro_ecological_zone": "Tây Nguyên (Central Highlands)"
+    },
+    "source": {
+      "source_type": "vietnam_field_collection",
+      "contributor_id": "Kỹ sư Đan Huỳnh",
+      "session_id": "sess_20261030"
+    },
+    "localization": {
+      "has_manual_annotations": false,
+      "bounding_boxes": [],
+      "polygons": [],
+      "mask_file": null
+    },
+    "annotation_status": "verified",
+    "reviewer_audit": {
+      "reviewer_id": "reviewer_87df",
+      "reviewer_name": "Kỹ sư Đan Huỳnh",
+      "reviewed_at": "2026-10-30T15:28:11Z",
+      "notes": "Đã xác nhận lâm sàng: Triệu chứng nấm gỉ sắt Hemileia vastatrix chuẩn thực địa.",
+      "dispute_reason": null
+    },
+    "created_at": "2026-10-30T15:28:07Z",
+    "updated_at": "2026-10-30T15:28:11Z"
+  }
+}

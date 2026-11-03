@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-head-title">Cài đặt hệ thống</h1>
+                        <p class="page-head-sub">Cấu hình tùy chọn giao diện hiển thị, thiết lập suy luận nơ-ron cục bộ và kết nối telemetry.</p>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; max-width:960px;">
+                    <!-- User Account Profile Card -->
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+                            <div>
+                                <h3 class="card-title" style="margin:0;">Hồ sơ tài khoản & Bảo mật</h3>
+                                <div class="card-subtitle">Thông tin định danh người dùng và phiên đăng nhập hiện tại.</div>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnSettingsLogout" style="color:var(--danger); border-color:var(--danger-border);">
+                                Đăng xuất
+                            </button>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; background:var(--surface-muted); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border);">
+                            <div>
+                                <span style="font-size:11.5px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Họ và tên</span>
+                                <div style="font-size:14px; font-weight:700; color:var(--text-main); margin-top:2px;" id="setUserFullName">Đang nạp...</div>
+                            </div>
+                            <div>
+                                <span style="font-size:11.5px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Email tài khoản</span>
+                                <div style="font-size:14px; font-weight:600; color:var(--text-main); margin-top:2px;" id="setUserEmail">Đang nạp...</div>
+                            </div>
+                            <div>
+                                <span style="font-size:11.5px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Loại tài khoản</span>
+                                <div style="margin-top:2px;"><span class="pill pill-success" id="setUserRole">Đang nạp...</span></div>
+                            </div>
+                            <div>
+                                <span style="font-size:11.5px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Số điện thoại</span>
+                                <div style="font-size:14px; font-weight:600; color:var(--text-main); margin-top:2px;" id="setUserPhone">Chưa cập nhật</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Type & Role Card -->
+                    <div class="card" style="margin-bottom:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+                            <div>
+                                <h3 class="card-title" style="margin:0;">Loại Tài Khoản & Phân Quyền Vận Hành</h3>
+                                <p class="form-hint" style="margin-top:2px;">Mỗi tài khoản được gán duy nhất MỘT loại tài khoản đang hoạt động (Single Active Account Type).</p>
+                            </div>
+                            <span class="pill pill-success" id="accountTypeStatusBadge" style="font-weight:700;">🔒 Đã cố định 1 loại</span>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:16px;" id="accountTypeCardsContainer">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <div style="padding:14px; background:var(--surface-muted); border-radius:8px; border:1px solid var(--border); margin-bottom:16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                <div>
+                                    <div style="font-size:12.5px; font-weight:700; color:var(--text-main);">Đổi Loại Tài Khoản (Yêu cầu xác nhận & Ghi nhận Audit Log)</div>
+                                    <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+                                        Gói cước trả phí hoặc quyền lợi VIP hiện tại của bạn sẽ được bảo toàn nguyên vẹn.
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <select id="selectNewAccountType" class="form-control" style="width:auto; min-width:180px; font-size:12.5px; height:36px;">
+                                        <option value="farmer">Nông Hộ Cá Thể (farmer)</option>
+                                        <option value="cooperative">Hợp Tác Xã (cooperative)</option>
+                                        <option value="expert">Chuyên Gia BVTV (expert)</option>
+                                        <option value="enterprise">Doanh Nghiệp (enterprise)</option>
+                                    </select>
+                                    <button type="button" class="btn btn-secondary btn-sm" id="btnOpenChangeModal" style="height:36px; font-weight:700;">
+                                        Đổi loại tài khoản...
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit History Collapse -->
+                        <div>
+                            <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Lịch sử thay đổi (Audit Log)</span>
+                            <div id="accountTypeAuditBox" style="margin-top:8px; max-height:160px; overflow-y:auto; font-size:11.5px; border:1px solid var(--border); border-radius:6px; padding:8px 12px; background:var(--surface);">
+                                <div style="color:var(--text-muted);">Đang tải nhật ký...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Theme & Appearance -->
+                    <div class="card">
+                        <h3 class="card-title" style="margin-bottom:12px;">Giao diện & Hiển thị</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Chế độ màu sắc</label>
+                            <div style="display:flex; gap:8px; margin-top:4px;">
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnLight">
+                                    ☀️ Giao diện Sáng (Mặc định)
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnDark">
+                                    🌙 Giao diện Tối
+                                </button>
+                            </div>
+                            <div class="form-hint" style="margin-top:6px;">Chế độ sáng tiêu chuẩn giúp quan sát rõ ngoài trời nắng tại đồng ruộng.</div>
+                        </div>
+
+                        <div class="form-group" style="margin-top:16px;">
+                            <label class="form-label">Ngôn ngữ hiển thị</label>
+                            <div style="display:flex; gap:8px; margin-top:4px;">
+                                <span class="pill pill-success" style="padding:6px 10px;">🇻🇳 Tiếng Việt (Mặc định)</span>
+                                <span class="pill pill-neutral" style="padding:6px 10px;">🇺🇸 English (Đang phát triển)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inference Engine -->
+                    <div class="card">
+                        <h3 class="card-title" style="margin-bottom:12px;">Thông số suy luận cục bộ</h3>
+
+                        <div class="spec-list">
+                            <div class="spec-item">
+                                <span class="spec-k">Thiết bị thực thi:</span>
+                                <span class="spec-v">CPU Torch Core</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-k">Kiến trúc mô hình:</span>
+                                <span class="spec-v">ConvNeXt-V2-Nano</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-k">Bảo mật dữ liệu:</span>
+                                <span class="pill pill-success">100% Cục bộ (Zero Cloud Egress)</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-k">Quản trị chuyên sâu:</span>
+                                <a href="/frontend2/admin.html" style="color:var(--primary); font-weight:600;">Bảng điều khiển Quản trị mô hình →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, logout, toast, formatAccountType } from '/static/frontend2/app.js';
+
+        async function loadAccountTypeDetails() {
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) return;
+
+            try {
+                const res = await fetch('/api/user/account-type', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                renderAccountTypeUI(data);
+            } catch(e) {
+                console.error("Error loading account type:", e);
+            }
+        }
+
+        function renderAccountTypeUI(data) {
+            const currentType = data.account_type || 'farmer';
+            document.getElementById('setUserRole').textContent = data.display_name || formatAccountType(currentType);
+
+            const container = document.getElementById('accountTypeCardsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const available = data.available_types || [];
+            available.forEach(item => {
+                const isSelected = item.key === currentType;
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    padding: 12px;
+                    border-radius: 8px;
+                    border: 1px solid ${isSelected ? 'var(--primary)' : 'var(--border)'};
+                    background: ${isSelected ? 'rgba(16,185,129,0.08)' : 'var(--surface)'};
+                    opacity: ${isSelected ? '1' : '0.7'};
+                    position: relative;
+                `;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-weight:700; font-size:13px; color:var(--text-main);">${item.label}</span>
+                        ${isSelected ? '<span class="pill pill-success" style="font-size:10px;">Đang hoạt động</span>' : '<span class="pill pill-neutral" style="font-size:10px;">Đã khóa</span>'}
+                    </div>
+                    <div style="font-size:11.5px; color:var(--text-muted); line-height:1.4;">${item.description}</div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Update dropdown
+            const select = document.getElementById('selectNewAccountType');
+            if (select) {
+                select.value = currentType;
+            }
+
+            // Render audit logs
+            const auditBox = document.getElementById('accountTypeAuditBox');
+            if (auditBox) {
+                if (!data.audit_history || data.audit_history.length === 0) {
+                    auditBox.innerHTML = '<div style="color:var(--text-muted);">Chưa có lịch sử thay đổi.</div>';
+                } else {
+                    auditBox.innerHTML = data.audit_history.map(item => `
+                        <div style="padding:4px 0; border-bottom:1px solid var(--border-light); display:flex; justify-content:space-between; gap:10px;">
+                            <span><strong>${formatAccountType(item.new_type)}</strong> ${item.previous_type ? `<span style="color:var(--text-muted);">(từ ${formatAccountType(item.previous_type)})</span>` : ''} — <em>${item.reason || 'Thay đổi'}</em></span>
+                            <span style="color:var(--text-muted); font-size:10.5px;">${item.created_at || ''}</span>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        async function handleAccountTypeChange() {
+            const select = document.getElementById('selectNewAccountType');
+            const targetType = select.value;
+            const targetLabel = select.options[select.selectedIndex].text;
+
+            const reason = prompt(`XÁC NHẬN ĐỔI LOẠI TÀI KHOẢN:\n\nBạn có chắc chắn muốn chuyển sang '${targetLabel}'?\nNhập lý do thay đổi (tùy chọn):`, "Mở rộng quy mô canh tác");
+            if (reason === null) return; // User canceled
+
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            try {
+                const res = await fetch('/api/user/account-type/change', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        account_type: targetType,
+                        confirm: true,
+                        reason: reason.trim() || 'Xác nhận thay đổi qua trang Cài đặt'
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.detail || 'Không thể thay đổi loại tài khoản.');
+                    return;
+                }
+                toast('Thay đổi loại tài khoản thành công!');
+                await loadAccountTypeDetails();
+            } catch(err) {
+                console.error(err);
+                alert('Lỗi kết nối khi gửi yêu cầu đổi loại tài khoản.');
+            }
+        }
+
+        async function init() {
+            await setupSaaSShell('settings', 'Cài đặt');
+
+            // Load authenticated user info
+            try {
+                const uStr = localStorage.getItem('gari_user');
+                if (uStr) {
+                    const u = JSON.parse(uStr);
+                    document.getElementById('setUserFullName').textContent = u.full_name || u.name || 'Người dùng Gari';
+                    document.getElementById('setUserEmail').textContent = u.email || '--';
+                    document.getElementById('setUserPhone').textContent = u.phone || 'Chưa cập nhật';
+                }
+            } catch(e) {}
+
+            await loadAccountTypeDetails();
+
+            document.getElementById('btnOpenChangeModal').onclick = handleAccountTypeChange;
+
+            document.getElementById('btnSettingsLogout').onclick = () => {
+                if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                    logout();
+                }
+            };
+
+            document.getElementById('btnLight').onclick = () => {
+                document.documentElement.dataset.theme = 'light';
+                localStorage.setItem('gari-theme', 'light');
+                toast('Đã áp dụng Giao diện Sáng');
+            };
+
+            document.getElementById('btnDark').onclick = () => {
+                document.documentElement.dataset.theme = 'dark';
+                localStorage.setItem('gari-theme', 'dark');
+                toast('Đã áp dụng Giao diện Tối');
+            };
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

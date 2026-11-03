@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thư viện cây trồng • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-head-title">Thư viện cây trồng</h1>
+                        <p class="page-head-sub">Danh mục các loại cây trồng nông nghiệp được hỗ trợ bởi mạng nơ-ron ConvNeXt cục bộ.</p>
+                    </div>
+                    <div class="page-head-actions">
+                        <a href="/frontend2/predict.html" class="btn btn-primary">Chẩn đoán cây trồng</a>
+                    </div>
+                </div>
+
+                <!-- Search & Metric Filter Bar -->
+                <div class="card" style="margin-bottom:20px; padding:14px 18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <input type="text" class="input" id="cropSearch" placeholder="Tìm kiếm cây trồng (VD: Cà chua, Lúa, Khoai tây, Ngô, Nho, Xoài...)" style="max-width:380px;" />
+                        <span class="pill pill-neutral" id="cropCountBadge">Đang nạp mô hình...</span>
+                    </div>
+                </div>
+
+                <!-- Crop Cards Grid -->
+                <div class="catalog-grid" id="cropGrid">
+                    <div style="grid-column:1/-1; padding:32px 0;"><span class="skeleton" style="width:60%; height:20px;"></span></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js';
+
+        let allCrops = [];
+
+        function init() {
+            setupSaaSShell('crops', 'Thư viện cây trồng');
+            loadCrops();
+            setupSearch();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        async function loadCrops() {
+            try {
+                const data = await fetchJSON('/api/knowledge/crops');
+                allCrops = data.crops || [];
+                document.getElementById('cropCountBadge').textContent = `${allCrops.length} Mô hình Kiểm định`;
+                renderCrops(allCrops);
+            } catch (err) {
+                toast('Lỗi khi tải danh mục cây trồng.');
+            }
+        }
+
+        function renderCrops(crops) {
+            const container = document.getElementById('cropGrid');
+            if (!crops || crops.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column:1/-1;" class="empty-box">
+                        <div class="empty-title">Không tìm thấy cây trồng phù hợp</div>
+                        <div class="empty-desc">Thử tìm kiếm với tên cây trồng hoặc mã khác.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = crops.map(c => {
+                const acc = c.accuracy != null ? `Độ chính xác ${(c.accuracy * 100).toFixed(1)}%` : 'Đã kiểm định';
+                const diseases = c.labels || c.classes || [];
+
+                return `
+                    <div class="crop-card">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                <div>
+                                    <h3 style="font-size:15px; font-weight:700; color:var(--text-main); margin:0;">${c.crop_name}</h3>
+                                    <span style="font-size:11.5px; color:var(--text-muted);">${c.crop_id} • ConvNeXt</span>
+                                </div>
+                                <span class="pill pill-success">${acc}</span>
+                            </div>
+
+                            <div style="font-size:12px; color:var(--text-secondary); margin:6px 0;">
+                                Nhận diện <strong>${c.classes_count || diseases.length} loại bệnh</strong>:
+                            </div>
+
+                            <div style="display:flex; flex-wrap:wrap; gap:5px; margin:8px 0;">
+                                ${diseases.slice(0, 3).map(d => `<span class="pill pill-neutral" style="font-size:10.5px;">${d}</span>`).join('')}
+                                ${diseases.length > 3 ? `<span class="pill pill-neutral" style="font-size:10.5px;">+${diseases.length - 3}</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); display:flex; gap:8px;">
+                            <a href="/frontend2/predict.html?crop=${encodeURIComponent(c.crop_id)}" class="btn btn-primary btn-sm" style="flex:1;">
+                                Chẩn đoán ${c.crop_name}
+                            </a>
+                            <a href="/frontend2/disease.html?crop=${encodeURIComponent(c.crop_id)}" class="btn btn-secondary btn-sm">
+                                Tra cứu bệnh
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setupSearch() {
+            document.getElementById('cropSearch').addEventListener('input', e => {
+                const q = e.target.value.toLowerCase().trim();
+                const filtered = allCrops.filter(c => (c.crop_name || '').toLowerCase().includes(q) || (c.crop_id || '').toLowerCase().includes(q));
+                renderCrops(filtered);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ lý chuyên gia • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-head-title">Trợ lý & Tư vấn chuyên gia nông học</h1>
+                        <p class="page-head-sub">Cầu nối trực tiếp giữa chẩn đoán AI và các chuyên gia bệnh học thực vật có chứng chỉ.</p>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:20px; align-items:start;">
+                    <!-- Cases List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <h2 class="card-title">Hàng đợi tư vấn & Hồ sơ thực địa</h2>
+                                <div class="card-subtitle">Các ca bệnh đang chờ phản hồi từ chuyên gia nông học</div>
+                            </div>
+                            <span class="pill pill-neutral" id="casesBadge">Đang nạp hồ sơ...</span>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; gap:12px;" id="casesList">
+                            <div style="padding:24px 0;"><span class="skeleton" style="width:70%; height:20px;"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Consultation Case -->
+                    <div style="display:flex; flex-direction:column; gap:18px;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3 class="card-title">Gửi hồ sơ tham vấn</h3>
+                                    <div class="card-subtitle">Chuyên gia nông học phản hồi trong vòng 2–4 giờ</div>
+                                </div>
+                            </div>
+
+                            <form id="expertForm">
+                                <div class="form-group">
+                                    <label class="form-label" for="farmSelect">Nông trại / Vùng trồng *</label>
+                                    <select class="select" id="farmSelect" required>
+                                        <option value="">-- Chọn nông trại --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="caseCrop">Cây trồng & Nhóm bệnh nghi ngờ *</label>
+                                    <input type="text" class="input" id="caseCrop" required placeholder="VD: Cà chua - Xuất hiện đốm nâu đồng tâm" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="caseQuestion">Mô tả triệu chứng & Câu hỏi chuyên môn *</label>
+                                    <textarea class="textarea" id="caseQuestion" rows="4" required placeholder="Mô tả tuổi cây, mật độ vết bệnh, thời tiết gần đây hoặc hoạt chất đã sử dụng..."></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">
+                                    Gửi yêu cầu tham vấn chuyên gia
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="card">
+                            <h4 style="font-size:13.5px; font-weight:700; color:var(--text-main); margin-bottom:6px;">Quy trình tư vấn bệnh học</h4>
+                            <p style="font-size:12px; color:var(--text-secondary); line-height:1.4;">
+                                Mọi hồ sơ gửi đi sẽ được chuyển tới bác sĩ cây trồng thuộc viện nghiên cứu nông nghiệp đối tác. Kết quả kiểm tra mẫu vi sinh và phác đồ phun phòng sinh học sẽ được cập nhật trực tiếp tại đây.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js';
+
+        function init() {
+            setupSaaSShell('support', 'Trợ lý chuyên gia');
+            loadCases();
+            loadFarms();
+            setupForm();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        async function loadCases() {
+            try {
+                const data = await fetchJSON('/api/expert/cases');
+                const cases = data.cases || [];
+                document.getElementById('casesBadge').textContent = `${cases.length} Hồ sơ chờ`;
+                renderCases(cases);
+            } catch {
+                renderCases([]);
+                document.getElementById('casesBadge').textContent = '0 Hồ sơ';
+            }
+        }
+
+        function renderCases(cases) {
+            const container = document.getElementById('casesList');
+            if (!cases || cases.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-box" style="padding:32px 0;">
+                        <div class="empty-title">Không có hồ sơ nào đang chờ</div>
+                        <div class="empty-desc">Tạo hồ sơ mới bằng biểu mẫu bên phải nếu cây trồng xuất hiện triệu chứng lạ.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = cases.map(c => {
+                const isResolved = c.status === 'resolved';
+                return `
+                    <div style="padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface);">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                            <div>
+                                <span style="font-size:11px; font-weight:700; color:var(--primary); font-family:monospace;">#CASE-${c.id}</span>
+                                <h4 style="font-size:14px; font-weight:700; color:var(--text-main); margin:2px 0;">${c.crop || 'Cây trồng'} • ${c.farm_name || 'Vùng trồng'}</h4>
+                            </div>
+                            <span class="pill ${isResolved ? 'pill-success' : 'pill-warning'}">
+                                ${isResolved ? 'Đã phản hồi' : 'Đang xử lý'}
+                            </span>
+                        </div>
+                        <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.4; margin:6px 0;">
+                            "${c.notes || c.question || 'Cần xác minh mầm bệnh và tư vấn phác đồ xử lý.'}"
+                        </p>
+                        ${c.agronomist_feedback ? `
+                            <div style="margin-top:8px; padding:10px; background:var(--surface-muted); border-radius:var(--radius-sm); border-left:3px solid var(--primary); font-size:12px; color:var(--text-main);">
+                                <strong>Khuyến nghị của Kỹ sư Nông học:</strong> ${c.agronomist_feedback}
+                            </div>
+                        ` : ''}
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">
+                            Thời gian gửi: ${c.created_at || 'Gần đây'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadFarms() {
+            try {
+                const data = await fetchJSON('/api/farms');
+                const select = document.getElementById('farmSelect');
+                (data.farms || []).forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.id;
+                    opt.textContent = `${f.name} (${f.province || 'Vùng trồng'})`;
+                    select.appendChild(opt);
+                });
+            } catch {}
+        }
+
+        function setupForm() {
+            document.getElementById('expertForm').onsubmit = async e => {
+                e.preventDefault();
+                const payload = {
+                    farm_id: parseInt(document.getElementById('farmSelect').value) || null,
+                    crop: document.getElementById('caseCrop').value.trim(),
+                    notes: document.getElementById('caseQuestion').value.trim()
+                };
+
+                try {
+                    const res = await fetch('/api/expert/cases', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const d = await res.json();
+                    if (d.success) {
+                        toast('Đã gửi hồ sơ tư vấn thành công!');
+                        document.getElementById('expertForm').reset();
+                        loadCases();
+                    } else {
+                        toast(d.detail || 'Lỗi gửi yêu cầu.');
+                    }
+                } catch {
+                    toast('Lỗi kết nối máy chủ.');
+                }
+            };
+        }
+    </script>
+</body>
+</html>

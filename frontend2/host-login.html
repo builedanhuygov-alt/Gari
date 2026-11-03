@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Quản trị Máy chủ • GARI Host Server</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary, #0c140f);
+            color: var(--text-primary, #f0fdf4);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .host-login-container {
+            width: 100%;
+            max-width: 440px;
+        }
+        .host-card {
+            background: var(--bg-card, #131f17);
+            border: 1px solid var(--border, #213828);
+            border-radius: 16px;
+            padding: 32px 28px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+        }
+        .host-badge-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .host-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .host-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.3px;
+        }
+        .host-sub {
+            font-size: 13px;
+            color: #94a3b8;
+            margin: 0 0 24px 0;
+            line-height: 1.5;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            box-sizing: border-box;
+            background: #0d1610;
+            border: 1px solid #233b2b;
+            border-radius: 8px;
+            padding: 11px 14px;
+            font-size: 14px;
+            color: #f8fafc;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .form-input:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .btn-host-submit {
+            width: 100%;
+            background: #10b981;
+            color: #062413;
+            font-weight: 700;
+            font-size: 14.5px;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-host-submit:hover {
+            background: #059669;
+            color: #ffffff;
+        }
+        .btn-host-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 18px;
+            display: none;
+            line-height: 1.4;
+        }
+        .security-footer {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid #1c2e22;
+            font-size: 11.5px;
+            color: #64748b;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .security-footer a {
+            color: #10b981;
+            text-decoration: none;
+        }
+        .security-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="host-login-container">
+        <div class="host-card">
+            <div class="host-badge-row">
+                <div class="host-icon">🛡️</div>
+                <div>
+                    <h1 class="host-title">Quản trị Máy chủ GARI</h1>
+                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#10b981; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:4px;">
+                        Host Admin Console
+                    </span>
+                </div>
+            </div>
+
+            <p class="host-sub">
+                Khu vực điều hành hạ tầng & telemetry máy chủ. Chỉ dành riêng cho định danh <strong>host_admin</strong> được xác thực tại backend.
+            </p>
+
+            <div id="loginAlert" class="alert-error"></div>
+
+            <form id="hostLoginForm">
+                <div class="form-group">
+                    <label class="form-label" for="hostEmail">Email Quản trị viên Máy chủ</label>
+                    <input type="email" id="hostEmail" class="form-input" placeholder="hostadmin@gari.vn" required autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="hostPassword">Mật khẩu bảo mật</label>
+                    <input type="password" id="hostPassword" class="form-input" placeholder="••••••••••••" required autocomplete="current-password">
+                </div>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="rememberMe">
+                    <span>Ghi nhớ phiên đăng nhập (30 ngày)</span>
+                </label>
+
+                <button type="submit" class="btn-host-submit" id="btnSubmit">
+                    <span>Xác thực & Vào Bảng điều khiển</span>
+                    <span id="spinner" style="display:none;">⏳</span>
+                </button>
+            </form>
+
+            <div class="security-footer">
+                <p>🔒 <strong>Chính sách cách ly đặc quyền:</strong> Đặc quyền Quản trị Máy chủ độc lập hoàn toàn với các vai trò người dùng (Nông hộ, HTX, Chuyên gia, Doanh nghiệp). Không thể tự cấp quyền từ giao diện.</p>
+                <p style="margin-top:8px;">
+                    <a href="/frontend2/index.html">← Quay lại Bảng điều khiển Nông nghiệp</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('hostLoginForm');
+        const alertBox = document.getElementById('loginAlert');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const spinner = document.getElementById('spinner');
+
+        // Check if already authenticated as host
+        async function checkExistingSession() {
+            try {
+                const token = localStorage.getItem('gari_host_token') || localStorage.getItem('gari_token');
+                const headers = { 'Accept': 'application/json' };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
+                const res = await fetch('/api/host/me', { headers, credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.user && data.user.is_host_admin) {
+                        window.location.href = '/frontend2/host.html';
+                    }
+                }
+            } catch (err) {
+                // Ignore and show login form
+            }
+        }
+        checkExistingSession();
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            alertBox.style.display = 'none';
+            btnSubmit.disabled = true;
+            spinner.style.display = 'inline-block';
+
+            const email = document.getElementById('hostEmail').value.trim();
+            const password = document.getElementById('hostPassword').value;
+            const remember_me = document.getElementById('rememberMe').checked;
+
+            try {
+                const res = await fetch('/api/auth/host-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password, remember_me })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    const errMsg = data.detail || 'Đăng nhập không thành công. Vui lòng thử lại.';
+                    alertBox.textContent = errMsg;
+                    alertBox.style.display = 'block';
+                    btnSubmit.disabled = false;
+                    spinner.style.display = 'none';
+                    return;
+                }
+
+                if (data.token) {
+                    localStorage.setItem('gari_host_token', data.token);
+                    localStorage.setItem('gari_token', data.token);
+                }
+
+                // Redirect to Host Console
+                window.location.href = '/frontend2/host.html';
+
+            } catch (err) {
+                alertBox.textContent = 'Lỗi kết nối máy chủ backend. Vui lòng kiểm tra dịch vụ.';
+                alertBox.style.display = 'block';
+                btnSubmit.disabled = false;
+                spinner.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

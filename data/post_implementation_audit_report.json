@@ -1,0 +1,3059 @@
+{
+  "crop_identification": {
+    "total_tested": 30,
+    "top1_accuracy": 1.0,
+    "top3_accuracy": 1.0,
+    "recalls": {
+      "Potato": 1.0,
+      "Tomato": 1.0,
+      "Pepper": 1.0
+    },
+    "confusion_matrix": {
+      "Potato": {
+        "Potato": 10,
+        "Pepper": 0,
+        "Tomato": 0
+      },
+      "Tomato": {
+        "Tomato": 10,
+        "Pepper": 0,
+        "Potato": 0
+      },
+      "Pepper": {
+        "Pepper": 10,
+        "Potato": 0,
+        "Tomato": 0
+      }
+    }
+  },
+  "end_to_end_pipeline": [
+    {
+      "sample": "Potato Early Blight",
+      "1_quality_passed": true,
+      "1_quality_metrics": null,
+      "2_auto_crop_identified": "Potato",
+      "2_crop_name_vi": "Khoai tây",
+      "3_validation_gate_state": "DIAGNOSIS_CONFIRMED",
+      "4_model_routed": "Gari ConvNeXt (Khoai tây)",
+      "5_predicted_disease": "Early_blight",
+      "5_disease_name_vi": "Bệnh đốm sớm khoai tây",
+      "5_prediction_score": 0.9723,
+      "6_gradcam_url": "/uploads/diag_1793372358219_attention.png",
+      "6_overlay_url": "/uploads/diag_1793372358219_overlay.png",
+      "6_regions_count": 5,
+      "7_report_headline": "KẾT QUẢ KIỂM TRA LÁ",
+      "latency_ms": 3761.54
+    },
+    {
+      "sample": "Potato Healthy",
+      "1_quality_passed": true,
+      "1_quality_metrics": null,
+      "2_auto_crop_identified": "Potato",
+      "2_crop_name_vi": "Khoai tây",
+      "3_validation_gate_state": "DIAGNOSIS_CONFIRMED",
+      "4_model_routed": "Gari ConvNeXt (Khoai tây)",
+      "5_predicted_disease": "Healthy",
+      "5_disease_name_vi": "Khoai tây khỏe mạnh",
+      "5_prediction_score": 0.9426,
+      "6_gradcam_url": "/uploads/diag_1793372361238_attention.png",
+      "6_overlay_url": "/uploads/diag_1793372361238_overlay.png",
+      "6_regions_count": 5,
+      "7_report_headline": "KẾT QUẢ KIỂM TRA LÁ",
+      "latency_ms": 2882.24
+    },
+    {
+      "sample": "Tomato Bacterial Spot",
+      "1_quality_passed": true,
+      "1_quality_metrics": null,
+      "2_auto_crop_identified": "Tomato",
+      "2_crop_name_vi": "Cà chua",
+      "3_validation_gate_state": "DIAGNOSIS_CONFIRMED",
+      "4_model_routed": "Gari ConvNeXt (Cà chua)",
+      "5_predicted_disease": "Bacterial_spot",
+      "5_disease_name_vi": "Đốm vi khuẩn trên cà chua",
+      "5_prediction_score": 0.9532,
+      "6_gradcam_url": "/uploads/diag_1793372365014_attention.png",
+      "6_overlay_url": "/uploads/diag_1793372365014_overlay.png",
+      "6_regions_count": 5,
+      "7_report_headline": "KẾT QUẢ KIỂM TRA LÁ",
+      "latency_ms": 3698.03
+    },
+    {
+      "sample": "Tomato Healthy",
+      "1_quality_passed": true,
+      "1_quality_metrics": null,
+      "2_auto_crop_identified": "Tomato",
+      "2_crop_name_vi": "Cà chua",
+      "3_validation_gate_state": "DIAGNOSIS_CONFIRMED",
+      "4_model_routed": "Gari ConvNeXt (Cà chua)",
+      "5_predicted_disease": "Healthy",
+      "5_disease_name_vi": "Lá cà chua khỏe mạnh",
+      "5_prediction_score": 0.881,
+      "6_gradcam_url": "/uploads/diag_1793372367905_attention.png",
+      "6_overlay_url": "/uploads/diag_1793372367905_overlay.png",
+      "6_regions_count": 5,
+      "7_report_headline": "KẾT QUẢ KIỂM TRA LÁ",
+      "latency_ms": 2924.33
+    },
+    {
+      "sample": "Pepper Bacterial Spot",
+      "1_quality_passed": true,
+      "1_quality_metrics": null,
+      "2_auto_crop_identified": "Pepper",
+      "2_crop_name_vi": "Ớt ngọt (Ớt chuông)",
+      "3_validation_gate_state": "DIAGNOSIS_CONFIRMED",
+      "4_model_routed": "Gari ViT (Ớt ngọt (Ớt chuông))",
+      "5_predicted_disease": "Pepper,_bell___Bacterial_spot",
+      "5_disease_name_vi": "Bệnh đốm vi khuẩn trên ớt ngọt",
+      "5_prediction_score": 0.9992,
+      "6_gradcam_url": "/uploads/diag_1793372373743_attention.png",
+      "6_overlay_url": "/uploads/diag_1793372373743_overlay.png",
+      "6_regions_count": 5,
+      "7_report_headline": "KẾT QUẢ KIỂM TRA LÁ",
+      "latency_ms": 5434.04
+    },
+    {
+      "sample": "Pepper Healthy",
+      "1_quality_passed": true,
+      "1_quality_metrics": null,
+      "2_auto_crop_identified": "Pepper",
+      "2_crop_name_vi": "Ớt ngọt (Ớt chuông)",
+      "3_validation_gate_state": "DIAGNOSIS_CONFIRMED",
+      "4_model_routed": "Gari ViT (Ớt ngọt (Ớt chuông))",
+      "5_predicted_disease": "Pepper,_bell___healthy",
+      "5_disease_name_vi": "Lá ớt ngọt khỏe mạnh",
+      "5_prediction_score": 0.9995,
+      "6_gradcam_url": "/uploads/diag_1793372376290_attention.png",
+      "6_overlay_url": "/uploads/diag_1793372376290_overlay.png",
+      "6_regions_count": 5,
+      "7_report_headline": "KẾT QUẢ KIỂM TRA LÁ",
+      "latency_ms": 2548.54
+    }
+  ],
+  "model_tong_38_labels": [
+    {
+      "id": 0,
+      "label_en": "Apple___Apple_scab",
+      "crop": "Apple",
+      "disease_en": "Apple_scab",
+      "name_vi": "Bệnh vảy nến táo",
+      "routing": "Fallback (Primary is ConvNeXt Apple)"
+    },
+    {
+      "id": 1,
+      "label_en": "Apple___Black_rot",
+      "crop": "Apple",
+      "disease_en": "Black_rot",
+      "name_vi": "Bệnh thối đen táo",
+      "routing": "Fallback (Primary is ConvNeXt Apple)"
+    },
+    {
+      "id": 2,
+      "label_en": "Apple___Cedar_apple_rust",
+      "crop": "Apple",
+      "disease_en": "Cedar_apple_rust",
+      "name_vi": "Bệnh rỉ sắt táo tuyết tùng",
+      "routing": "Fallback (Primary is ConvNeXt Apple)"
+    },
+    {
+      "id": 3,
+      "label_en": "Apple___healthy",
+      "crop": "Apple",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Fallback (Primary is ConvNeXt Apple)"
+    },
+    {
+      "id": 4,
+      "label_en": "Blueberry___healthy",
+      "crop": "Blueberry",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "PlantVillage reference (No local ConvNeXt)"
+    },
+    {
+      "id": 5,
+      "label_en": "Cherry_(including_sour)___Powdery_mildew",
+      "crop": "Cherry",
+      "disease_en": "Powdery_mildew",
+      "name_vi": "Bệnh phấn trắng",
+      "routing": "Fallback (Primary is ConvNeXt Cherry)"
+    },
+    {
+      "id": 6,
+      "label_en": "Cherry_(including_sour)___healthy",
+      "crop": "Cherry",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Fallback (Primary is ConvNeXt Cherry)"
+    },
+    {
+      "id": 7,
+      "label_en": "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
+      "crop": "Corn",
+      "disease_en": "Cercospora_leaf_spot Gray_leaf_spot",
+      "name_vi": "Bệnh đốm lá Cercospora / Đốm xám ngô",
+      "routing": "Fallback (Primary is ConvNeXt Corn)"
+    },
+    {
+      "id": 8,
+      "label_en": "Corn_(maize)___Common_rust_",
+      "crop": "Corn",
+      "disease_en": "Common_rust_",
+      "name_vi": "Bệnh rỉ sắt ngô",
+      "routing": "Fallback (Primary is ConvNeXt Corn)"
+    },
+    {
+      "id": 9,
+      "label_en": "Corn_(maize)___Northern_Leaf_Blight",
+      "crop": "Corn",
+      "disease_en": "Northern_Leaf_Blight",
+      "name_vi": "Bệnh cháy lá lớn ngô (Đốm lá lớn)",
+      "routing": "Fallback (Primary is ConvNeXt Corn)"
+    },
+    {
+      "id": 10,
+      "label_en": "Corn_(maize)___healthy",
+      "crop": "Corn",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Fallback (Primary is ConvNeXt Corn)"
+    },
+    {
+      "id": 11,
+      "label_en": "Grape___Black_rot",
+      "crop": "Grape",
+      "disease_en": "Black_rot",
+      "name_vi": "Bệnh thối đen táo",
+      "routing": "Fallback (Primary is ConvNeXt Grape)"
+    },
+    {
+      "id": 12,
+      "label_en": "Grape___Esca_(Black_Measles)",
+      "crop": "Grape",
+      "disease_en": "Esca_(Black_Measles)",
+      "name_vi": "Bệnh sởi đen (Esca) trên nho",
+      "routing": "Fallback (Primary is ConvNeXt Grape)"
+    },
+    {
+      "id": 13,
+      "label_en": "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)",
+      "crop": "Grape",
+      "disease_en": "Leaf_blight_(Isariopsis_Leaf_Spot)",
+      "name_vi": "Bệnh đốm mắt chim / Cháy lá nho",
+      "routing": "Fallback (Primary is ConvNeXt Grape)"
+    },
+    {
+      "id": 14,
+      "label_en": "Grape___healthy",
+      "crop": "Grape",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Fallback (Primary is ConvNeXt Grape)"
+    },
+    {
+      "id": 15,
+      "label_en": "Orange___Haunglongbing_(Citrus_greening)",
+      "crop": "Orange",
+      "disease_en": "Haunglongbing_(Citrus_greening)",
+      "name_vi": "Bệnh vàng lá gân xanh (Huanglongbing)",
+      "routing": "PlantVillage reference (No local ConvNeXt)"
+    },
+    {
+      "id": 16,
+      "label_en": "Peach___Bacterial_spot",
+      "crop": "Peach",
+      "disease_en": "Bacterial_spot",
+      "name_vi": "Bệnh đốm vi khuẩn",
+      "routing": "Fallback (Primary is ConvNeXt Peach)"
+    },
+    {
+      "id": 17,
+      "label_en": "Peach___healthy",
+      "crop": "Peach",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Fallback (Primary is ConvNeXt Peach)"
+    },
+    {
+      "id": 18,
+      "label_en": "Pepper,_bell___Bacterial_spot",
+      "crop": "Pepper",
+      "disease_en": "Bacterial_spot",
+      "name_vi": "Bệnh đốm vi khuẩn",
+      "routing": "Active Primary Disease Model (Model tong ViT)"
+    },
+    {
+      "id": 19,
+      "label_en": "Pepper,_bell___healthy",
+      "crop": "Pepper",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Active Primary Disease Model (Model tong ViT)"
+    },
+    {
+      "id": 20,
+      "label_en": "Potato___Early_blight",
+      "crop": "Potato",
+      "disease_en": "Early_blight",
+      "name_vi": "Bệnh cháy lá sớm (Đốm vòng)",
+      "routing": "Fallback (Primary is ConvNeXt Potato)"
+    },
+    {
+      "id": 21,
+      "label_en": "Potato___Late_blight",
+      "crop": "Potato",
+      "disease_en": "Late_blight",
+      "name_vi": "Bệnh mốc sương (Đốm muộn)",
+      "routing": "Fallback (Primary is ConvNeXt Potato)"
+    },
+    {
+      "id": 22,
+      "label_en": "Potato___healthy",
+      "crop": "Potato",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Fallback (Primary is ConvNeXt Potato)"
+    },
+    {
+      "id": 23,
+      "label_en": "Raspberry___healthy",
+      "crop": "Raspberry",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "PlantVillage reference (No local ConvNeXt)"
+    },
+    {
+      "id": 24,
+      "label_en": "Soybean___healthy",
+      "crop": "Soybean",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "PlantVillage reference (No local ConvNeXt)"
+    },
+    {
+      "id": 25,
+      "label_en": "Squash___Powdery_mildew",
+      "crop": "Squash",
+      "disease_en": "Powdery_mildew",
+      "name_vi": "Bệnh phấn trắng",
+      "routing": "Active Primary Disease Model (Model tong ViT)"
+    },
+    {
+      "id": 26,
+      "label_en": "Strawberry___Leaf_scorch",
+      "crop": "Strawberry",
+      "disease_en": "Leaf_scorch",
+      "name_vi": "Bệnh cháy xém lá dâu tây",
+      "routing": "Fallback (Primary is ConvNeXt Strawberry)"
+    },
+    {
+      "id": 27,
+      "label_en": "Strawberry___healthy",
+      "crop": "Strawberry",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Fallback (Primary is ConvNeXt Strawberry)"
+    },
+    {
+      "id": 28,
+      "label_en": "Tomato___Bacterial_spot",
+      "crop": "Tomato",
+      "disease_en": "Bacterial_spot",
+      "name_vi": "Bệnh đốm vi khuẩn",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 29,
+      "label_en": "Tomato___Early_blight",
+      "crop": "Tomato",
+      "disease_en": "Early_blight",
+      "name_vi": "Bệnh cháy lá sớm (Đốm vòng)",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 30,
+      "label_en": "Tomato___Late_blight",
+      "crop": "Tomato",
+      "disease_en": "Late_blight",
+      "name_vi": "Bệnh mốc sương (Đốm muộn)",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 31,
+      "label_en": "Tomato___Leaf_Mold",
+      "crop": "Tomato",
+      "disease_en": "Leaf_Mold",
+      "name_vi": "Bệnh mốc lá (Đốm nhung)",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 32,
+      "label_en": "Tomato___Septoria_leaf_spot",
+      "crop": "Tomato",
+      "disease_en": "Septoria_leaf_spot",
+      "name_vi": "Bệnh đốm lá Septoria",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 33,
+      "label_en": "Tomato___Spider_mites Two-spotted_spider_mite",
+      "crop": "Tomato",
+      "disease_en": "Spider_mites Two-spotted_spider_mite",
+      "name_vi": "Nhện đỏ hại lá (Nhện hai đốm)",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 34,
+      "label_en": "Tomato___Target_Spot",
+      "crop": "Tomato",
+      "disease_en": "Target_Spot",
+      "name_vi": "Bệnh đốm mục tiêu (Đốm mắt cua)",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 35,
+      "label_en": "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+      "crop": "Tomato",
+      "disease_en": "Tomato_Yellow_Leaf_Curl_Virus",
+      "name_vi": "Bệnh xoăn vàng lá virus",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 36,
+      "label_en": "Tomato___Tomato_mosaic_virus",
+      "crop": "Tomato",
+      "disease_en": "Tomato_mosaic_virus",
+      "name_vi": "Bệnh khảm lá virus",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    },
+    {
+      "id": 37,
+      "label_en": "Tomato___healthy",
+      "crop": "Tomato",
+      "disease_en": "healthy",
+      "name_vi": "Khỏe mạnh, không phát hiện bệnh",
+      "routing": "Fallback (Primary is ConvNeXt Tomato)"
+    }
+  ],
+  "quality_gate_tests": [
+    {
+      "case": "Real Leaf Image",
+      "passed": true,
+      "expected_pass": true,
+      "msg": "Chất lượng ảnh đạt tiêu chuẩn chẩn đoán."
+    },
+    {
+      "case": "Human Skin (Non-Leaf)",
+      "passed": false,
+      "expected_pass": false,
+      "msg": "Hình ảnh không có đặc điểm quang phổ của lá cây hoặc thực vật (chỉ số ExG không phù hợp). Vui lòng chụp đúng lá cây trồng."
+    },
+    {
+      "case": "Blue Fabric (Non-Leaf)",
+      "passed": false,
+      "expected_pass": false,
+      "msg": "Hình ảnh không có đặc điểm quang phổ của lá cây hoặc thực vật (chỉ số ExG không phù hợp). Vui lòng chụp đúng lá cây trồng."
+    },
+    {
+      "case": "Food / Bread (Non-Leaf)",
+      "passed": false,
+      "expected_pass": false,
+      "msg": "Hình ảnh không có đặc điểm quang phổ của lá cây hoặc thực vật (chỉ số ExG không phù hợp). Vui lòng chụp đúng lá cây trồng."
+    },
+    {
+      "case": "Dark Image (< 22 Lum)",
+      "passed": false,
+      "expected_pass": false,
+      "msg": "Hình ảnh quá tối (độ sáng trung bình = 16.1/255). Vui lòng chụp trong điều kiện ánh sáng tự nhiên đầy đủ."
+    },
+    {
+      "case": "Blurry Leaf (LapVar < 15)",
+      "passed": false,
+      "expected_pass": false,
+      "msg": "Hình ảnh quá mờ (độ sắc nét LapVar = 2.3 < 15.0). Vui lòng chụp rõ nét hơn."
+    }
+  ],
+  "capability_registry_summary": {
+    "success": true,
+    "total_crops": 48,
+    "identifiable_count": 44,
+    "diagnosable_count": 45,
+    "total_disease_classes": 285,
+    "reconciliation": {
+      "crop_translations_count": 48,
+      "crop_detector_classes": 44,
+      "active_disease_models": 45,
+      "crops_without_disease_models": [
+        "Blueberry",
+        "Orange",
+        "Raspberry"
+      ]
+    },
+    "crops": [
+      {
+        "id": "Cherry",
+        "crop_id": "Cherry",
+        "name_vi": "Anh đào (Cherry)",
+        "name_en": "Cherry",
+        "common_name": "Cây anh đào",
+        "scientific_name": "Prunus avium",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)",
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Cherry)"
+        ],
+        "disease_classes_count": 6,
+        "supported_disease_labels": [
+          "Cherry_Leaf_Scorch",
+          "Cherry___healthy",
+          "Cherry___powdery_mildew",
+          "Cherry_brown_spot",
+          "Cherry_purple_spot",
+          "Cherry_shot_hole"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Cherry_Leaf_Scorch",
+            "name_vi": "Bệnh Cherry Leaf Scorch"
+          },
+          {
+            "label_id": "Cherry___healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Cherry___powdery_mildew",
+            "name_vi": "Bệnh powdery mildew"
+          },
+          {
+            "label_id": "Cherry_brown_spot",
+            "name_vi": "Bệnh Cherry brown spot"
+          },
+          {
+            "label_id": "Cherry_purple_spot",
+            "name_vi": "Bệnh Cherry purple spot"
+          },
+          {
+            "label_id": "Cherry_shot_hole",
+            "name_vi": "Bệnh Cherry shot hole"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Squash",
+        "crop_id": "Squash",
+        "name_vi": "Bí ngô (Bí đỏ)",
+        "name_en": "Squash",
+        "common_name": "Cây bí đỏ",
+        "scientific_name": "Cucurbita pepo",
+        "family": "Họ Bầu bí (Cucurbitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "vit_plantvillage (Model tong)"
+        ],
+        "disease_classes_count": 1,
+        "supported_disease_labels": [
+          "Squash___Powdery_mildew"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Squash___Powdery_mildew",
+            "name_vi": "Bệnh phấn trắng trên bí đỏ"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Bottle_gourd",
+        "crop_id": "Bottle_gourd",
+        "name_vi": "Bầu sao (Bầu nậm)",
+        "name_en": "Bottle_gourd",
+        "common_name": "Cây bầu",
+        "scientific_name": "Lagenaria siceraria",
+        "family": "Họ Bầu bí (Cucurbitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Bottle_gourd)"
+        ],
+        "disease_classes_count": 6,
+        "supported_disease_labels": [
+          "Alternaria_leaf_blight",
+          "Anthracnose",
+          "Downy_mildew",
+          "Healthy",
+          "Mosaic_virus",
+          "Nutrient_deficiency"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Alternaria_leaf_blight",
+            "name_vi": "Bệnh Alternaria leaf blight"
+          },
+          {
+            "label_id": "Anthracnose",
+            "name_vi": "Bệnh thán thư"
+          },
+          {
+            "label_id": "Downy_mildew",
+            "name_vi": "Bệnh sương mai"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Mosaic_virus",
+            "name_vi": "Bệnh virus khảm lá"
+          },
+          {
+            "label_id": "Nutrient_deficiency",
+            "name_vi": "Triệu chứng thiếu hụt dinh dưỡng"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Orange",
+        "crop_id": "Orange",
+        "name_vi": "Cam",
+        "name_en": "Orange",
+        "common_name": "Cây cam",
+        "scientific_name": "Citrus sinensis",
+        "family": "Họ Cửu lý hương (Rutaceae)",
+        "can_identify_crop": false,
+        "can_diagnose_disease": false,
+        "has_disease_model": false,
+        "detector_sources": [],
+        "disease_models_available": [],
+        "disease_classes_count": 0,
+        "supported_disease_labels": [],
+        "supported_diseases_vi": [],
+        "status_notes": "Chưa có mô hình nhận diện hoặc chẩn đoán"
+      },
+      {
+        "id": "Banana",
+        "crop_id": "Banana",
+        "name_vi": "Chuối",
+        "name_en": "Banana",
+        "common_name": "Cây chuối",
+        "scientific_name": "Musa acuminata",
+        "family": "Họ Chuối (Musaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Banana)"
+        ],
+        "disease_classes_count": 10,
+        "supported_disease_labels": [
+          "Augmented Banana Bract Mosaic Virus Disease",
+          "Augmented Banana Healthy Leaf",
+          "Augmented Banana Insect Pest Disease",
+          "Augmented Banana Moko Disease",
+          "Augmented Banana Yellow Sigatoka Disease",
+          "Banana_black_streak",
+          "Banana_bunchy_top",
+          "Banana_cordana_spot",
+          "Banana_fruit_anthracnose",
+          "Banana_panama_disease"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Augmented Banana Bract Mosaic Virus Disease",
+            "name_vi": "Bệnh Augmented Banana Bract Mosaic Virus Disease"
+          },
+          {
+            "label_id": "Augmented Banana Healthy Leaf",
+            "name_vi": "Bệnh Augmented Banana Healthy Leaf"
+          },
+          {
+            "label_id": "Augmented Banana Insect Pest Disease",
+            "name_vi": "Bệnh Augmented Banana Insect Pest Disease"
+          },
+          {
+            "label_id": "Augmented Banana Moko Disease",
+            "name_vi": "Bệnh Augmented Banana Moko Disease"
+          },
+          {
+            "label_id": "Augmented Banana Yellow Sigatoka Disease",
+            "name_vi": "Bệnh Augmented Banana Yellow Sigatoka Disease"
+          },
+          {
+            "label_id": "Banana_black_streak",
+            "name_vi": "Bệnh Banana black streak"
+          },
+          {
+            "label_id": "Banana_bunchy_top",
+            "name_vi": "Bệnh Banana bunchy top"
+          },
+          {
+            "label_id": "Banana_cordana_spot",
+            "name_vi": "Bệnh Banana cordana spot"
+          },
+          {
+            "label_id": "Banana_fruit_anthracnose",
+            "name_vi": "Bệnh Banana fruit anthracnose"
+          },
+          {
+            "label_id": "Banana_panama_disease",
+            "name_vi": "Bệnh Banana panama disease"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Tea",
+        "crop_id": "Tea",
+        "name_vi": "Chè (Trà)",
+        "name_en": "Tea",
+        "common_name": "Cây chè",
+        "scientific_name": "Camellia sinensis",
+        "family": "Họ Chè (Theaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Tea)"
+        ],
+        "disease_classes_count": 4,
+        "supported_disease_labels": [
+          "Healthy",
+          "Red_leaf_spot",
+          "Red_scab",
+          "leaf_blight"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Red_leaf_spot",
+            "name_vi": "Bệnh Red leaf spot"
+          },
+          {
+            "label_id": "Red_scab",
+            "name_vi": "Bệnh Red scab"
+          },
+          {
+            "label_id": "leaf_blight",
+            "name_vi": "Bệnh leaf blight"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Tomato",
+        "crop_id": "Tomato",
+        "name_vi": "Cà chua",
+        "name_en": "Tomato",
+        "common_name": "Cây cà chua",
+        "scientific_name": "Solanum lycopersicum",
+        "family": "Họ Cà (Solanaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Tomato)"
+        ],
+        "disease_classes_count": 13,
+        "supported_disease_labels": [
+          "Bacterial_spot",
+          "Early_blight",
+          "Fusarium_wilt",
+          "Healthy",
+          "Late_blight",
+          "Leaf_miner",
+          "Leaf_mold",
+          "Mosaic_virus",
+          "Septoria_leaf_spot",
+          "Spider_mites",
+          "Target_spot",
+          "Verticillium_wilt",
+          "Yellow_leaf_curl_virus"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Bacterial_spot",
+            "name_vi": "Bệnh đốm vi khuẩn"
+          },
+          {
+            "label_id": "Early_blight",
+            "name_vi": "Bệnh cháy lá sớm (Đốm vòng)"
+          },
+          {
+            "label_id": "Fusarium_wilt",
+            "name_vi": "Bệnh héo rũ Fusarium"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Late_blight",
+            "name_vi": "Bệnh mốc sương (Đốm muộn)"
+          },
+          {
+            "label_id": "Leaf_miner",
+            "name_vi": "Sâu vẽ bùa cà phê"
+          },
+          {
+            "label_id": "Leaf_mold",
+            "name_vi": "Bệnh Leaf mold"
+          },
+          {
+            "label_id": "Mosaic_virus",
+            "name_vi": "Bệnh virus khảm lá"
+          },
+          {
+            "label_id": "Septoria_leaf_spot",
+            "name_vi": "Bệnh đốm lá Septoria"
+          },
+          {
+            "label_id": "Spider_mites",
+            "name_vi": "Bệnh Spider mites"
+          },
+          {
+            "label_id": "Target_spot",
+            "name_vi": "Bệnh Target spot"
+          },
+          {
+            "label_id": "Verticillium_wilt",
+            "name_vi": "Bệnh Verticillium wilt"
+          },
+          {
+            "label_id": "Yellow_leaf_curl_virus",
+            "name_vi": "Bệnh Yellow leaf curl virus"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Coffee",
+        "crop_id": "Coffee",
+        "name_vi": "Cà phê",
+        "name_en": "Coffee",
+        "common_name": "Cây cà phê",
+        "scientific_name": "Coffea canephora / Coffea arabica",
+        "family": "Họ Cà phê (Rubiaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Coffee)"
+        ],
+        "disease_classes_count": 7,
+        "supported_disease_labels": [
+          "Berry_blotch",
+          "Cercospora_brown_eye_spot",
+          "Healthy",
+          "Leaf_miner",
+          "Phoma",
+          "Red_spider_mite",
+          "Rust"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Berry_blotch",
+            "name_vi": "Bệnh Berry blotch"
+          },
+          {
+            "label_id": "Cercospora_brown_eye_spot",
+            "name_vi": "Bệnh đốm mắt cua (Cercospora)"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf_miner",
+            "name_vi": "Sâu vẽ bùa cà phê"
+          },
+          {
+            "label_id": "Phoma",
+            "name_vi": "Bệnh Phoma"
+          },
+          {
+            "label_id": "Red_spider_mite",
+            "name_vi": "Nhện đỏ hại cà phê"
+          },
+          {
+            "label_id": "Rust",
+            "name_vi": "Bệnh rỉ sắt cà phê"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Brinjal",
+        "crop_id": "Brinjal",
+        "name_vi": "Cà tím",
+        "name_en": "Brinjal",
+        "common_name": "Cây cà tím",
+        "scientific_name": "Solanum melongena",
+        "family": "Họ Cà (Solanaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Brinjal)"
+        ],
+        "disease_classes_count": 8,
+        "supported_disease_labels": [
+          "Eggplant begomovirus",
+          "Eggplant verticillium wilt",
+          "Nutrient deficiency",
+          "eggplant__FB",
+          "eggplant__MIT_EB",
+          "eggplant__healthy",
+          "eggplant_cercospora_spot",
+          "eggplant_phomopsis_fruit_rot"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Eggplant begomovirus",
+            "name_vi": "Bệnh Eggplant begomovirus"
+          },
+          {
+            "label_id": "Eggplant verticillium wilt",
+            "name_vi": "Bệnh Eggplant verticillium wilt"
+          },
+          {
+            "label_id": "Nutrient deficiency",
+            "name_vi": "Bệnh Nutrient deficiency"
+          },
+          {
+            "label_id": "eggplant__FB",
+            "name_vi": "Bệnh eggplant  FB"
+          },
+          {
+            "label_id": "eggplant__MIT_EB",
+            "name_vi": "Bệnh eggplant  MIT EB"
+          },
+          {
+            "label_id": "eggplant__healthy",
+            "name_vi": "Bệnh eggplant  healthy"
+          },
+          {
+            "label_id": "eggplant_cercospora_spot",
+            "name_vi": "Bệnh eggplant cercospora spot"
+          },
+          {
+            "label_id": "eggplant_phomopsis_fruit_rot",
+            "name_vi": "Bệnh eggplant phomopsis fruit rot"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Citrus",
+        "crop_id": "Citrus",
+        "name_vi": "Cây có múi (Cam, Chanh, Bưởi)",
+        "name_en": "Citrus",
+        "common_name": "Cây có múi",
+        "scientific_name": "Citrus spp.",
+        "family": "Họ Cửu lý hương (Rutaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Citrus)"
+        ],
+        "disease_classes_count": 8,
+        "supported_disease_labels": [
+          "Bacterial_blight",
+          "Black_spot",
+          "Canker",
+          "Dry_leaf",
+          "Healthy",
+          "Leaf_curl_virus",
+          "Sooty_mould",
+          "Spider_mites"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Bacterial_blight",
+            "name_vi": "Bệnh bạc lá lúa (Cháy bìa lá vi khuẩn)"
+          },
+          {
+            "label_id": "Black_spot",
+            "name_vi": "Bệnh đốm đen cam quýt"
+          },
+          {
+            "label_id": "Canker",
+            "name_vi": "Bệnh loét cam quýt (Vi khuẩn)"
+          },
+          {
+            "label_id": "Dry_leaf",
+            "name_vi": "Bệnh Dry leaf"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf_curl_virus",
+            "name_vi": "Bệnh Leaf curl virus"
+          },
+          {
+            "label_id": "Sooty_mould",
+            "name_vi": "Bệnh Sooty mould"
+          },
+          {
+            "label_id": "Spider_mites",
+            "name_vi": "Bệnh Spider mites"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Strawberry",
+        "crop_id": "Strawberry",
+        "name_vi": "Dâu tây",
+        "name_en": "Strawberry",
+        "common_name": "Cây dâu tây",
+        "scientific_name": "Fragaria × ananassa",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)",
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Strawberry)"
+        ],
+        "disease_classes_count": 3,
+        "supported_disease_labels": [
+          "Strawberry___healthy",
+          "Strawberry___leaf_scorch",
+          "Strawberry_anthracnose"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Strawberry___healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Strawberry___leaf_scorch",
+            "name_vi": "Bệnh leaf scorch"
+          },
+          {
+            "label_id": "Strawberry_anthracnose",
+            "name_vi": "Bệnh Strawberry anthracnose"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Mulberry",
+        "crop_id": "Mulberry",
+        "name_vi": "Dâu tằm",
+        "name_en": "Mulberry",
+        "common_name": "Cây dâu tằm",
+        "scientific_name": "Morus alba",
+        "family": "Họ Dâu tằm (Moraceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Mulberry)"
+        ],
+        "disease_classes_count": 10,
+        "supported_disease_labels": [
+          "01 ChiangMai60",
+          "02 RedKing",
+          "03 WhiteKing",
+          "04 BlackOodTurkey",
+          "05 TaiwanStraberry",
+          "06 BlackAustralia",
+          "07 Buriram60",
+          "08 Kamphaengsaeng42",
+          "09 TaiwanMeacho",
+          "10 ChiangMaiBuriram60"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "01 ChiangMai60",
+            "name_vi": "Bệnh 01 ChiangMai60"
+          },
+          {
+            "label_id": "02 RedKing",
+            "name_vi": "Bệnh 02 RedKing"
+          },
+          {
+            "label_id": "03 WhiteKing",
+            "name_vi": "Bệnh 03 WhiteKing"
+          },
+          {
+            "label_id": "04 BlackOodTurkey",
+            "name_vi": "Bệnh 04 BlackOodTurkey"
+          },
+          {
+            "label_id": "05 TaiwanStraberry",
+            "name_vi": "Bệnh 05 TaiwanStraberry"
+          },
+          {
+            "label_id": "06 BlackAustralia",
+            "name_vi": "Bệnh 06 BlackAustralia"
+          },
+          {
+            "label_id": "07 Buriram60",
+            "name_vi": "Bệnh 07 Buriram60"
+          },
+          {
+            "label_id": "08 Kamphaengsaeng42",
+            "name_vi": "Bệnh 08 Kamphaengsaeng42"
+          },
+          {
+            "label_id": "09 TaiwanMeacho",
+            "name_vi": "Bệnh 09 TaiwanMeacho"
+          },
+          {
+            "label_id": "10 ChiangMaiBuriram60",
+            "name_vi": "Bệnh 10 ChiangMaiBuriram60"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Cucumber",
+        "crop_id": "Cucumber",
+        "name_vi": "Dưa chuột (Dưa leo)",
+        "name_en": "Cucumber",
+        "common_name": "Cây dưa chuột",
+        "scientific_name": "Cucumis sativus",
+        "family": "Họ Bầu bí (Cucurbitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Cucumber)"
+        ],
+        "disease_classes_count": 8,
+        "supported_disease_labels": [
+          "Angular_leaf_spot",
+          "Anthracnose",
+          "Bacterial_wilt",
+          "Downy_mildew",
+          "Gummy_stem_blight",
+          "Healthy",
+          "Nutrient_deficiency",
+          "Powdery_mildew"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Angular_leaf_spot",
+            "name_vi": "Bệnh Angular leaf spot"
+          },
+          {
+            "label_id": "Anthracnose",
+            "name_vi": "Bệnh thán thư"
+          },
+          {
+            "label_id": "Bacterial_wilt",
+            "name_vi": "Bệnh Bacterial wilt"
+          },
+          {
+            "label_id": "Downy_mildew",
+            "name_vi": "Bệnh sương mai"
+          },
+          {
+            "label_id": "Gummy_stem_blight",
+            "name_vi": "Bệnh Gummy stem blight"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Nutrient_deficiency",
+            "name_vi": "Triệu chứng thiếu hụt dinh dưỡng"
+          },
+          {
+            "label_id": "Powdery_mildew",
+            "name_vi": "Bệnh phấn trắng"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Watermelon",
+        "crop_id": "Watermelon",
+        "name_vi": "Dưa hấu",
+        "name_en": "Watermelon",
+        "common_name": "Cây dưa hấu",
+        "scientific_name": "Citrullus lanatus",
+        "family": "Họ Bầu bí (Cucurbitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Watermelon)"
+        ],
+        "disease_classes_count": 4,
+        "supported_disease_labels": [
+          "watermelon___anthracnose",
+          "watermelon___downy_mildew",
+          "watermelon___healthy",
+          "watermelon___mosaic_virus"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "watermelon___anthracnose",
+            "name_vi": "Bệnh anthracnose"
+          },
+          {
+            "label_id": "watermelon___downy_mildew",
+            "name_vi": "Bệnh downy mildew"
+          },
+          {
+            "label_id": "watermelon___healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "watermelon___mosaic_virus",
+            "name_vi": "Bệnh mosaic virus"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Coconut",
+        "crop_id": "Coconut",
+        "name_vi": "Dừa",
+        "name_en": "Coconut",
+        "common_name": "Cây dừa",
+        "scientific_name": "Cocos nucifera",
+        "family": "Họ Cau (Arecaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Coconut)"
+        ],
+        "disease_classes_count": 11,
+        "supported_disease_labels": [
+          "Bud Root Dropping",
+          "Bud Rot",
+          "CCI_Caterpillars",
+          "CCI_Leaflets",
+          "Gray Leaf Spot",
+          "Healthy_Leaves",
+          "Leaf Rot",
+          "Stem Bleeding",
+          "WCLWD_DryingofLeaflets",
+          "WCLWD_Flaccidity",
+          "WCLWD_Yellowing"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Bud Root Dropping",
+            "name_vi": "Bệnh Bud Root Dropping"
+          },
+          {
+            "label_id": "Bud Rot",
+            "name_vi": "Bệnh Bud Rot"
+          },
+          {
+            "label_id": "CCI_Caterpillars",
+            "name_vi": "Bệnh CCI Caterpillars"
+          },
+          {
+            "label_id": "CCI_Leaflets",
+            "name_vi": "Bệnh CCI Leaflets"
+          },
+          {
+            "label_id": "Gray Leaf Spot",
+            "name_vi": "Bệnh Gray Leaf Spot"
+          },
+          {
+            "label_id": "Healthy_Leaves",
+            "name_vi": "Bệnh Healthy Leaves"
+          },
+          {
+            "label_id": "Leaf Rot",
+            "name_vi": "Bệnh Leaf Rot"
+          },
+          {
+            "label_id": "Stem Bleeding",
+            "name_vi": "Bệnh Stem Bleeding"
+          },
+          {
+            "label_id": "WCLWD_DryingofLeaflets",
+            "name_vi": "Bệnh WCLWD DryingofLeaflets"
+          },
+          {
+            "label_id": "WCLWD_Flaccidity",
+            "name_vi": "Bệnh WCLWD Flaccidity"
+          },
+          {
+            "label_id": "WCLWD_Yellowing",
+            "name_vi": "Bệnh WCLWD Yellowing"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Chrysanthemum",
+        "crop_id": "Chrysanthemum",
+        "name_vi": "Hoa cúc",
+        "name_en": "Chrysanthemum",
+        "common_name": "Cây hoa cúc",
+        "scientific_name": "Chrysanthemum morifolium",
+        "family": "Họ Cúc (Asteraceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Chrysanthemum)"
+        ],
+        "disease_classes_count": 3,
+        "supported_disease_labels": [
+          "Bacterial_leaf_spot",
+          "Healthy",
+          "Septoria_leaf_spot"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Bacterial_leaf_spot",
+            "name_vi": "Bệnh Bacterial leaf spot"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Septoria_leaf_spot",
+            "name_vi": "Bệnh đốm lá Septoria"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Rose",
+        "crop_id": "Rose",
+        "name_vi": "Hoa hồng",
+        "name_en": "Rose",
+        "common_name": "Cây hoa hồng",
+        "scientific_name": "Rosa spp.",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)",
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Rose)"
+        ],
+        "disease_classes_count": 8,
+        "supported_disease_labels": [
+          "Black Spot",
+          "Downy Mildew",
+          "Insect Hole",
+          "Rose___healthy",
+          "Rose___rust",
+          "Rose___slug_sawfly",
+          "Yellow Mosaic Virus",
+          "blight"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Black Spot",
+            "name_vi": "Bệnh Black Spot"
+          },
+          {
+            "label_id": "Downy Mildew",
+            "name_vi": "Bệnh Downy Mildew"
+          },
+          {
+            "label_id": "Insect Hole",
+            "name_vi": "Bệnh Insect Hole"
+          },
+          {
+            "label_id": "Rose___healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Rose___rust",
+            "name_vi": "Bệnh rust"
+          },
+          {
+            "label_id": "Rose___slug_sawfly",
+            "name_vi": "Bệnh slug sawfly"
+          },
+          {
+            "label_id": "Yellow Mosaic Virus",
+            "name_vi": "Bệnh Yellow Mosaic Virus"
+          },
+          {
+            "label_id": "blight",
+            "name_vi": "Bệnh blight"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Cucurbit",
+        "crop_id": "Cucurbit",
+        "name_vi": "Họ bầu bí (Bí ngô, Dưa)",
+        "name_en": "Cucurbit",
+        "common_name": "Cây họ bầu bí",
+        "scientific_name": "Cucurbita spp.",
+        "family": "Họ Bầu bí (Cucurbitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Cucurbit)"
+        ],
+        "disease_classes_count": 4,
+        "supported_disease_labels": [
+          "Downy_mildew",
+          "Healthy",
+          "Leaf_curl",
+          "Mosaic_virus"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Downy_mildew",
+            "name_vi": "Bệnh sương mai"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf_curl",
+            "name_vi": "Bệnh Leaf curl"
+          },
+          {
+            "label_id": "Mosaic_virus",
+            "name_vi": "Bệnh virus khảm lá"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Black_Pepper",
+        "crop_id": "Black_Pepper",
+        "name_vi": "Hồ tiêu",
+        "name_en": "Black_Pepper",
+        "common_name": "Cây hồ tiêu",
+        "scientific_name": "Piper nigrum",
+        "family": "Họ Hồ tiêu (Piperaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Black_Pepper)"
+        ],
+        "disease_classes_count": 3,
+        "supported_disease_labels": [
+          "Healthy",
+          "leaf_blight",
+          "yellow_mottle_virus"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "leaf_blight",
+            "name_vi": "Bệnh leaf blight"
+          },
+          {
+            "label_id": "yellow_mottle_virus",
+            "name_vi": "Bệnh yellow mottle virus"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Potato",
+        "crop_id": "Potato",
+        "name_vi": "Khoai tây",
+        "name_en": "Potato",
+        "common_name": "Cây khoai tây",
+        "scientific_name": "Solanum tuberosum",
+        "family": "Họ Cà (Solanaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Potato)"
+        ],
+        "disease_classes_count": 3,
+        "supported_disease_labels": [
+          "Early_blight",
+          "Healthy",
+          "Late_blight"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Early_blight",
+            "name_vi": "Bệnh cháy lá sớm (Đốm vòng)"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Late_blight",
+            "name_vi": "Bệnh mốc sương (Đốm muộn)"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Pear",
+        "crop_id": "Pear",
+        "name_vi": "Lê",
+        "name_en": "Pear",
+        "common_name": "Cây lê",
+        "scientific_name": "Pyrus communis",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Pear)"
+        ],
+        "disease_classes_count": 5,
+        "supported_disease_labels": [
+          "Black_spot",
+          "Fire_blight",
+          "Healthy",
+          "Leaf_spot",
+          "Pear_slug"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Black_spot",
+            "name_vi": "Bệnh đốm đen cam quýt"
+          },
+          {
+            "label_id": "Fire_blight",
+            "name_vi": "Bệnh Fire blight"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf_spot",
+            "name_vi": "Bệnh Leaf spot"
+          },
+          {
+            "label_id": "Pear_slug",
+            "name_vi": "Bệnh Pear slug"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Rice",
+        "crop_id": "Rice",
+        "name_vi": "Lúa nước",
+        "name_en": "Rice",
+        "common_name": "Cây lúa",
+        "scientific_name": "Oryza sativa",
+        "family": "Họ Hòa thảo (Poaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Rice)"
+        ],
+        "disease_classes_count": 14,
+        "supported_disease_labels": [
+          "Bacterial_blight",
+          "Bacterial_leaf_streak",
+          "Bacterial_panicle_blight",
+          "Blast",
+          "Brown_spot",
+          "Dead_heart",
+          "Downy_mildew",
+          "Healthy",
+          "Hispa",
+          "Leaf_scald",
+          "Narrow_brown_leaf_spot",
+          "Neck_blast",
+          "Sheath_blight",
+          "Tungro"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Bacterial_blight",
+            "name_vi": "Bệnh bạc lá lúa (Cháy bìa lá vi khuẩn)"
+          },
+          {
+            "label_id": "Bacterial_leaf_streak",
+            "name_vi": "Bệnh sọc trong vi khuẩn"
+          },
+          {
+            "label_id": "Bacterial_panicle_blight",
+            "name_vi": "Bệnh Bacterial panicle blight"
+          },
+          {
+            "label_id": "Blast",
+            "name_vi": "Bệnh đạo ôn lá"
+          },
+          {
+            "label_id": "Brown_spot",
+            "name_vi": "Bệnh đốm nâu hại lúa"
+          },
+          {
+            "label_id": "Dead_heart",
+            "name_vi": "Bệnh Dead heart"
+          },
+          {
+            "label_id": "Downy_mildew",
+            "name_vi": "Bệnh sương mai"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Hispa",
+            "name_vi": "Bệnh Hispa"
+          },
+          {
+            "label_id": "Leaf_scald",
+            "name_vi": "Bệnh bỏng lá lúa"
+          },
+          {
+            "label_id": "Narrow_brown_leaf_spot",
+            "name_vi": "Bệnh đốm nâu hẹp"
+          },
+          {
+            "label_id": "Neck_blast",
+            "name_vi": "Bệnh Neck blast"
+          },
+          {
+            "label_id": "Sheath_blight",
+            "name_vi": "Bệnh khô vằn"
+          },
+          {
+            "label_id": "Tungro",
+            "name_vi": "Bệnh vàng lụi Tungro virus"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "pomrgranet",
+        "crop_id": "pomrgranet",
+        "name_vi": "Lựu",
+        "name_en": "pomrgranet",
+        "common_name": "Cây lựu",
+        "scientific_name": "Punica granatum",
+        "family": "Họ Thạch lựu (Lythraceae)",
+        "can_identify_crop": false,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [],
+        "disease_models_available": [
+          "convnext_small (pomrgranet)"
+        ],
+        "disease_classes_count": 5,
+        "supported_disease_labels": [
+          "Alternaria",
+          "Anthracnose",
+          "Bacterial_Blight",
+          "Cercospora",
+          "Healthy"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Alternaria",
+            "name_vi": "Bệnh Alternaria"
+          },
+          {
+            "label_id": "Anthracnose",
+            "name_vi": "Bệnh thán thư"
+          },
+          {
+            "label_id": "Bacterial_Blight",
+            "name_vi": "Bệnh Bacterial Blight"
+          },
+          {
+            "label_id": "Cercospora",
+            "name_vi": "Bệnh Cercospora"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Raspberry",
+        "crop_id": "Raspberry",
+        "name_vi": "Mâm xôi",
+        "name_en": "Raspberry",
+        "common_name": "Cây mâm xôi",
+        "scientific_name": "Rubus idaeus",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": false,
+        "has_disease_model": false,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [],
+        "disease_classes_count": 0,
+        "supported_disease_labels": [],
+        "supported_diseases_vi": [],
+        "status_notes": "Chỉ nhận diện loại cây, chưa có mô hình bệnh"
+      },
+      {
+        "id": "Custard_apple",
+        "crop_id": "Custard_apple",
+        "name_vi": "Mãng cầu ta (Na)",
+        "name_en": "Custard_apple",
+        "common_name": "Cây na",
+        "scientific_name": "Annona squamosa",
+        "family": "Họ Na (Annonaceae)",
+        "can_identify_crop": false,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [],
+        "disease_models_available": [
+          "convnext_small (Custard_apple)"
+        ],
+        "disease_classes_count": 8,
+        "supported_disease_labels": [
+          "Athracnose",
+          "Blank Canker",
+          "Custard_apple Healthy",
+          "Custurd_apple Stressed",
+          "Diplodia Rot",
+          "Leaf spot on Leaves",
+          "Leaf spot on fruit",
+          "Mealy Bug"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Athracnose",
+            "name_vi": "Bệnh Athracnose"
+          },
+          {
+            "label_id": "Blank Canker",
+            "name_vi": "Bệnh Blank Canker"
+          },
+          {
+            "label_id": "Custard_apple Healthy",
+            "name_vi": "Bệnh Custard apple Healthy"
+          },
+          {
+            "label_id": "Custurd_apple Stressed",
+            "name_vi": "Bệnh Custurd apple Stressed"
+          },
+          {
+            "label_id": "Diplodia Rot",
+            "name_vi": "Bệnh Diplodia Rot"
+          },
+          {
+            "label_id": "Leaf spot on Leaves",
+            "name_vi": "Bệnh Leaf spot on Leaves"
+          },
+          {
+            "label_id": "Leaf spot on fruit",
+            "name_vi": "Bệnh Leaf spot on fruit"
+          },
+          {
+            "label_id": "Mealy Bug",
+            "name_vi": "Bệnh Mealy Bug"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Sugarcane",
+        "crop_id": "Sugarcane",
+        "name_vi": "Mía",
+        "name_en": "Sugarcane",
+        "common_name": "Cây mía",
+        "scientific_name": "Saccharum officinarum",
+        "family": "Họ Hòa thảo (Poaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Sugarcane)"
+        ],
+        "disease_classes_count": 11,
+        "supported_disease_labels": [
+          "Banded_Chlorosis",
+          "Brown_Rust",
+          "Brown_Spot",
+          "Dried_Leaves",
+          "Grassy_shoot",
+          "Healthy",
+          "Pokkah_Boeng",
+          "Sett_Rot",
+          "Smut",
+          "Yellow_Leaf",
+          "mosaic_virus"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Banded_Chlorosis",
+            "name_vi": "Bệnh Banded Chlorosis"
+          },
+          {
+            "label_id": "Brown_Rust",
+            "name_vi": "Bệnh Brown Rust"
+          },
+          {
+            "label_id": "Brown_Spot",
+            "name_vi": "Bệnh Brown Spot"
+          },
+          {
+            "label_id": "Dried_Leaves",
+            "name_vi": "Bệnh Dried Leaves"
+          },
+          {
+            "label_id": "Grassy_shoot",
+            "name_vi": "Bệnh Grassy shoot"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Pokkah_Boeng",
+            "name_vi": "Bệnh Pokkah Boeng"
+          },
+          {
+            "label_id": "Sett_Rot",
+            "name_vi": "Bệnh Sett Rot"
+          },
+          {
+            "label_id": "Smut",
+            "name_vi": "Bệnh than đen ngô"
+          },
+          {
+            "label_id": "Yellow_Leaf",
+            "name_vi": "Bệnh Yellow Leaf"
+          },
+          {
+            "label_id": "mosaic_virus",
+            "name_vi": "Bệnh mosaic virus"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Apricot",
+        "crop_id": "Apricot",
+        "name_vi": "Mơ tây",
+        "name_en": "Apricot",
+        "common_name": "Cây mơ tây",
+        "scientific_name": "Prunus armeniaca",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Apricot)"
+        ],
+        "disease_classes_count": 3,
+        "supported_disease_labels": [
+          "Blight",
+          "Healthy",
+          "Shot_hole"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Blight",
+            "name_vi": "Bệnh cháy lá"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Shot_hole",
+            "name_vi": "Bệnh Shot hole"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Ridge_gourd",
+        "crop_id": "Ridge_gourd",
+        "name_vi": "Mướp khía",
+        "name_en": "Ridge_gourd",
+        "common_name": "Cây mướp khía",
+        "scientific_name": "Luffa acutangula",
+        "family": "Họ Bầu bí (Cucurbitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Ridge_gourd)"
+        ],
+        "disease_classes_count": 4,
+        "supported_disease_labels": [
+          "Healthy",
+          "Leaf_miner",
+          "Mosaic_virus",
+          "Nutrient_deficiency"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf_miner",
+            "name_vi": "Sâu vẽ bùa cà phê"
+          },
+          {
+            "label_id": "Mosaic_virus",
+            "name_vi": "Bệnh virus khảm lá"
+          },
+          {
+            "label_id": "Nutrient_deficiency",
+            "name_vi": "Triệu chứng thiếu hụt dinh dưỡng"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Snake_gourd",
+        "crop_id": "Snake_gourd",
+        "name_vi": "Mướp rắn",
+        "name_en": "Snake_gourd",
+        "common_name": "Cây mướp rắn",
+        "scientific_name": "Trichosanthes cucumerina",
+        "family": "Họ Bầu bí (Cucurbitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Snake_gourd)"
+        ],
+        "disease_classes_count": 4,
+        "supported_disease_labels": [
+          "Anthracnose",
+          "Healthy",
+          "Nutrient_deficiency",
+          "Yellowing"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Anthracnose",
+            "name_vi": "Bệnh thán thư"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Nutrient_deficiency",
+            "name_vi": "Triệu chứng thiếu hụt dinh dưỡng"
+          },
+          {
+            "label_id": "Yellowing",
+            "name_vi": "Bệnh Yellowing"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Bitter_gourd",
+        "crop_id": "Bitter_gourd",
+        "name_vi": "Mướp đắng (Khổ qua)",
+        "name_en": "Bitter_gourd",
+        "common_name": "Cây mướp đắng",
+        "scientific_name": "Momordica charantia",
+        "family": "Họ Bầu bí (Cucurbitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Bitter_gourd)"
+        ],
+        "disease_classes_count": 5,
+        "supported_disease_labels": [
+          "Downy_mildew",
+          "Fusarium_wilt",
+          "Healthy",
+          "Mosaic_virus",
+          "Nutrient_deficiency"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Downy_mildew",
+            "name_vi": "Bệnh sương mai"
+          },
+          {
+            "label_id": "Fusarium_wilt",
+            "name_vi": "Bệnh héo rũ Fusarium"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Mosaic_virus",
+            "name_vi": "Bệnh virus khảm lá"
+          },
+          {
+            "label_id": "Nutrient_deficiency",
+            "name_vi": "Triệu chứng thiếu hụt dinh dưỡng"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Corn",
+        "crop_id": "Corn",
+        "name_vi": "Ngô (Bắp)",
+        "name_en": "Corn",
+        "common_name": "Cây ngô",
+        "scientific_name": "Zea mays",
+        "family": "Họ Hòa thảo (Poaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Maize)"
+        ],
+        "disease_classes_count": 11,
+        "supported_disease_labels": [
+          "Common_rust",
+          "Fall_armyworm",
+          "Grasshopper_damage",
+          "Gray_leaf_spot",
+          "Healthy",
+          "Holcus_leaf_spot",
+          "Leaf_beetle",
+          "Maize_lethal_necrosis",
+          "Maize_streak_virus",
+          "Northern_leaf_blight",
+          "Smut"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Common_rust",
+            "name_vi": "Bệnh rỉ sắt ngô"
+          },
+          {
+            "label_id": "Fall_armyworm",
+            "name_vi": "Bệnh Fall armyworm"
+          },
+          {
+            "label_id": "Grasshopper_damage",
+            "name_vi": "Bệnh Grasshopper damage"
+          },
+          {
+            "label_id": "Gray_leaf_spot",
+            "name_vi": "Bệnh đốm xám lá ngô"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Holcus_leaf_spot",
+            "name_vi": "Bệnh Holcus leaf spot"
+          },
+          {
+            "label_id": "Leaf_beetle",
+            "name_vi": "Bệnh Leaf beetle"
+          },
+          {
+            "label_id": "Maize_lethal_necrosis",
+            "name_vi": "Bệnh Maize lethal necrosis"
+          },
+          {
+            "label_id": "Maize_streak_virus",
+            "name_vi": "Bệnh Maize streak virus"
+          },
+          {
+            "label_id": "Northern_leaf_blight",
+            "name_vi": "Bệnh cháy lá lớn ngô (Đốm lá lớn)"
+          },
+          {
+            "label_id": "Smut",
+            "name_vi": "Bệnh than đen ngô"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Maize",
+        "crop_id": "Maize",
+        "name_vi": "Ngô (Bắp)",
+        "name_en": "Maize",
+        "common_name": "Cây ngô",
+        "scientific_name": "Zea mays",
+        "family": "Họ Hòa thảo (Poaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Maize)"
+        ],
+        "disease_classes_count": 11,
+        "supported_disease_labels": [
+          "Common_rust",
+          "Fall_armyworm",
+          "Grasshopper_damage",
+          "Gray_leaf_spot",
+          "Healthy",
+          "Holcus_leaf_spot",
+          "Leaf_beetle",
+          "Maize_lethal_necrosis",
+          "Maize_streak_virus",
+          "Northern_leaf_blight",
+          "Smut"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Common_rust",
+            "name_vi": "Bệnh rỉ sắt ngô"
+          },
+          {
+            "label_id": "Fall_armyworm",
+            "name_vi": "Bệnh Fall armyworm"
+          },
+          {
+            "label_id": "Grasshopper_damage",
+            "name_vi": "Bệnh Grasshopper damage"
+          },
+          {
+            "label_id": "Gray_leaf_spot",
+            "name_vi": "Bệnh đốm xám lá ngô"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Holcus_leaf_spot",
+            "name_vi": "Bệnh Holcus leaf spot"
+          },
+          {
+            "label_id": "Leaf_beetle",
+            "name_vi": "Bệnh Leaf beetle"
+          },
+          {
+            "label_id": "Maize_lethal_necrosis",
+            "name_vi": "Bệnh Maize lethal necrosis"
+          },
+          {
+            "label_id": "Maize_streak_virus",
+            "name_vi": "Bệnh Maize streak virus"
+          },
+          {
+            "label_id": "Northern_leaf_blight",
+            "name_vi": "Bệnh cháy lá lớn ngô (Đốm lá lớn)"
+          },
+          {
+            "label_id": "Smut",
+            "name_vi": "Bệnh than đen ngô"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Grape",
+        "crop_id": "Grape",
+        "name_vi": "Nho",
+        "name_en": "Grape",
+        "common_name": "Cây nho",
+        "scientific_name": "Vitis vinifera",
+        "family": "Họ Nho (Vitaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Grape)"
+        ],
+        "disease_classes_count": 11,
+        "supported_disease_labels": [
+          "Anthracnose",
+          "Bacterial_rot",
+          "Black_rot",
+          "Brown_spot",
+          "Downy_mildew",
+          "Esca_black_measles",
+          "Healthy",
+          "Leaf_blight",
+          "Mites",
+          "Powdery_mildew",
+          "Shot_hole"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Anthracnose",
+            "name_vi": "Bệnh thán thư"
+          },
+          {
+            "label_id": "Bacterial_rot",
+            "name_vi": "Bệnh Bacterial rot"
+          },
+          {
+            "label_id": "Black_rot",
+            "name_vi": "Bệnh thối đen táo"
+          },
+          {
+            "label_id": "Brown_spot",
+            "name_vi": "Bệnh đốm nâu hại lúa"
+          },
+          {
+            "label_id": "Downy_mildew",
+            "name_vi": "Bệnh sương mai"
+          },
+          {
+            "label_id": "Esca_black_measles",
+            "name_vi": "Bệnh Esca black measles"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf_blight",
+            "name_vi": "Bệnh Leaf blight"
+          },
+          {
+            "label_id": "Mites",
+            "name_vi": "Bệnh Mites"
+          },
+          {
+            "label_id": "Powdery_mildew",
+            "name_vi": "Bệnh phấn trắng"
+          },
+          {
+            "label_id": "Shot_hole",
+            "name_vi": "Bệnh Shot hole"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Fig",
+        "crop_id": "Fig",
+        "name_vi": "Quả sung (Vả tây)",
+        "name_en": "Fig",
+        "common_name": "Cây sung tây",
+        "scientific_name": "Ficus carica",
+        "family": "Họ Dâu tằm (Moraceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Fig)"
+        ],
+        "disease_classes_count": 4,
+        "supported_disease_labels": [
+          "Blight",
+          "Brown_spot",
+          "Healthy",
+          "Rust"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Blight",
+            "name_vi": "Bệnh cháy lá"
+          },
+          {
+            "label_id": "Brown_spot",
+            "name_vi": "Bệnh đốm nâu hại lúa"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Rust",
+            "name_vi": "Bệnh rỉ sắt cà phê"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Loquat",
+        "crop_id": "Loquat",
+        "name_vi": "Sơn tra (Tỳ bà)",
+        "name_en": "Loquat",
+        "common_name": "Cây tỳ bà",
+        "scientific_name": "Eriobotrya japonica",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Loquat)"
+        ],
+        "disease_classes_count": 2,
+        "supported_disease_labels": [
+          "Healthy",
+          "Leaf_spot"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf_spot",
+            "name_vi": "Bệnh Leaf spot"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Cassava",
+        "crop_id": "Cassava",
+        "name_vi": "Sắn (Khoai mì)",
+        "name_en": "Cassava",
+        "common_name": "Cây sắn",
+        "scientific_name": "Manihot esculenta",
+        "family": "Họ Đại kích (Euphorbiaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Cassava)"
+        ],
+        "disease_classes_count": 5,
+        "supported_disease_labels": [
+          "Healthy",
+          "bacterial_blight",
+          "brown_spot",
+          "green_mite",
+          "mosaic_virus"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "bacterial_blight",
+            "name_vi": "Bệnh bacterial blight"
+          },
+          {
+            "label_id": "brown_spot",
+            "name_vi": "Bệnh brown spot"
+          },
+          {
+            "label_id": "green_mite",
+            "name_vi": "Bệnh green mite"
+          },
+          {
+            "label_id": "mosaic_virus",
+            "name_vi": "Bệnh mosaic virus"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Betel",
+        "crop_id": "Betel",
+        "name_vi": "Trầu không",
+        "name_en": "Betel",
+        "common_name": "Cây trầu không",
+        "scientific_name": "Piper betle",
+        "family": "Họ Hồ tiêu (Piperaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Betel)"
+        ],
+        "disease_classes_count": 4,
+        "supported_disease_labels": [
+          "Bacterial_leaf_disease",
+          "Dried_leaf",
+          "Fungal_brown_spot",
+          "Healthy"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Bacterial_leaf_disease",
+            "name_vi": "Bệnh Bacterial leaf disease"
+          },
+          {
+            "label_id": "Dried_leaf",
+            "name_vi": "Bệnh Dried leaf"
+          },
+          {
+            "label_id": "Fungal_brown_spot",
+            "name_vi": "Bệnh Fungal brown spot"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Apple",
+        "crop_id": "Apple",
+        "name_vi": "Táo tây",
+        "name_en": "Apple",
+        "common_name": "Cây táo tây",
+        "scientific_name": "Malus domestica",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)",
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Apple)"
+        ],
+        "disease_classes_count": 8,
+        "supported_disease_labels": [
+          "Apple_Scab_rust",
+          "Apple___gray_spot",
+          "Apple___scab",
+          "Brown_spot",
+          "alternaria_leaf_spot",
+          "healthy",
+          "marsonina_blotch",
+          "root_rot_collar_rot"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Apple_Scab_rust",
+            "name_vi": "Bệnh Apple Scab rust"
+          },
+          {
+            "label_id": "Apple___gray_spot",
+            "name_vi": "Bệnh gray spot"
+          },
+          {
+            "label_id": "Apple___scab",
+            "name_vi": "Bệnh scab"
+          },
+          {
+            "label_id": "Brown_spot",
+            "name_vi": "Bệnh đốm nâu hại lúa"
+          },
+          {
+            "label_id": "alternaria_leaf_spot",
+            "name_vi": "Bệnh alternaria leaf spot"
+          },
+          {
+            "label_id": "healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "marsonina_blotch",
+            "name_vi": "Bệnh marsonina blotch"
+          },
+          {
+            "label_id": "root_rot_collar_rot",
+            "name_vi": "Bệnh root rot collar rot"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Blueberry",
+        "crop_id": "Blueberry",
+        "name_vi": "Việt quất",
+        "name_en": "Blueberry",
+        "common_name": "Cây việt quất",
+        "scientific_name": "Vaccinium corymbosum",
+        "family": "Họ Thạch nam (Ericaceae)",
+        "can_identify_crop": false,
+        "can_diagnose_disease": false,
+        "has_disease_model": false,
+        "detector_sources": [],
+        "disease_models_available": [],
+        "disease_classes_count": 0,
+        "supported_disease_labels": [],
+        "supported_diseases_vi": [],
+        "status_notes": "Chưa có mô hình nhận diện hoặc chẩn đoán"
+      },
+      {
+        "id": "Mango",
+        "crop_id": "Mango",
+        "name_vi": "Xoài",
+        "name_en": "Mango",
+        "common_name": "Cây xoài",
+        "scientific_name": "Mangifera indica",
+        "family": "Họ Đào lộn hột (Anacardiaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)",
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Mango)"
+        ],
+        "disease_classes_count": 8,
+        "supported_disease_labels": [
+          "Anthracnose",
+          "Bacterial Canker",
+          "Cutting Weevil",
+          "Die Back",
+          "Gall Midge",
+          "Mango Healthy",
+          "Powdery Mildew",
+          "Sooty Mould"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Anthracnose",
+            "name_vi": "Bệnh thán thư"
+          },
+          {
+            "label_id": "Bacterial Canker",
+            "name_vi": "Bệnh Bacterial Canker"
+          },
+          {
+            "label_id": "Cutting Weevil",
+            "name_vi": "Bệnh Cutting Weevil"
+          },
+          {
+            "label_id": "Die Back",
+            "name_vi": "Bệnh Die Back"
+          },
+          {
+            "label_id": "Gall Midge",
+            "name_vi": "Bệnh Gall Midge"
+          },
+          {
+            "label_id": "Mango Healthy",
+            "name_vi": "Bệnh Mango Healthy"
+          },
+          {
+            "label_id": "Powdery Mildew",
+            "name_vi": "Bệnh Powdery Mildew"
+          },
+          {
+            "label_id": "Sooty Mould",
+            "name_vi": "Bệnh Sooty Mould"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Walnut",
+        "crop_id": "Walnut",
+        "name_vi": "Óc chó",
+        "name_en": "Walnut",
+        "common_name": "Cây óc chó",
+        "scientific_name": "Juglans regia",
+        "family": "Họ Óc chó (Juglandaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Walnut)"
+        ],
+        "disease_classes_count": 5,
+        "supported_disease_labels": [
+          "Anthracnose",
+          "Blotch",
+          "Gall_mite",
+          "Healthy",
+          "Shot_hole"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Anthracnose",
+            "name_vi": "Bệnh thán thư"
+          },
+          {
+            "label_id": "Blotch",
+            "name_vi": "Bệnh Blotch"
+          },
+          {
+            "label_id": "Gall_mite",
+            "name_vi": "Bệnh Gall mite"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Shot_hole",
+            "name_vi": "Bệnh Shot hole"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Cashew",
+        "crop_id": "Cashew",
+        "name_vi": "Điều (Đào lộn hột)",
+        "name_en": "Cashew",
+        "common_name": "Cây điều",
+        "scientific_name": "Anacardium occidentale",
+        "family": "Họ Đào lộn hột (Anacardiaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)",
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Cashew)"
+        ],
+        "disease_classes_count": 5,
+        "supported_disease_labels": [
+          "Cashew_anthracnose",
+          "Cashew_gumosis",
+          "Cashew_healthy",
+          "Cashew_leaf_miner",
+          "Cashew_red_rust"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Cashew_anthracnose",
+            "name_vi": "Bệnh Cashew anthracnose"
+          },
+          {
+            "label_id": "Cashew_gumosis",
+            "name_vi": "Bệnh Cashew gumosis"
+          },
+          {
+            "label_id": "Cashew_healthy",
+            "name_vi": "Bệnh Cashew healthy"
+          },
+          {
+            "label_id": "Cashew_leaf_miner",
+            "name_vi": "Bệnh Cashew leaf miner"
+          },
+          {
+            "label_id": "Cashew_red_rust",
+            "name_vi": "Bệnh Cashew red rust"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Papaya",
+        "crop_id": "Papaya",
+        "name_vi": "Đu đủ",
+        "name_en": "Papaya",
+        "common_name": "Cây đu đủ",
+        "scientific_name": "Carica papaya",
+        "family": "Họ Đu đủ (Caricaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Papaya)"
+        ],
+        "disease_classes_count": 8,
+        "supported_disease_labels": [
+          "Anthracnose",
+          "BacterialSpot",
+          "Curl",
+          "Healthy",
+          "Mealybug",
+          "Mite disease",
+          "Mosaic",
+          "Ringspot"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Anthracnose",
+            "name_vi": "Bệnh thán thư"
+          },
+          {
+            "label_id": "BacterialSpot",
+            "name_vi": "Bệnh BacterialSpot"
+          },
+          {
+            "label_id": "Curl",
+            "name_vi": "Bệnh Curl"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Mealybug",
+            "name_vi": "Bệnh Mealybug"
+          },
+          {
+            "label_id": "Mite disease",
+            "name_vi": "Bệnh Mite disease"
+          },
+          {
+            "label_id": "Mosaic",
+            "name_vi": "Bệnh Mosaic"
+          },
+          {
+            "label_id": "Ringspot",
+            "name_vi": "Bệnh Ringspot"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Peach",
+        "crop_id": "Peach",
+        "name_vi": "Đào",
+        "name_en": "Peach",
+        "common_name": "Cây đào",
+        "scientific_name": "Prunus persica",
+        "family": "Họ Hoa hồng (Rosaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Peach)"
+        ],
+        "disease_classes_count": 4,
+        "supported_disease_labels": [
+          "Bacterial_spot",
+          "Brown_rot",
+          "Healthy",
+          "Leaf_curl"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Bacterial_spot",
+            "name_vi": "Bệnh đốm vi khuẩn"
+          },
+          {
+            "label_id": "Brown_rot",
+            "name_vi": "Bệnh Brown rot"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf_curl",
+            "name_vi": "Bệnh Leaf curl"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "okra",
+        "crop_id": "okra",
+        "name_vi": "Đậu bắp",
+        "name_en": "okra",
+        "common_name": "Cây đậu bắp",
+        "scientific_name": "Abelmoschus esculentus",
+        "family": "Họ Cẩm quỳ (Malvaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (okra)"
+        ],
+        "disease_classes_count": 6,
+        "supported_disease_labels": [
+          "Alternaria Leaf Spot",
+          "Cercospora Leaf Spot",
+          "Downy Mildew",
+          "Healthy",
+          "Leaf curly virus",
+          "Phyllosticta leaf spot"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Alternaria Leaf Spot",
+            "name_vi": "Bệnh Alternaria Leaf Spot"
+          },
+          {
+            "label_id": "Cercospora Leaf Spot",
+            "name_vi": "Bệnh Cercospora Leaf Spot"
+          },
+          {
+            "label_id": "Downy Mildew",
+            "name_vi": "Bệnh Downy Mildew"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Leaf curly virus",
+            "name_vi": "Bệnh Leaf curly virus"
+          },
+          {
+            "label_id": "Phyllosticta leaf spot",
+            "name_vi": "Bệnh Phyllosticta leaf spot"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Soybean",
+        "crop_id": "Soybean",
+        "name_vi": "Đậu nành (Đậu tương)",
+        "name_en": "Soybean",
+        "common_name": "Cây đậu tương",
+        "scientific_name": "Glycine max",
+        "family": "Họ Đậu (Fabaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Soybean)"
+        ],
+        "disease_classes_count": 6,
+        "supported_disease_labels": [
+          "Downy_mildew",
+          "Frogeye_leaf_spot",
+          "Healthy",
+          "Mosaic_virus",
+          "Rust",
+          "Septoria_brown_spot"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Downy_mildew",
+            "name_vi": "Bệnh sương mai"
+          },
+          {
+            "label_id": "Frogeye_leaf_spot",
+            "name_vi": "Bệnh Frogeye leaf spot"
+          },
+          {
+            "label_id": "Healthy",
+            "name_vi": "Lá khỏe mạnh, không phát hiện dấu hiệu bệnh"
+          },
+          {
+            "label_id": "Mosaic_virus",
+            "name_vi": "Bệnh virus khảm lá"
+          },
+          {
+            "label_id": "Rust",
+            "name_vi": "Bệnh rỉ sắt cà phê"
+          },
+          {
+            "label_id": "Septoria_brown_spot",
+            "name_vi": "Bệnh Septoria brown spot"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Guava",
+        "crop_id": "Guava",
+        "name_vi": "Ổi",
+        "name_en": "Guava",
+        "common_name": "Cây ổi",
+        "scientific_name": "Psidium guajava",
+        "family": "Họ Đào kim nương (Myrtaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/original (16 crops)"
+        ],
+        "disease_models_available": [
+          "convnext_small (Guava)"
+        ],
+        "disease_classes_count": 6,
+        "supported_disease_labels": [
+          "Guava Healthy",
+          "Guava_Rust_leaf_spot",
+          "Tea_Mosquito_Bug_Thrips",
+          "anthracnose",
+          "multiple",
+          "yld"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Guava Healthy",
+            "name_vi": "Bệnh Guava Healthy"
+          },
+          {
+            "label_id": "Guava_Rust_leaf_spot",
+            "name_vi": "Bệnh Guava Rust leaf spot"
+          },
+          {
+            "label_id": "Tea_Mosquito_Bug_Thrips",
+            "name_vi": "Bệnh Tea Mosquito Bug Thrips"
+          },
+          {
+            "label_id": "anthracnose",
+            "name_vi": "Bệnh anthracnose"
+          },
+          {
+            "label_id": "multiple",
+            "name_vi": "Bệnh multiple"
+          },
+          {
+            "label_id": "yld",
+            "name_vi": "Bệnh yld"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      },
+      {
+        "id": "Pepper",
+        "crop_id": "Pepper",
+        "name_vi": "Ớt ngọt (Ớt chuông)",
+        "name_en": "Pepper",
+        "common_name": "Cây ớt ngọt",
+        "scientific_name": "Capsicum annuum",
+        "family": "Họ Cà (Solanaceae)",
+        "can_identify_crop": true,
+        "can_diagnose_disease": true,
+        "has_disease_model": true,
+        "detector_sources": [
+          "detectors/new (36 crops)"
+        ],
+        "disease_models_available": [
+          "vit_plantvillage (Model tong)"
+        ],
+        "disease_classes_count": 2,
+        "supported_disease_labels": [
+          "Pepper,_bell___Bacterial_spot",
+          "Pepper,_bell___healthy"
+        ],
+        "supported_diseases_vi": [
+          {
+            "label_id": "Pepper,_bell___Bacterial_spot",
+            "name_vi": "Bệnh đốm vi khuẩn trên ớt ngọt"
+          },
+          {
+            "label_id": "Pepper,_bell___healthy",
+            "name_vi": "Lá ớt ngọt khỏe mạnh"
+          }
+        ],
+        "status_notes": "Sẵn sàng chẩn đoán cục bộ"
+      }
+    ]
+  }
+}

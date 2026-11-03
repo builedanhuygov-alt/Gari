@@ -1,0 +1,1597 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị Tổ chức & Đội ngũ • Gari B2B SaaS</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+    <style>
+        .org-state-banner {
+            display: none;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            line-height: 1.55;
+            border: 1px solid transparent;
+        }
+        .org-state-banner.visible { display: flex; }
+        .org-state-banner.pending { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.35); color: var(--text-main); }
+        .org-state-banner.active { background: rgba(16,185,129,.10); border-color: rgba(16,185,129,.35); color: var(--text-main); }
+        .org-state-banner.suspended { background: rgba(239,68,68,.10); border-color: rgba(239,68,68,.35); color: var(--text-main); }
+        .org-state-banner.archived { background: rgba(100,116,139,.12); border-color: rgba(100,116,139,.35); color: var(--text-main); }
+        .org-state-banner.blocked { background: rgba(239,68,68,.10); border-color: rgba(239,68,68,.35); color: var(--text-main); }
+        .org-state-banner .state-icon { font-size: 20px; line-height: 1; }
+        .org-state-banner strong { display: block; font-size: 13.5px; margin-bottom: 2px; }
+        .org-state-banner .state-actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .org-tabs {
+            display: flex; border-bottom: 1px solid var(--border);
+            background: var(--surface-muted); padding: 0 10px; overflow-x: auto; gap: 2px;
+        }
+        .org-tab {
+            padding: 13px 14px; font-weight: 600; font-size: 13px; border: none;
+            background: transparent; color: var(--text-secondary); cursor: pointer;
+            border-bottom: 2px solid transparent; white-space: nowrap;
+        }
+        .org-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+        .org-tab:disabled { opacity: .45; cursor: not-allowed; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+        .form-field label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; }
+        .form-field .hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+        .section-title { font-size: 15px; font-weight: 700; margin: 0 0 4px; }
+        .section-sub { font-size: 12px; color: var(--text-muted); margin: 0 0 16px; }
+        .checklist { display: grid; gap: 8px; }
+        .checklist-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+        .checklist-badge { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+        .checklist-badge.done { background: rgba(16,185,129,.15); color: #10b981; }
+        .checklist-badge.todo { background: rgba(148,163,184,.2); color: var(--text-muted); }
+        .manual-delivery-note { font-size: 12px; color: var(--text-muted); background: var(--surface-muted); border: 1px dashed var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
+        .invite-token-box { background: var(--surface-muted); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 14px; word-break: break-all; }
+        .invite-token-box code { font-family: monospace; font-size: 12px; color: var(--primary); }
+        .empty-state { text-align: center; padding: 34px 18px; color: var(--text-muted); }
+        .empty-state h3 { font-size: 15px; color: var(--text-main); margin-bottom: 6px; }
+        .empty-state p { font-size: 12.5px; margin-bottom: 14px; }
+        .loading-row { text-align: center; padding: 24px; color: var(--text-muted); }
+        .error-row { text-align: center; padding: 20px; color: var(--danger); }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .hidden { display: none !important; }
+        @media (max-width: 720px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .page-head-actions { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head" style="align-items:flex-start;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
+                            <h1 class="page-head-title" id="orgTitle">Đang nạp tổ chức...</h1>
+                            <span class="pill pill-warning" id="orgPlanBadge" style="display:none;"></span>
+                            <span class="pill pill-neutral" id="orgStatusBadge" style="display:none;"></span>
+                            <span class="pill pill-info" id="orgUserRoleBadge" style="display:none;"></span>
+                        </div>
+                        <p class="page-head-sub" id="orgSubDesc">Quản lý vòng đời, hồ sơ, thành viên, lời mời, hạn ngạch AI và API cho tổ chức B2B.</p>
+                    </div>
+
+                    <div class="page-head-actions" style="flex-wrap:wrap;">
+                        <select id="selectUserOrgs" class="input" style="width:230px; font-weight:600; font-size:13px; height:38px;">
+                            <option value="">Chọn tổ chức...</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnOpenCreateOrgModal">
+                            + Tạo tổ chức mới
+                        </button>
+                        <a href="/frontend2/support.html" class="btn btn-secondary btn-sm" id="btnSupportLink">Liên hệ hỗ trợ</a>
+                    </div>
+                </div>
+
+                <!-- Global state / empty / error banner -->
+                <div id="stateBanner" class="org-state-banner">
+                    <span class="state-icon" id="stateBannerIcon">ℹ️</span>
+                    <div style="flex:1;">
+                        <strong id="stateBannerTitle"></strong>
+                        <div id="stateBannerText"></div>
+                        <div class="state-actions" id="stateBannerActions"></div>
+                    </div>
+                </div>
+
+                <!-- Pending invitation accept banner -->
+                <div id="inviteBanner" class="org-state-banner pending" style="display:none;">
+                    <span class="state-icon">✉️</span>
+                    <div style="flex:1;">
+                        <strong>Bạn có lời mời tham gia tổ chức</strong>
+                        <div id="inviteBannerText"></div>
+                        <div class="state-actions">
+                            <input type="text" id="inputAcceptToken" class="input" placeholder="Dán mã lời mời nhận được" style="min-width:260px; height:34px; font-size:12.5px;" />
+                            <button type="button" class="btn btn-primary btn-sm" id="btnAcceptInvite">Chấp nhận lời mời</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard content -->
+                <div id="dashboardContent">
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:22px;">
+                        <div class="kpi-card" style="min-height:105px;">
+                            <span class="kpi-label">Hạn ngạch còn lại</span>
+                            <div class="kpi-metric" id="kpiOrgRemaining" style="color:var(--primary);">--</div>
+                            <span class="kpi-bottom" id="kpiOrgLimitSub">Đang tải...</span>
+                        </div>
+                        <div class="kpi-card" style="min-height:105px;">
+                            <span class="kpi-label">Lượt đã dùng chu kỳ này</span>
+                            <div class="kpi-metric" id="kpiOrgUsed" style="color:var(--text-main);">--</div>
+                            <span class="kpi-bottom">Tổng lượt cả đội ngũ</span>
+                        </div>
+                        <div class="kpi-card" style="min-height:105px;">
+                            <span class="kpi-label">Thành viên đội ngũ</span>
+                            <div class="kpi-metric" id="kpiOrgMembers" style="color:#8b5cf6;">--</div>
+                            <span class="kpi-bottom" id="kpiOrgMaxMembers">Đang tải...</span>
+                        </div>
+                        <div class="kpi-card" style="min-height:105px;">
+                            <span class="kpi-label">Lời mời đang chờ</span>
+                            <div class="kpi-metric" id="kpiOrgInvites" style="color:#f59e0b;">--</div>
+                            <span class="kpi-bottom">Gửi thủ công trong giai đoạn pilot</span>
+                        </div>
+                        <div class="kpi-card" style="min-height:105px;">
+                            <span class="kpi-label">Khóa API hoạt động</span>
+                            <div class="kpi-metric" id="kpiOrgApiKeys" style="color:#0284c7;">--</div>
+                            <span class="kpi-bottom">API-as-a-Service</span>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <div class="org-tabs" id="orgTabs">
+                            <button type="button" class="org-tab active" data-tab="overview">Tổng quan & Hồ sơ</button>
+                            <button type="button" class="org-tab" data-tab="members">Thành viên & Phân quyền</button>
+                            <button type="button" class="org-tab" data-tab="invitations">Lời mời</button>
+                            <button type="button" class="org-tab" data-tab="apikeys">Khóa API</button>
+                            <button type="button" class="org-tab" data-tab="usage">Sử dụng</button>
+                            <button type="button" class="org-tab" data-tab="billing">Thuê bao & Hóa đơn</button>
+                            <button type="button" class="org-tab" data-tab="audit">Audit trail</button>
+                        </div>
+
+                        <!-- TAB: OVERVIEW / PROFILE -->
+                        <section id="tab-overview" class="org-tab-panel" style="padding:20px;">
+                            <div style="display:grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap:22px;">
+                                <div>
+                                    <h3 class="section-title">Hồ sơ tổ chức</h3>
+                                    <p class="section-sub">Chỉ thu thập thông tin cần cho vận hành B2B. Không thu thập CCCD, dữ liệu tài chính cá nhân hay tọa độ chính xác của nông trại.</p>
+                                    <form id="profileForm">
+                                        <div class="form-grid">
+                                            <div class="form-field">
+                                                <label for="profileName">Tên tổ chức *</label>
+                                                <input type="text" id="profileName" class="input" maxlength="160" required />
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profileType">Loại hình tổ chức *</label>
+                                                <select id="profileType" class="input">
+                                                    <option value="">-- Chọn loại hình --</option>
+                                                    <option value="smallholder_group">Nhóm nông hộ liên kết</option>
+                                                    <option value="cooperative">Hợp tác xã</option>
+                                                    <option value="farm">Trang trại</option>
+                                                    <option value="dealer">Đại lý vật tư nông nghiệp</option>
+                                                    <option value="agribusiness">Doanh nghiệp nông nghiệp</option>
+                                                    <option value="other">Khác</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profileCrops">Cây trồng chủ lực</label>
+                                                <input type="text" id="profileCrops" class="input" placeholder="Ví dụ: Cà chua, Tiêu, Cà phê" />
+                                                <div class="hint">Phân tách bằng dấu phẩy, tối đa 10 loại.</div>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profileRegion">Khu vực hoạt động</label>
+                                                <input type="text" id="profileRegion" class="input" maxlength="120" placeholder="Ví dụ: Đồng bằng sông Hồng" />
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profileScale">Quy mô canh tác (tự nguyện)</label>
+                                                <select id="profileScale" class="input">
+                                                    <option value="">Không cung cấp</option>
+                                                    <option value="under_1ha">Dưới 1 ha</option>
+                                                    <option value="1_5ha">1 – 5 ha</option>
+                                                    <option value="5_20ha">5 – 20 ha</option>
+                                                    <option value="over_20ha">Trên 20 ha</option>
+                                                    <option value="unknown">Chưa xác định</option>
+                                                </select>
+                                                <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-weight:500; font-size:12px;">
+                                                    <input type="checkbox" id="profileScaleConsent" />
+                                                    Tôi đồng ý cung cấp quy mô canh tác ước tính
+                                                </label>
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profileAddress">Địa chỉ / khu vực trụ sở</label>
+                                                <input type="text" id="profileAddress" class="input" maxlength="200" placeholder="Huyện / Tỉnh" />
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profileEmail">Email liên hệ công việc</label>
+                                                <input type="email" id="profileEmail" class="input" maxlength="160" />
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profilePhone">Điện thoại liên hệ</label>
+                                                <input type="text" id="profilePhone" class="input" maxlength="40" />
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profileContactName">Người liên hệ</label>
+                                                <input type="text" id="profileContactName" class="input" maxlength="100" />
+                                            </div>
+                                            <div class="form-field">
+                                                <label for="profileContactTitle">Chức danh</label>
+                                                <input type="text" id="profileContactTitle" class="input" maxlength="100" />
+                                            </div>
+                                        </div>
+                                        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                                            <span id="profileSaveHint" style="font-size:12px; color:var(--text-muted); align-self:center;"></span>
+                                            <button type="submit" class="btn btn-primary btn-sm" id="btnSaveProfile">Lưu hồ sơ</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div>
+                                    <h3 class="section-title">Tiến trình onboarding</h3>
+                                    <p class="section-sub">Có thể rời trang và tiếp tục sau. Trạng thái được lưu trên backend.</p>
+                                    <div class="checklist" id="onboardingChecklist">
+                                        <div class="checklist-item"><span class="checklist-badge todo">1</span><span>Tạo hoặc chọn tổ chức</span></div>
+                                        <div class="checklist-item"><span class="checklist-badge todo">2</span><span>Điền thông tin tối thiểu</span></div>
+                                        <div class="checklist-item"><span class="checklist-badge todo">3</span><span>Xác nhận vai trò Owner/Admin</span></div>
+                                        <div class="checklist-item"><span class="checklist-badge todo">4</span><span>Chọn nhu cầu sử dụng</span></div>
+                                        <div class="checklist-item"><span class="checklist-badge todo">5</span><span>Hoàn tất và vào dashboard</span></div>
+                                    </div>
+                                    <div id="onboardingNeeds" style="margin-top:12px; font-size:12.5px; color:var(--text-secondary);"></div>
+                                    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+                                        <a href="/frontend2/onboarding.html" class="btn btn-primary btn-sm" id="btnOpenOnboarding">Tiếp tục onboarding B2B</a>
+                                    </div>
+
+                                    <div style="margin-top:22px; border-top:1px solid var(--border); padding-top:16px;">
+                                        <h3 class="section-title">Gói & vòng đời</h3>
+                                        <p class="section-sub" id="planLifecycleNote">Tổ chức mới bắt đầu ở gói Pilot miễn phí, không phải hợp đồng trả phí.</p>
+                                        <div id="lifecycleActions" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+                                    </div>
+
+                                    <div style="margin-top:18px; border-top:1px solid var(--border); padding-top:16px;">
+                                        <h3 class="section-title">Pilot & hỗ trợ</h3>
+                                        <p class="section-sub" id="pilotContactText">Giai đoạn pilot: đội ngũ Gari liên hệ và gửi lời mời/hợp đồng thủ công.</p>
+                                        <a href="/frontend2/support.html" class="btn btn-secondary btn-sm">Liên hệ đội ngũ Gari</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- TAB: MEMBERS -->
+                        <section id="tab-members" class="org-tab-panel" style="padding:20px; display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                                <div>
+                                    <h3 class="section-title">Danh sách thành viên</h3>
+                                    <p class="section-sub">Mọi thay đổi vai trò/ quyền đều được kiểm tra ở backend và ghi audit.</p>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" id="btnJumpInvite">Mời thành viên</button>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Họ và tên</th>
+                                            <th>Email</th>
+                                            <th>Vai trò</th>
+                                            <th>Ngày tham gia</th>
+                                            <th style="text-align:right;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orgMembersTableBody">
+                                        <tr><td colspan="5" class="loading-row">Đang tải danh sách thành viên...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <!-- TAB: INVITATIONS -->
+                        <section id="tab-invitations" class="org-tab-panel" style="padding:20px; display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                                <div>
+                                    <h3 class="section-title">Lời mời thành viên</h3>
+                                    <p class="section-sub">Token có hạn 7 ngày, chỉ lưu hash. Pilot chưa có email provider nên bạn cần gửi liên kết thủ công.</p>
+                                </div>
+                            </div>
+                            <div class="manual-delivery-note" id="invitePermissionNote">
+                                Giai đoạn pilot: hệ thống KHÔNG tự gửi email. Sau khi tạo lời mời, hãy sao chép liên kết và gửi cho người được mời qua kênh làm việc của bạn.
+                            </div>
+                            <form id="inviteForm" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;">
+                                <input type="email" id="inviteEmail" class="input" placeholder="email.thanhvien@congty.vn" required style="min-width:240px; flex:1; max-width:340px;" />
+                                <select id="inviteRole" class="input" style="width:150px;">
+                                    <option value="member">Member</option>
+                                    <option value="manager">Manager</option>
+                                    <option value="viewer">Viewer</option>
+                                    <option value="admin" data-owner-only="1">Admin (Owner only)</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm" id="btnCreateInvite">Tạo lời mời</button>
+                            </form>
+
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Vai trò</th>
+                                            <th>Trạng thái</th>
+                                            <th>Hết hạn</th>
+                                            <th>Kênh gửi</th>
+                                            <th style="text-align:right;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orgInvitationsTableBody">
+                                        <tr><td colspan="6" class="loading-row">Đang tải lời mời...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div style="margin-top:22px; border-top:1px solid var(--border); padding-top:16px;">
+                                <h3 class="section-title">Lời mời dành cho tài khoản của bạn</h3>
+                                <p class="section-sub">Nếu bạn nhận được liên kết mời, hãy dán token vào ô bên dưới để chấp nhận.</p>
+                                <div style="display:flex; gap:8px; flex-wrap:wrap; max-width:620px;">
+                                    <input type="text" id="myInviteToken" class="input" placeholder="gari_inv_..." style="flex:1; min-width:240px;" />
+                                    <button type="button" class="btn btn-primary btn-sm" id="btnAcceptMyInvite">Chấp nhận</button>
+                                </div>
+                                <div id="myPendingInvitations" style="margin-top:12px; font-size:12.5px; color:var(--text-secondary);"></div>
+                            </div>
+                        </section>
+
+                        <!-- TAB: API KEYS -->
+                        <section id="tab-apikeys" class="org-tab-panel" style="padding:20px; display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                                <div>
+                                    <h3 class="section-title">Khóa API tổ chức</h3>
+                                    <p class="section-sub">Chỉ gói có quyền API mới tạo được khóa. Khóa chỉ hiển thị một lần và lưu dưới dạng hash.</p>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <a href="/frontend2/api-docs.html" target="_blank" class="btn btn-secondary btn-sm">Tài liệu API</a>
+                                    <button type="button" class="btn btn-primary btn-sm" id="btnOpenCreateApiKeyModal">Tạo API Key</button>
+                                </div>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tên khóa</th>
+                                            <th>Tiền tố</th>
+                                            <th>Rate limit</th>
+                                            <th>Tổng lượt gọi</th>
+                                            <th>Lần gọi cuối</th>
+                                            <th>Trạng thái</th>
+                                            <th style="text-align:right;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orgApiKeysTableBody">
+                                        <tr><td colspan="7" class="loading-row">Đang tải API Keys...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <!-- TAB: USAGE -->
+                        <section id="tab-usage" class="org-tab-panel" style="padding:20px; display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                                <div>
+                                    <h3 class="section-title">Sử dụng & đo lường thật</h3>
+                                    <p class="section-sub">Số liệu lấy trực tiếp từ bảng usage_metering của tổ chức.</p>
+                                </div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshUsage">Làm mới</button>
+                            </div>
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:18px;" id="usageSummaryCards">
+                                <div class="kpi-card" style="min-height:88px;"><span class="kpi-label">Tổng lượt gọi</span><div class="kpi-metric" id="usageTotalCalls">--</div></div>
+                                <div class="kpi-card" style="min-height:88px;"><span class="kpi-label">Thành công</span><div class="kpi-metric" id="usageSuccessRate">--</div></div>
+                                <div class="kpi-card" style="min-height:88px;"><span class="kpi-label">Hết hạn ngạch</span><div class="kpi-metric" id="usageQuotaExhausted">--</div></div>
+                                <div class="kpi-card" style="min-height:88px;"><span class="kpi-label">Độ trễ TB</span><div class="kpi-metric" id="usageAvgLatency">--</div></div>
+                            </div>
+                            <div class="table-wrap" style="max-height:460px; overflow-y:auto;">
+                                <table class="data-table" style="font-size:12.5px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Thời gian</th>
+                                            <th>Nguồn gọi</th>
+                                            <th>Thành viên / Key</th>
+                                            <th>Mô hình</th>
+                                            <th>Cây trồng</th>
+                                            <th>Kết quả</th>
+                                            <th>Độ trễ</th>
+                                            <th>Trừ quota</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orgUsageTableBody">
+                                        <tr><td colspan="8" class="loading-row">Đang tải nhật ký đo lường...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <!-- TAB: BILLING & SUBSCRIPTIONS -->
+                        <section id="tab-billing" class="org-tab-panel" style="padding:20px; display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                                <div>
+                                    <h3 class="section-title">Thuê bao & Thanh toán tổ chức</h3>
+                                    <p class="section-sub">Thông tin gói cước, chu kỳ hiệu lực, hóa đơn và lịch sử thanh toán được quản lý tập trung.</p>
+                                </div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshBilling">Làm mới</button>
+                            </div>
+
+                            <!-- Subscription Status Box -->
+                            <div class="card" style="padding:18px; margin-bottom:20px; border:1px solid var(--border); background:var(--surface-muted);">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px; margin-bottom:14px;">
+                                    <div>
+                                        <div style="font-size:11.5px; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-bottom:4px;">Gói cước hiện tại</div>
+                                        <div style="display:flex; align-items:center; gap:10px;">
+                                            <h3 style="margin:0; font-size:18px; font-weight:800;" id="orgSubPlanName">Đang tải...</h3>
+                                            <span class="pill pill-success" id="orgSubStatusBadge">Đang hoạt động</span>
+                                        </div>
+                                    </div>
+                                    <div id="orgSubActions" style="display:flex; gap:8px;">
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btnOrgCancelSub" style="display:none;">Hủy vào cuối kỳ</button>
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnOrgReactivateSub" style="display:none;">Tiếp tục duy trì gói</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btnOrgUpgradePilot" onclick="alert('Để nâng cấp gói Team/Enterprise cho tổ chức, vui lòng liên hệ ban quản trị qua contact@gari.vn!')">Đăng ký nâng cấp</button>
+                                    </div>
+                                </div>
+
+                                <div id="orgCancelWarningBanner" style="display:none; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12.5px; color:var(--text-main);">
+                                    ⚠️ <strong>Thuê bao sẽ kết thúc vào cuối kỳ:</strong> Tổ chức vẫn duy trì toàn bộ hạn ngạch và tính năng cho đến <span id="orgCancelEndDateText" style="font-weight:700;"></span>.
+                                </div>
+
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; font-size:12.5px;">
+                                    <div style="background:var(--surface); padding:10px 12px; border-radius:8px; border:1px solid var(--border);">
+                                        <div style="color:var(--text-muted); font-size:11px;">Chu kỳ thuê bao</div>
+                                        <div style="font-weight:700; color:var(--text-main);" id="orgSubPeriodDates">Theo tháng</div>
+                                    </div>
+                                    <div style="background:var(--surface); padding:10px 12px; border-radius:8px; border:1px solid var(--border);">
+                                        <div style="color:var(--text-muted); font-size:11px;">Loại hình hợp đồng</div>
+                                        <div style="font-weight:700; color:var(--text-main);" id="orgSubIntent">Pilot miễn phí</div>
+                                    </div>
+                                    <div style="background:var(--surface); padding:10px 12px; border-radius:8px; border:1px solid var(--border);">
+                                        <div style="color:var(--text-muted); font-size:11px;">Cổng thanh toán tự động</div>
+                                        <div style="font-weight:700; color:var(--text-muted);">Chưa cấu hình (Offline)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Invoices Section -->
+                            <h4 style="font-size:14px; font-weight:700; margin-bottom:10px;">Lịch sử hóa đơn</h4>
+                            <div class="table-wrap">
+                                <table class="data-table" style="font-size:12.5px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Số hóa đơn</th>
+                                            <th>Ngày phát hành</th>
+                                            <th>Nội dung</th>
+                                            <th>Số tiền</th>
+                                            <th>Trạng thái thanh toán</th>
+                                            <th>Hạn thanh toán</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orgInvoicesTableBody">
+                                        <tr><td colspan="6" class="loading-row">Đang tải danh sách hóa đơn...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <!-- TAB: AUDIT -->
+                        <section id="tab-audit" class="org-tab-panel" style="padding:20px; display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                                <div>
+                                    <h3 class="section-title">Audit trail tổ chức</h3>
+                                    <p class="section-sub">Ghi nhận actor, hành động, thời gian và lý do cho các thay đổi quan trọng.</p>
+                                </div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshAudit">Làm mới</button>
+                            </div>
+                            <div class="table-wrap">
+                                <table class="data-table" style="font-size:12.5px;">
+                                    <thead>
+                                        <tr><th>Thời gian</th><th>Người thực hiện</th><th>Hành động</th><th>Đối tượng</th><th>Lý do</th></tr>
+                                    </thead>
+                                    <tbody id="orgAuditTableBody">
+                                        <tr><td colspan="5" class="loading-row">Đang tải audit trail...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE API KEY -->
+    <div id="modalCreateApiKey" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+        <div class="card" style="width:500px; max-width:92%; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-xl); padding:24px; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; font-size:17px; font-weight:700;">Tạo Khóa API Mới</h3>
+                <button type="button" id="btnCloseApiKeyModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:18px;">✕</button>
+            </div>
+            <div id="apiKeyFormView">
+                <div style="margin-bottom:14px;">
+                    <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Tên định danh khóa:</label>
+                    <input type="text" id="inputApiKeyName" class="input" placeholder="Ví dụ: Cổng kết nối Trạm IoT Vườn Ba Vì" style="width:100%;" />
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Giới hạn tốc độ:</label>
+                    <select id="selectApiKeyRateLimit" class="input" style="width:100%;">
+                        <option value="60">60 yêu cầu / phút</option>
+                        <option value="120">120 yêu cầu / phút</option>
+                        <option value="300">300 yêu cầu / phút</option>
+                    </select>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCancelApiKey">Hủy</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSubmitCreateApiKey">Khởi tạo</button>
+                </div>
+            </div>
+            <div id="apiKeySecretView" style="display:none;">
+                <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:12px; margin-bottom:14px;">
+                    <div style="color:var(--danger); font-weight:700; font-size:12.5px; margin-bottom:4px;">⚠️ LƯU Ý BẢO MẬT:</div>
+                    <div style="font-size:12px; color:var(--text-secondary); line-height:1.5;">Khóa bí mật chỉ hiển thị một lần. Hệ thống chỉ lưu SHA-256 hash và không thể khôi phục chuỗi gốc.</div>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Khóa API bí mật:</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="displayFullApiKey" class="input" readonly style="font-family:monospace; font-size:12px; background:var(--surface-muted); color:var(--primary); font-weight:700; width:100%;" />
+                        <button type="button" class="btn btn-primary btn-sm" id="btnCopyApiKey">Sao chép</button>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnDoneApiKey">Đã lưu an toàn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE ORGANIZATION -->
+    <div id="modalCreateOrg" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+        <div class="card" style="width:520px; max-width:92%; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-xl); padding:24px; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; font-size:17px; font-weight:700;">Tạo Tổ Chức Mới</h3>
+                <button type="button" id="btnCloseCreateOrgModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:18px;">✕</button>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Tên tổ chức / Hợp tác xã / Trang trại *</label>
+                <input type="text" id="inputOrgName" class="input" placeholder="Ví dụ: HTX Nông Nghiệp Hữu Cơ Lâm Đồng" style="width:100%;" maxlength="160" />
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                <div>
+                    <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Loại hình</label>
+                    <select id="inputOrgType" class="input" style="width:100%;">
+                        <option value="">-- Chọn --</option>
+                        <option value="smallholder_group">Nhóm nông hộ</option>
+                        <option value="cooperative">Hợp tác xã</option>
+                        <option value="farm">Trang trại</option>
+                        <option value="dealer">Đại lý</option>
+                        <option value="agribusiness">Doanh nghiệp</option>
+                        <option value="other">Khác</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Khu vực</label>
+                    <input type="text" id="inputOrgRegion" class="input" placeholder="Huyện / Tỉnh" style="width:100%;" maxlength="120" />
+                </div>
+            </div>
+            <div style="background:rgba(2,132,199,.08); border:1px solid rgba(2,132,199,.25); border-radius:8px; padding:10px 12px; margin-bottom:16px; font-size:12px; color:var(--text-secondary);">
+                Tổ chức mới bắt đầu ở <strong>gói Pilot miễn phí</strong> và trạng thái <strong>chờ onboarding</strong>. Không tự động nhận gói trả phí hay Enterprise.
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnCancelCreateOrg">Hủy</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnSubmitCreateOrg">Khởi tạo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: INVITATION LINK -->
+    <div id="modalInviteResult" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+        <div class="card" style="width:520px; max-width:92%; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-xl); padding:24px; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; font-size:17px; font-weight:700;">Lời mời đã tạo</h3>
+                <button type="button" id="btnCloseInviteResult" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:18px;">✕</button>
+            </div>
+            <div class="manual-delivery-note" id="inviteResultNote"></div>
+            <div class="invite-token-box">
+                <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:6px;">Liên kết mời (chỉ hiển thị một lần):</div>
+                <code id="inviteResultLink"></code>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn btn-primary btn-sm" id="btnCopyInviteLink">Sao chép liên kết</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnDoneInviteResult">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LIFECYCLE REASON -->
+    <div id="modalLifecycle" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+        <div class="card" style="width:460px; max-width:92%; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-xl); padding:24px; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; font-size:16px; font-weight:700;" id="lifecycleModalTitle">Xác nhận thay đổi</h3>
+                <button type="button" id="btnCloseLifecycle" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:18px;">✕</button>
+            </div>
+            <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;" id="lifecycleModalDesc"></p>
+            <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Lý do (bắt buộc, lưu audit):</label>
+            <textarea id="lifecycleReason" class="input" rows="3" style="width:100%; resize:vertical;" placeholder="Ví dụ: Tạm ngưng để rà soát hợp đồng pilot"></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnCancelLifecycle">Hủy</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnConfirmLifecycle">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, toast } from '/static/frontend2/app.js';
+
+        let currentOrgId = null;
+        let currentOrgData = null;
+        let userOrgs = [];
+        let activeTab = 'overview';
+        let pendingLifecycleAction = null;
+
+        const ROLE_LABELS = {
+            owner: 'Owner',
+            admin: 'Admin',
+            manager: 'Manager',
+            member: 'Member',
+            viewer: 'Viewer'
+        };
+        const STATUS_LABELS = {
+            pending: 'Chờ onboarding',
+            active: 'Đang hoạt động',
+            suspended: 'Tạm ngưng',
+            archived: 'Đã lưu trữ'
+        };
+        const NEED_LABELS = {
+            diagnosis: 'Chẩn đoán bệnh',
+            member_management: 'Quản lý thành viên',
+            api: 'API-as-a-Service',
+            pilot: 'Tham gia pilot'
+        };
+
+        function escapeHtml(value) {
+            return String(value === null || value === undefined ? '' : value)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function authHeaders(extra = {}) {
+            const token = localStorage.getItem('gari_token');
+            return {
+                ...extra,
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            };
+        }
+
+        async function apiFetch(url, options = {}) {
+            const res = await fetch(url, {
+                credentials: 'include',
+                ...options,
+                headers: authHeaders(options.headers || {})
+            });
+            let data = null;
+            try { data = await res.json(); } catch (e) { data = null; }
+            if (!res.ok) {
+                const detail = data && data.detail ? data.detail : `HTTP ${res.status}`;
+                const err = new Error(detail);
+                err.status = res.status;
+                err.payload = data;
+                throw err;
+            }
+            return data;
+        }
+
+        function can(permission) {
+            return !!(currentOrgData && Array.isArray(currentOrgData.permissions) && currentOrgData.permissions.includes(permission));
+        }
+
+        function showBanner(kind, icon, title, text, actionsHtml = '') {
+            const banner = document.getElementById('stateBanner');
+            banner.className = `org-state-banner visible ${kind}`;
+            document.getElementById('stateBannerIcon').textContent = icon;
+            document.getElementById('stateBannerTitle').textContent = title;
+            document.getElementById('stateBannerText').textContent = text;
+            document.getElementById('stateBannerActions').innerHTML = actionsHtml;
+        }
+
+        function hideBanner() {
+            document.getElementById('stateBanner').className = 'org-state-banner';
+        }
+
+        function setDashboardVisible(visible) {
+            document.getElementById('dashboardContent').style.display = visible ? 'block' : 'none';
+        }
+
+        async function init() {
+            setupSaaSShell('organization', 'Tổ Chức & Đội Ngũ');
+            setupTabs();
+            setupModals();
+            setupGlobalActions();
+            await loadUserOrganizations();
+            await handleInviteTokenInUrl();
+            await loadPendingInvitations();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('.org-tab').forEach(btn => {
+                btn.addEventListener('click', () => selectTab(btn.dataset.tab));
+            });
+            document.getElementById('btnRefreshUsage').onclick = loadUsage;
+            document.getElementById('btnRefreshAudit').onclick = loadAudit;
+            document.getElementById('btnRefreshBilling').onclick = loadBilling;
+            document.getElementById('btnOrgCancelSub').onclick = cancelOrgSubscription;
+            document.getElementById('btnOrgReactivateSub').onclick = reactivateOrgSubscription;
+            document.getElementById('btnJumpInvite').onclick = () => selectTab('invitations');
+        }
+
+        function selectTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.org-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            document.querySelectorAll('.org-tab-panel').forEach(p => p.style.display = 'none');
+            const panel = document.getElementById(`tab-${tab}`);
+            if (panel) panel.style.display = 'block';
+
+            if (tab === 'members') loadMembers();
+            if (tab === 'invitations') loadInvitations();
+            if (tab === 'apikeys') loadApiKeys();
+            if (tab === 'usage') loadUsage();
+            if (tab === 'billing') loadBilling();
+            if (tab === 'audit') loadAudit();
+        }
+
+        function setupGlobalActions() {
+            document.getElementById('btnAcceptInvite').onclick = async () => {
+                const token = document.getElementById('inputAcceptToken').value.trim();
+                await acceptInvitationToken(token);
+            };
+            document.getElementById('btnAcceptMyInvite').onclick = async () => {
+                const token = document.getElementById('myInviteToken').value.trim();
+                await acceptInvitationToken(token);
+            };
+            document.getElementById('profileForm').addEventListener('submit', saveProfile);
+            document.getElementById('inviteForm').addEventListener('submit', createInvitation);
+        }
+
+        async function loadUserOrganizations() {
+            try {
+                const data = await apiFetch('/api/organizations');
+                userOrgs = data.organizations || [];
+                const select = document.getElementById('selectUserOrgs');
+                select.innerHTML = '<option value="">Chọn tổ chức...</option>';
+
+                if (userOrgs.length === 0) {
+                    document.getElementById('orgTitle').textContent = 'Chưa tham gia tổ chức nào';
+                    document.getElementById('orgSubDesc').textContent = 'Tạo tổ chức B2B để quản lý đội ngũ, hạn ngạch và API.';
+                    ['orgPlanBadge', 'orgStatusBadge', 'orgUserRoleBadge'].forEach(id => document.getElementById(id).style.display = 'none');
+                    setDashboardVisible(false);
+                    showBanner('pending', '🏢', 'Bạn chưa có tổ chức',
+                        'Bắt đầu bằng việc tạo tổ chức mới. Tổ chức sẽ ở gói Pilot miễn phí và trạng thái chờ onboarding.',
+                        '<button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById(\'btnOpenCreateOrgModal\').click()">Tạo tổ chức mới</button>');
+                    return;
+                }
+
+                userOrgs.forEach(o => {
+                    const opt = document.createElement('option');
+                    opt.value = o.id;
+                    opt.textContent = `${o.name} (${ROLE_LABELS[o.user_role] || o.user_role})`;
+                    select.appendChild(opt);
+                });
+                select.onchange = (e) => {
+                    const id = parseInt(e.target.value, 10);
+                    if (!Number.isNaN(id)) loadOrgDetail(id);
+                };
+
+                const fromUrl = parseInt(new URLSearchParams(window.location.search).get('org_id') || '', 10);
+                const preferred = userOrgs.find(o => o.id === fromUrl) || userOrgs[0];
+                currentOrgId = preferred.id;
+                select.value = String(currentOrgId);
+                await loadOrgDetail(currentOrgId);
+            } catch (err) {
+                if (err.status === 401) {
+                    document.getElementById('orgTitle').textContent = 'Vui lòng đăng nhập';
+                    document.getElementById('orgSubDesc').textContent = 'Bạn cần đăng nhập để quản trị tổ chức B2B.';
+                    setDashboardVisible(false);
+                    showBanner('blocked', '🔒', 'Chưa đăng nhập', 'Đăng nhập để xem tổ chức của bạn.',
+                        '<a href="/frontend2/login.html" class="btn btn-primary btn-sm">Đăng nhập</a>');
+                    return;
+                }
+                setDashboardVisible(false);
+                showBanner('blocked', '⚠️', 'Không tải được danh sách tổ chức', err.message);
+            }
+        }
+
+        async function loadOrgDetail(orgId) {
+            currentOrgId = orgId;
+            try {
+                const data = await apiFetch(`/api/organizations/${orgId}`);
+                const org = data.organization;
+                currentOrgData = org;
+                setDashboardVisible(true);
+
+                document.getElementById('orgTitle').textContent = org.name;
+                document.getElementById('orgSubDesc').textContent = 'Quản lý vòng đời, hồ sơ, thành viên, lời mời và hạn ngạch sử dụng thật của tổ chức.';
+
+                const planBadge = document.getElementById('orgPlanBadge');
+                planBadge.style.display = 'inline-flex';
+                planBadge.textContent = org.plan_details.display_name || org.plan_details.name_vi;
+
+                const statusBadge = document.getElementById('orgStatusBadge');
+                statusBadge.style.display = 'inline-flex';
+                statusBadge.className = `pill ${org.status === 'active' ? 'pill-success' : org.status === 'pending' ? 'pill-warning' : org.status === 'suspended' ? 'pill-danger' : 'pill-neutral'}`;
+                statusBadge.textContent = STATUS_LABELS[org.status] || org.status;
+
+                const roleBadge = document.getElementById('orgUserRoleBadge');
+                roleBadge.style.display = 'inline-flex';
+                roleBadge.textContent = `Vai trò: ${ROLE_LABELS[org.user_role] || org.user_role}`;
+
+                renderKpis(org);
+                renderStateBanner(org);
+                renderLifecycleActions(org);
+                renderOnboarding(org);
+                fillProfileForm(org);
+                applyPermissionUi(org);
+                selectTab(activeTab);
+            } catch (err) {
+                setDashboardVisible(false);
+                if (err.status === 403) {
+                    showBanner('blocked', '🚫', 'Không đủ quyền truy cập',
+                        'Tài khoản của bạn không phải thành viên của tổ chức này hoặc không có quyền xem.');
+                } else if (err.status === 401) {
+                    showBanner('blocked', '🔒', 'Chưa đăng nhập', 'Vui lòng đăng nhập lại.',
+                        '<a href="/frontend2/login.html" class="btn btn-primary btn-sm">Đăng nhập</a>');
+                } else {
+                    showBanner('blocked', '⚠️', 'Không tải được tổ chức', err.message);
+                }
+            }
+        }
+
+        function renderKpis(org) {
+            const q = org.quota || {};
+            const unlimited = q.is_unlimited || q.remaining === null;
+            document.getElementById('kpiOrgRemaining').textContent = unlimited ? 'Không giới hạn' : `${q.remaining || 0} lượt`;
+            document.getElementById('kpiOrgLimitSub').textContent = unlimited
+                ? 'Gói không giới hạn hạn ngạch'
+                : `Tổng gói: ${q.quota_limit || 0} • Làm mới: ${q.resets_in_human || '--'}`;
+            document.getElementById('kpiOrgUsed').textContent = `${q.used_count || 0} lượt`;
+            document.getElementById('kpiOrgMembers').textContent = `${org.members_count || 0} người`;
+            document.getElementById('kpiOrgMaxMembers').textContent = `Tối đa ${org.plan_details.max_members} người`;
+            document.getElementById('kpiOrgInvites').textContent = `${org.pending_invitations_count || 0}`;
+            document.getElementById('kpiOrgApiKeys').textContent = `${org.active_api_keys_count || 0} khóa`;
+        }
+
+        function renderStateBanner(org) {
+            const status = org.status;
+            if (status === 'pending') {
+                showBanner('pending', '🟡', 'Tổ chức đang chờ onboarding',
+                    'Hoàn tất hồ sơ, xác nhận vai trò và chọn nhu cầu sử dụng để kích hoạt tổ chức. Gói hiện tại vẫn là Pilot miễn phí.',
+                    '<a href="/frontend2/onboarding.html?org_id=' + encodeURIComponent(org.id) + '" class="btn btn-primary btn-sm">Tiếp tục onboarding</a>');
+            } else if (status === 'active') {
+                showBanner('active', '🟢', 'Tổ chức đang hoạt động',
+                    'Thành viên có thể sử dụng các tính năng theo gói hiện tại. Mọi thay đổi quan trọng được ghi audit.',
+                    '');
+            } else if (status === 'suspended') {
+                showBanner('suspended', '⛔', 'Tổ chức đang bị tạm ngưng',
+                    'Các API và tính năng sử dụng hạn ngạch bị chặn. Liên hệ chủ sở hữu hoặc đội ngũ Gari để được hỗ trợ.',
+                    '');
+            } else if (status === 'archived') {
+                showBanner('archived', '🗄️', 'Tổ chức đã được lưu trữ',
+                    'Dữ liệu lịch sử vẫn được giữ nguyên (không xóa vật lý). Chủ sở hữu có thể khôi phục tổ chức.',
+                    '');
+            } else {
+                hideBanner();
+            }
+        }
+
+        function renderLifecycleActions(org) {
+            const box = document.getElementById('lifecycleActions');
+            box.innerHTML = '';
+            const isOwner = org.user_role === 'owner';
+            document.getElementById('planLifecycleNote').textContent = `${org.plan_details.display_name}. ${org.plan_details.price_display_note || 'Không tự động trở thành hợp đồng trả phí.'}`;
+            document.getElementById('pilotContactText').textContent = (org.pilot_contact && org.pilot_contact.note) || 'Giai đoạn pilot: đội ngũ Gari hỗ trợ thủ công.';
+
+            if (!isOwner) {
+                box.innerHTML = '<span style="font-size:12px; color:var(--text-muted);">Chỉ Chủ sở hữu mới có quyền thay đổi trạng thái tổ chức.</span>';
+                return;
+            }
+            if (org.status === 'pending') {
+                box.innerHTML += '<button type="button" class="btn btn-primary btn-sm" data-lifecycle="activate">Kích hoạt tổ chức</button>';
+                box.innerHTML += '<button type="button" class="btn btn-secondary btn-sm" data-lifecycle="archive">Lưu trữ</button>';
+            } else if (org.status === 'active') {
+                box.innerHTML += '<button type="button" class="btn btn-secondary btn-sm" data-lifecycle="suspend">Tạm ngưng</button>';
+                box.innerHTML += '<button type="button" class="btn btn-secondary btn-sm" data-lifecycle="archive">Lưu trữ</button>';
+            } else if (org.status === 'suspended') {
+                box.innerHTML += '<button type="button" class="btn btn-primary btn-sm" data-lifecycle="activate">Kích hoạt lại</button>';
+                box.innerHTML += '<button type="button" class="btn btn-secondary btn-sm" data-lifecycle="archive">Lưu trữ</button>';
+            } else if (org.status === 'archived') {
+                box.innerHTML += '<button type="button" class="btn btn-primary btn-sm" data-lifecycle="restore">Khôi phục</button>';
+            }
+            box.querySelectorAll('[data-lifecycle]').forEach(btn => {
+                btn.onclick = () => openLifecycleModal(btn.dataset.lifecycle);
+            });
+        }
+
+        function fillProfileForm(org) {
+            document.getElementById('profileName').value = org.name || '';
+            document.getElementById('profileType').value = org.organization_type || '';
+            document.getElementById('profileCrops').value = Array.isArray(org.primary_crops) ? org.primary_crops.join(', ') : '';
+            document.getElementById('profileRegion').value = org.region || '';
+            document.getElementById('profileScale').value = org.farming_scale || '';
+            document.getElementById('profileScaleConsent').checked = !!org.scale_consent;
+            document.getElementById('profileAddress').value = org.address || '';
+            document.getElementById('profileEmail').value = org.contact_email || '';
+            document.getElementById('profilePhone').value = org.contact_phone || '';
+            document.getElementById('profileContactName').value = org.business_contact_name || '';
+            document.getElementById('profileContactTitle').value = org.business_contact_title || '';
+            document.getElementById('profileSaveHint').textContent = '';
+        }
+
+        function applyPermissionUi(org) {
+            const canProfile = can('org.profile.update');
+            document.getElementById('profileForm').querySelectorAll('input, select, button').forEach(el => {
+                el.disabled = !canProfile;
+            });
+            document.getElementById('btnSaveProfile').style.display = canProfile ? 'inline-flex' : 'none';
+
+            const canInvite = can('members.invite');
+            document.getElementById('inviteForm').style.display = canInvite ? 'flex' : 'none';
+            document.getElementById('invitePermissionNote').textContent = canInvite
+                ? 'Giai đoạn pilot: hệ thống KHÔNG tự gửi email. Sau khi tạo lời mời, hãy sao chép liên kết và gửi cho người được mời.'
+                : 'Bạn không có quyền mời thành viên trong tổ chức này.';
+
+            const adminOption = document.querySelector('#inviteRole option[data-owner-only="1"]');
+            if (adminOption) adminOption.disabled = org.user_role !== 'owner';
+
+            const canApi = can('api_keys.view');
+            document.getElementById('btnOpenCreateApiKeyModal').style.display = can('api_keys.manage') ? 'inline-flex' : 'none';
+            if (!canApi) {
+                document.getElementById('orgApiKeysTableBody').innerHTML = '<tr><td colspan="7" class="empty-state">Bạn không có quyền xem API Keys.</td></tr>';
+            }
+        }
+
+        function renderOnboarding(org) {
+            const ob = org.onboarding || {};
+            const needs = ob.needs || [];
+            const steps = [
+                { done: true, label: 'Tạo hoặc chọn tổ chức' },
+                { done: !!ob.profile_completed, label: 'Điền thông tin tối thiểu (loại hình tổ chức)' },
+                { done: !!ob.role_confirmed, label: 'Xác nhận vai trò Owner/Admin' },
+                { done: needs.length > 0, label: 'Chọn nhu cầu sử dụng' },
+                { done: ob.status === 'completed', label: 'Hoàn tất và vào dashboard' }
+            ];
+            document.getElementById('onboardingChecklist').innerHTML = steps.map((s, i) => `
+                <div class="checklist-item">
+                    <span class="checklist-badge ${s.done ? 'done' : 'todo'}">${s.done ? '✓' : i + 1}</span>
+                    <span style="${s.done ? 'color:var(--text-secondary);' : ''}">${escapeHtml(s.label)}</span>
+                </div>`).join('');
+            document.getElementById('onboardingNeeds').innerHTML = needs.length
+                ? `<strong>Nhu cầu đã chọn:</strong> ${needs.map(n => escapeHtml(NEED_LABELS[n] || n)).join(', ')}`
+                : '<span style="color:var(--text-muted);">Chưa chọn nhu cầu sử dụng.</span>';
+            document.getElementById('btnOpenOnboarding').href = `/frontend2/onboarding.html?org_id=${encodeURIComponent(org.id)}`;
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            if (!currentOrgData || !can('org.profile.update')) return;
+            const crops = document.getElementById('profileCrops').value.split(',').map(s => s.trim()).filter(Boolean);
+            const payload = {
+                name: document.getElementById('profileName').value.trim(),
+                organization_type: document.getElementById('profileType').value || null,
+                primary_crops: crops,
+                region: document.getElementById('profileRegion').value.trim() || null,
+                farming_scale: document.getElementById('profileScale').value || null,
+                scale_consent: document.getElementById('profileScaleConsent').checked,
+                address: document.getElementById('profileAddress').value.trim() || null,
+                contact_email: document.getElementById('profileEmail').value.trim() || null,
+                contact_phone: document.getElementById('profilePhone').value.trim() || null,
+                business_contact_name: document.getElementById('profileContactName').value.trim() || null,
+                business_contact_title: document.getElementById('profileContactTitle').value.trim() || null,
+                reason: 'Cập nhật hồ sơ tổ chức từ dashboard'
+            };
+            try {
+                const data = await apiFetch(`/api/organizations/${currentOrgId}/profile`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                currentOrgData = data.organization;
+                document.getElementById('profileSaveHint').textContent = 'Đã lưu.';
+                toast('Đã cập nhật hồ sơ tổ chức.');
+                await loadOrgDetail(currentOrgId);
+            } catch (err) {
+                toast(err.message || 'Không thể cập nhật hồ sơ');
+            }
+        }
+
+        async function loadMembers() {
+            if (!currentOrgId) return;
+            const tbody = document.getElementById('orgMembersTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Đang tải danh sách thành viên...</td></tr>';
+            try {
+                const data = await apiFetch(`/api/organizations/${currentOrgId}/members`);
+                const members = data.members || [];
+                if (members.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Chưa có thành viên.</td></tr>';
+                    return;
+                }
+                const canManageRoles = can('members.role_assign');
+                const canRemove = can('members.remove');
+                const canTransfer = can('members.owner_transfer');
+                const currentUserId = (currentOrgData && currentOrgData.owner_id) || null;
+
+                tbody.innerHTML = members.map(m => {
+                    const rolePill = `<span class="pill ${m.role === 'owner' ? 'pill-warning' : m.role === 'admin' ? 'pill-info' : m.role === 'manager' ? 'pill-success' : 'pill-neutral'}">${escapeHtml(ROLE_LABELS[m.role] || m.role)}</span>`;
+                    const actions = [];
+                    if (canManageRoles && m.role !== 'owner') {
+                        actions.push(`<select class="input" style="height:30px; font-size:11.5px; width:110px;" onchange="window.changeMemberRole(${m.user_id}, this.value)">
+                            ${['admin', 'manager', 'member', 'viewer'].map(r => `<option value="${r}" ${m.role === r ? 'selected' : ''} ${r === 'admin' && currentOrgData.user_role !== 'owner' ? 'disabled' : ''}>${ROLE_LABELS[r]}</option>`).join('')}
+                        </select>`);
+                    }
+                    if (canTransfer && m.role !== 'owner') {
+                        actions.push(`<button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px; font-size:11px;" onclick="window.transferOwnership(${m.user_id})">Chuyển owner</button>`);
+                    }
+                    if (canRemove && m.role !== 'owner') {
+                        actions.push(`<button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px; font-size:11px; color:var(--danger);" onclick="window.removeOrgMember(${m.user_id})">Xóa</button>`);
+                    }
+                    return `<tr>
+                        <td><strong>${escapeHtml(m.full_name)}</strong></td>
+                        <td style="font-family:monospace; font-size:12px;">${escapeHtml(m.email)}</td>
+                        <td>${rolePill}</td>
+                        <td style="font-size:12px; color:var(--text-muted);">${m.joined_at ? escapeHtml(String(m.joined_at).slice(0, 10)) : '--'}</td>
+                        <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;">${actions.join('') || '<span style="color:var(--text-muted); font-size:12px;">--</span>'}</td>
+                    </tr>`;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="error-row">${escapeHtml(err.message)}</td></tr>`;
+            }
+        }
+
+        window.changeMemberRole = async function(userId, role) {
+            try {
+                await apiFetch(`/api/organizations/${currentOrgId}/members/${userId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role, reason: 'Cập nhật vai trò từ dashboard' })
+                });
+                toast('Đã cập nhật vai trò thành viên.');
+                loadOrgDetail(currentOrgId);
+            } catch (err) {
+                toast(err.message || 'Không thể cập nhật vai trò');
+                loadMembers();
+            }
+        };
+
+        window.removeOrgMember = async function(userId) {
+            const reason = prompt('Lý do xóa thành viên (lưu audit):', 'Thành viên rời tổ chức');
+            if (reason === null) return;
+            try {
+                await apiFetch(`/api/organizations/${currentOrgId}/members/${userId}?reason=${encodeURIComponent(reason)}`, { method: 'DELETE' });
+                toast('Đã xóa thành viên.');
+                loadOrgDetail(currentOrgId);
+            } catch (err) {
+                toast(err.message || 'Không thể xóa thành viên');
+            }
+        };
+
+        window.transferOwnership = async function(targetUserId) {
+            const reason = prompt('Lý do chuyển giao quyền sở hữu (bắt buộc):', '');
+            if (reason === null) return;
+            if (!reason || reason.trim().length < 3) { toast('Vui lòng nhập lý do chuyển giao.'); return; }
+            if (!confirm('Chuyển quyền sở hữu? Bạn sẽ trở thành Admin sau thao tác này.')) return;
+            try {
+                await apiFetch(`/api/organizations/${currentOrgId}/transfer-owner`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_user_id: targetUserId, reason })
+                });
+                toast('Đã chuyển giao quyền sở hữu.');
+                await loadUserOrganizations();
+            } catch (err) {
+                toast(err.message || 'Không thể chuyển giao quyền sở hữu');
+            }
+        };
+
+        async function createInvitation(event) {
+            event.preventDefault();
+            if (!can('members.invite')) { toast('Bạn không có quyền mời thành viên.'); return; }
+            const email = document.getElementById('inviteEmail').value.trim();
+            const role = document.getElementById('inviteRole').value;
+            try {
+                const data = await apiFetch(`/api/organizations/${currentOrgId}/invitations`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, role, reason: 'Mời thành viên từ dashboard' })
+                });
+                const inv = data.invitation;
+                document.getElementById('inviteResultNote').textContent = inv.message;
+                const base = window.location.origin;
+                document.getElementById('inviteResultLink').textContent = `${base}${inv.invite_url}`;
+                document.getElementById('modalInviteResult').style.display = 'flex';
+                document.getElementById('inviteEmail').value = '';
+                loadInvitations();
+                loadOrgDetail(currentOrgId);
+            } catch (err) {
+                toast(err.message || 'Không thể tạo lời mời');
+            }
+        }
+
+        async function loadInvitations() {
+            if (!currentOrgId) return;
+            const tbody = document.getElementById('orgInvitationsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Đang tải lời mời...</td></tr>';
+            try {
+                const data = await apiFetch(`/api/organizations/${currentOrgId}/invitations`);
+                const invitations = data.invitations || [];
+                if (invitations.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Chưa có lời mời nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = invitations.map(inv => {
+                    const statusPill = inv.status === 'pending'
+                        ? '<span class="pill pill-warning">Đang chờ</span>'
+                        : inv.status === 'accepted'
+                            ? '<span class="pill pill-success">Đã chấp nhận</span>'
+                            : inv.status === 'revoked'
+                                ? '<span class="pill pill-danger">Đã thu hồi</span>'
+                                : '<span class="pill pill-neutral">Hết hạn</span>';
+                    const delivery = inv.delivery_mode === 'manual'
+                        ? '<span class="pill pill-neutral">Thủ công</span>'
+                        : escapeHtml(inv.delivery_mode || '--');
+                    const action = inv.status === 'pending' && can('members.invite')
+                        ? `<button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px; font-size:11px; color:var(--danger);" onclick="window.revokeInvitation(${inv.id})">Thu hồi</button>`
+                        : '<span style="color:var(--text-muted); font-size:12px;">--</span>';
+                    return `<tr>
+                        <td>${escapeHtml(inv.email)}</td>
+                        <td>${escapeHtml(ROLE_LABELS[inv.role] || inv.role)}</td>
+                        <td>${statusPill}</td>
+                        <td style="font-size:12px;">${inv.expires_at ? escapeHtml(String(inv.expires_at).slice(0, 16)) : '--'}</td>
+                        <td>${delivery}</td>
+                        <td style="text-align:right;">${action}</td>
+                    </tr>`;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" class="error-row">${escapeHtml(err.message)}</td></tr>`;
+            }
+        }
+
+        window.revokeInvitation = async function(invitationId) {
+            const reason = prompt('Lý do thu hồi lời mời (lưu audit):', 'Thu hồi lời mời chưa sử dụng');
+            if (reason === null) return;
+            if (!reason || reason.trim().length < 3) { toast('Vui lòng nhập lý do thu hồi.'); return; }
+            try {
+                await apiFetch(`/api/organizations/${currentOrgId}/invitations/${invitationId}/revoke`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                toast('Đã thu hồi lời mời.');
+                loadInvitations();
+                loadOrgDetail(currentOrgId);
+            } catch (err) {
+                toast(err.message || 'Không thể thu hồi lời mời');
+            }
+        };
+
+        async function acceptInvitationToken(token) {
+            if (!token) { toast('Vui lòng nhập mã lời mời.'); return; }
+            try {
+                const data = await apiFetch('/api/invitations/accept', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                toast(data.message || 'Đã chấp nhận lời mời.');
+                history.replaceState({}, '', window.location.pathname);
+                await loadUserOrganizations();
+                await loadPendingInvitations();
+            } catch (err) {
+                toast(err.message || 'Lời mời không hợp lệ hoặc đã hết hạn');
+            }
+        }
+
+        async function handleInviteTokenInUrl() {
+            const token = new URLSearchParams(window.location.search).get('invite');
+            if (!token) return;
+            document.getElementById('inputAcceptToken').value = token;
+            document.getElementById('inviteBanner').style.display = 'flex';
+            document.getElementById('inviteBannerText').textContent = 'Nhấn "Chấp nhận lời mời" để tham gia tổ chức. Token chỉ dùng được một lần.';
+        }
+
+        async function loadPendingInvitations() {
+            try {
+                const data = await apiFetch('/api/invitations/pending');
+                const invitations = data.invitations || [];
+                const banner = document.getElementById('inviteBanner');
+                const text = document.getElementById('myPendingInvitations');
+                if (invitations.length) {
+                    banner.style.display = 'flex';
+                    document.getElementById('inviteBannerText').textContent =
+                        invitations.map(i => `${i.organization_name} — vai trò ${ROLE_LABELS[i.role] || i.role}`).join(' • ') +
+                        ' (cần token từ liên kết mời để chấp nhận)';
+                    text.innerHTML = invitations.map(i =>
+                        `<div>${escapeHtml(i.organization_name)} • ${escapeHtml(ROLE_LABELS[i.role] || i.role)} • hết hạn ${escapeHtml(String(i.expires_at).slice(0, 16))}</div>`
+                    ).join('');
+                } else {
+                    text.textContent = 'Không có lời mời đang chờ cho email của bạn.';
+                }
+            } catch (e) {
+                // Not an error worth surfacing on every page load.
+            }
+        }
+
+        async function loadApiKeys() {
+            if (!currentOrgId) return;
+            const tbody = document.getElementById('orgApiKeysTableBody');
+            if (!can('api_keys.view')) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Bạn không có quyền xem API Keys.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '<tr><td colspan="7" class="loading-row">Đang tải API Keys...</td></tr>';
+            try {
+                const data = await apiFetch(`/api/organizations/${currentOrgId}/api-keys`);
+                const keys = data.api_keys || [];
+                if (keys.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Chưa có API Key nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = keys.map(k => {
+                    const statusPill = k.is_active ? '<span class="pill pill-success">Hoạt động</span>' : '<span class="pill pill-danger">Đã thu hồi</span>';
+                    const action = k.is_active && can('api_keys.manage')
+                        ? `<button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px; font-size:11px; color:var(--danger);" onclick="window.revokeApiKey(${k.id})">Thu hồi</button>`
+                        : '<span style="color:var(--text-muted); font-size:12px;">--</span>';
+                    return `<tr>
+                        <td><strong>${escapeHtml(k.key_name)}</strong></td>
+                        <td style="font-family:monospace; font-size:12px;"><code>${escapeHtml(k.key_prefix)}</code></td>
+                        <td>${k.rate_limit_rpm} req/min</td>
+                        <td style="font-weight:700; color:var(--primary);">${k.total_calls || 0}</td>
+                        <td style="font-size:12px; color:var(--text-muted);">${escapeHtml(k.last_used_at || 'Chưa gọi')}</td>
+                        <td>${statusPill}</td>
+                        <td style="text-align:right;">${action}</td>
+                    </tr>`;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="error-row">${escapeHtml(err.message)}</td></tr>`;
+            }
+        }
+
+        window.revokeApiKey = async function(keyId) {
+            const reason = prompt('Lý do thu hồi API Key (lưu audit):', 'Thu hồi khóa theo yêu cầu quản trị');
+            if (reason === null) return;
+            try {
+                await apiFetch(`/api/organizations/${currentOrgId}/api-keys/${keyId}/revoke?reason=${encodeURIComponent(reason || '')}`, { method: 'POST' });
+                toast('Đã thu hồi API Key.');
+                loadApiKeys();
+                loadOrgDetail(currentOrgId);
+            } catch (err) {
+                toast(err.message || 'Không thể thu hồi API Key');
+            }
+        };
+
+        async function loadUsage() {
+            if (!currentOrgId) return;
+            const tbody = document.getElementById('orgUsageTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" class="loading-row">Đang tải nhật ký...</td></tr>';
+            try {
+                const [summaryResp, logsResp] = await Promise.all([
+                    apiFetch(`/api/organizations/${currentOrgId}/usage-summary?days=30`),
+                    apiFetch(`/api/organizations/${currentOrgId}/usage?limit=50`)
+                ]);
+                const s = summaryResp.summary || {};
+                document.getElementById('usageTotalCalls').textContent = `${s.total_calls || 0}`;
+                document.getElementById('usageSuccessRate').textContent = s.success_rate === null || s.success_rate === undefined ? '--' : `${s.success_rate}%`;
+                document.getElementById('usageQuotaExhausted').textContent = `${s.quota_exhausted_calls || 0}`;
+                document.getElementById('usageAvgLatency').textContent = s.avg_latency_ms === null || s.avg_latency_ms === undefined ? '--' : `${s.avg_latency_ms} ms`;
+
+                const logs = logsResp.usage_logs || [];
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Chưa ghi nhận lượt chẩn đoán nào.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = logs.map(l => {
+                    const callerBadge = l.caller_type === 'api_key'
+                        ? '<span class="pill pill-info">API Key</span>'
+                        : '<span class="pill pill-neutral">Web App</span>';
+                    const quotaTag = l.quota_deducted
+                        ? '<span style="color:var(--danger); font-weight:700;">-1</span>'
+                        : '<span style="color:var(--text-muted);">0</span>';
+                    return `<tr>
+                        <td style="font-size:12px; white-space:nowrap;">${escapeHtml(l.created_at ? String(l.created_at).slice(0, 19) : '--')}</td>
+                        <td>${callerBadge}</td>
+                        <td>${escapeHtml(l.user_name || l.api_key_label || '--')}</td>
+                        <td><code>${escapeHtml(l.model_name || 'Gari ConvNeXt')}</code></td>
+                        <td>${escapeHtml(l.crop_id || '--')}</td>
+                        <td>${escapeHtml(l.disease_predicted || l.status || '--')}</td>
+                        <td>${l.latency_ms ? `${Math.round(l.latency_ms)} ms` : '--'}</td>
+                        <td>${quotaTag}</td>
+                    </tr>`;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" class="error-row">${escapeHtml(err.message)}</td></tr>`;
+            }
+        }
+
+        async function loadAudit() {
+            if (!currentOrgId) return;
+            const tbody = document.getElementById('orgAuditTableBody');
+            if (!can('org.audit.view')) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Bạn không có quyền xem audit trail.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Đang tải audit trail...</td></tr>';
+            try {
+                const data = await apiFetch(`/api/organizations/${currentOrgId}/audit?limit=100`);
+                const logs = data.audit_logs || [];
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Chưa có bản ghi audit.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = logs.map(l => `<tr>
+                    <td style="font-size:12px; white-space:nowrap;">${escapeHtml(l.created_at ? String(l.created_at).slice(0, 19) : '--')}</td>
+                    <td>${escapeHtml(l.actor_name || l.actor_email || 'Hệ thống')}</td>
+                    <td><code>${escapeHtml(l.action)}</code></td>
+                    <td>${escapeHtml(l.target_type || '--')}${l.target_id ? ' #' + escapeHtml(l.target_id) : ''}</td>
+                    <td style="font-size:12px;">${escapeHtml(l.reason || '--')}</td>
+                </tr>`).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="error-row">${escapeHtml(err.message)}</td></tr>`;
+            }
+        }
+
+        async function loadBilling() {
+            if (!currentOrgId) return;
+            const tableBody = document.getElementById('orgInvoicesTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" class="loading-row">Đang tải thông tin hóa đơn & thuê bao...</td></tr>';
+
+            try {
+                const data = await apiFetch(`/api/billing/subscription?org_id=${currentOrgId}`);
+                const sub = data.subscription || {};
+                const ent = data.entitlement || {};
+                const planCatalog = data.plan_catalog || {};
+
+                document.getElementById('orgSubPlanName').textContent = ent.plan_name || planCatalog.display_name || sub.plan_id || 'Gói Pilot';
+                const status = sub.status || ent.subscription_status || 'active';
+                const statusBadge = document.getElementById('orgSubStatusBadge');
+                const statusMap = {
+                    'active': { text: 'Đang hiệu lực', cls: 'pill-success' },
+                    'trialing': { text: 'Dùng thử', cls: 'pill-info' },
+                    'cancel_at_period_end': { text: 'Đã đặt hủy cuối kỳ', cls: 'pill-warning' },
+                    'past_due': { text: 'Quá hạn thanh toán', cls: 'pill-warning' },
+                    'suspended': { text: 'Đang tạm dừng', cls: 'pill-danger' },
+                    'expired': { text: 'Đã hết hạn', cls: 'pill-neutral' }
+                };
+                const meta = statusMap[status] || { text: status, cls: 'pill-neutral' };
+                statusBadge.textContent = meta.text;
+                statusBadge.className = `pill ${meta.cls}`;
+
+                const btnCancel = document.getElementById('btnOrgCancelSub');
+                const btnReactivate = document.getElementById('btnOrgReactivateSub');
+                const banner = document.getElementById('orgCancelWarningBanner');
+                const userRole = currentOrgData ? currentOrgData.user_role : 'member';
+                const isOrgAdmin = ['owner', 'admin'].includes(userRole);
+
+                if (status === 'cancel_at_period_end') {
+                    banner.style.display = 'block';
+                    document.getElementById('orgCancelEndDateText').textContent = sub.current_period_end || 'hết chu kỳ';
+                    btnCancel.style.display = 'none';
+                    btnReactivate.style.display = isOrgAdmin ? 'inline-flex' : 'none';
+                } else if (status === 'active' && sub.id) {
+                    banner.style.display = 'none';
+                    btnCancel.style.display = isOrgAdmin ? 'inline-flex' : 'none';
+                    btnReactivate.style.display = 'none';
+                } else {
+                    banner.style.display = 'none';
+                    btnCancel.style.display = 'none';
+                    btnReactivate.style.display = 'none';
+                }
+
+                if (sub.current_period_start && sub.current_period_end) {
+                    document.getElementById('orgSubPeriodDates').textContent = `${sub.current_period_start.slice(0, 10)} → ${sub.current_period_end.slice(0, 10)}`;
+                } else {
+                    document.getElementById('orgSubPeriodDates').textContent = 'Theo tháng (30 ngày)';
+                }
+                document.getElementById('orgSubIntent').textContent = sub.commercial_intent === 'pilot_active' ? 'Pilot miễn phí (Chưa thu phí)' : (sub.is_paid ? 'Đã thanh toán (Manual)' : 'Chưa thu phí');
+
+                // Load invoices
+                const invData = await apiFetch(`/api/billing/invoices?org_id=${currentOrgId}`);
+                const invoices = invData.invoices || [];
+                if (invoices.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="empty-state" style="padding:24px;">Chưa có hóa đơn phát sinh nào trong giai đoạn thử nghiệm pilot.</td></tr>';
+                } else {
+                    tableBody.innerHTML = invoices.map(inv => `
+                        <tr>
+                            <td><strong>${escapeHtml(inv.invoice_number)}</strong></td>
+                            <td>${escapeHtml(inv.issued_at ? inv.issued_at.slice(0, 10) : '--')}</td>
+                            <td>${escapeHtml(inv.description || 'Dịch vụ chẩn đoán AI')}</td>
+                            <td><strong>${(inv.amount || 0).toLocaleString('vi-VN')} ${escapeHtml(inv.currency || 'VND')}</strong></td>
+                            <td><span class="pill ${inv.payment_status === 'succeeded' ? 'pill-success' : (inv.payment_status === 'failed' ? 'pill-danger' : 'pill-neutral')}">${escapeHtml(inv.payment_status)}</span></td>
+                            <td>${escapeHtml(inv.due_date ? inv.due_date.slice(0, 10) : '--')}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="6" class="error-row">${escapeHtml(err.message || 'Không thể tải thông tin thuê bao')}</td></tr>`;
+            }
+        }
+
+        async function cancelOrgSubscription() {
+            const reason = prompt("Nhập lý do hủy thuê bao của tổ chức vào cuối kỳ (tối thiểu 3 ký tự):");
+            if (!reason) return;
+            if (reason.trim().length < 3) { toast("Lý do quá ngắn."); return; }
+            try {
+                const res = await apiFetch('/api/billing/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ org_id: currentOrgId, reason: reason.trim() })
+                });
+                toast(res.message_vi || "Đã thiết lập hủy thuê bao cuối kỳ.");
+                await loadBilling();
+            } catch (err) {
+                toast(err.message || "Không thể hủy thuê bao");
+            }
+        }
+
+        async function reactivateOrgSubscription() {
+            if (!confirm("Tiếp tục duy trì gói dịch vụ của tổ chức và hủy lệnh dừng dịch vụ cuối kỳ?")) return;
+            try {
+                const res = await apiFetch('/api/billing/reactivate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ org_id: currentOrgId, reason: "Tổ chức tiếp tục duy trì dịch vụ" })
+                });
+                toast(res.message_vi || "Thuê bao đã được duy trì thành công.");
+                await loadBilling();
+            } catch (err) {
+                toast(err.message || "Không thể duy trì thuê bao");
+            }
+        }
+
+        function openLifecycleModal(action) {
+            const org = currentOrgData;
+            if (!org) return;
+            pendingLifecycleAction = action;
+            const titles = {
+                activate: 'Kích hoạt tổ chức',
+                suspend: 'Tạm ngưng tổ chức',
+                archive: 'Lưu trữ tổ chức',
+                restore: 'Khôi phục tổ chức'
+            };
+            const descs = {
+                activate: 'Tổ chức sẽ có thể sử dụng các tính năng được cấp phép. Gói dịch vụ không thay đổi.',
+                suspend: 'Mọi API và tính năng sử dụng hạn ngạch sẽ bị chặn cho đến khi kích hoạt lại.',
+                archive: 'Đây là lưu trữ logic. Dữ liệu lịch sử, thành viên và usage không bị xóa vật lý.',
+                restore: 'Tổ chức sẽ trở lại trạng thái hoạt động.'
+            };
+            document.getElementById('lifecycleModalTitle').textContent = titles[action] || 'Xác nhận';
+            document.getElementById('lifecycleModalDesc').textContent = descs[action] || '';
+            document.getElementById('lifecycleReason').value = '';
+            document.getElementById('modalLifecycle').style.display = 'flex';
+        }
+
+        function setupModals() {
+            const modalKey = document.getElementById('modalCreateApiKey');
+            document.getElementById('btnOpenCreateApiKeyModal').onclick = () => {
+                document.getElementById('apiKeyFormView').style.display = 'block';
+                document.getElementById('apiKeySecretView').style.display = 'none';
+                document.getElementById('inputApiKeyName').value = '';
+                modalKey.style.display = 'flex';
+            };
+            const closeKey = () => modalKey.style.display = 'none';
+            document.getElementById('btnCloseApiKeyModal').onclick = closeKey;
+            document.getElementById('btnCancelApiKey').onclick = closeKey;
+            document.getElementById('btnDoneApiKey').onclick = closeKey;
+            document.getElementById('btnCopyApiKey').onclick = () => {
+                const input = document.getElementById('displayFullApiKey');
+                input.select();
+                navigator.clipboard.writeText(input.value);
+                toast('Đã sao chép API Key.');
+            };
+            document.getElementById('btnSubmitCreateApiKey').onclick = async () => {
+                const name = document.getElementById('inputApiKeyName').value.trim();
+                const rate = parseInt(document.getElementById('selectApiKeyRateLimit').value, 10);
+                if (!name) { toast('Vui lòng nhập tên khóa.'); return; }
+                try {
+                    const data = await apiFetch(`/api/organizations/${currentOrgId}/api-keys`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key_name: name, rate_limit_rpm: rate })
+                    });
+                    document.getElementById('displayFullApiKey').value = data.api_key.full_key;
+                    document.getElementById('apiKeyFormView').style.display = 'none';
+                    document.getElementById('apiKeySecretView').style.display = 'block';
+                    loadApiKeys();
+                    loadOrgDetail(currentOrgId);
+                } catch (err) {
+                    toast(err.message || 'Không thể tạo API Key');
+                }
+            };
+
+            const modalOrg = document.getElementById('modalCreateOrg');
+            document.getElementById('btnOpenCreateOrgModal').onclick = () => {
+                document.getElementById('inputOrgName').value = '';
+                document.getElementById('inputOrgType').value = '';
+                document.getElementById('inputOrgRegion').value = '';
+                modalOrg.style.display = 'flex';
+            };
+            const closeOrg = () => modalOrg.style.display = 'none';
+            document.getElementById('btnCloseCreateOrgModal').onclick = closeOrg;
+            document.getElementById('btnCancelCreateOrg').onclick = closeOrg;
+            document.getElementById('btnSubmitCreateOrg').onclick = async () => {
+                const name = document.getElementById('inputOrgName').value.trim();
+                const organization_type = document.getElementById('inputOrgType').value || null;
+                const region = document.getElementById('inputOrgRegion').value.trim() || null;
+                if (!name || name.length < 2) { toast('Tên tổ chức cần ít nhất 2 ký tự.'); return; }
+                try {
+                    await apiFetch('/api/organizations', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, organization_type, region })
+                    });
+                    closeOrg();
+                    toast('Đã tạo tổ chức. Vui lòng hoàn tất onboarding.');
+                    await loadUserOrganizations();
+                } catch (err) {
+                    toast(err.message || 'Không thể tạo tổ chức');
+                }
+            };
+
+            const modalInvite = document.getElementById('modalInviteResult');
+            const closeInvite = () => modalInvite.style.display = 'none';
+            document.getElementById('btnCloseInviteResult').onclick = closeInvite;
+            document.getElementById('btnDoneInviteResult').onclick = closeInvite;
+            document.getElementById('btnCopyInviteLink').onclick = () => {
+                const text = document.getElementById('inviteResultLink').textContent;
+                navigator.clipboard.writeText(text);
+                toast('Đã sao chép liên kết mời.');
+            };
+
+            const modalLifecycle = document.getElementById('modalLifecycle');
+            const closeLifecycle = () => { modalLifecycle.style.display = 'none'; pendingLifecycleAction = null; };
+            document.getElementById('btnCloseLifecycle').onclick = closeLifecycle;
+            document.getElementById('btnCancelLifecycle').onclick = closeLifecycle;
+            document.getElementById('btnConfirmLifecycle').onclick = async () => {
+                const reason = document.getElementById('lifecycleReason').value.trim();
+                if (reason.length < 3) { toast('Vui lòng nhập lý do (ít nhất 3 ký tự).'); return; }
+                const action = pendingLifecycleAction;
+                let url, payload;
+                if (action === 'archive') {
+                    url = `/api/organizations/${currentOrgId}/archive`;
+                    payload = { reason };
+                } else if (action === 'restore') {
+                    url = `/api/organizations/${currentOrgId}/restore`;
+                    payload = { reason };
+                } else {
+                    const status = action === 'suspend' ? 'suspended' : 'active';
+                    url = `/api/organizations/${currentOrgId}/status`;
+                    payload = { status, reason };
+                }
+                try {
+                    await apiFetch(url, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    closeLifecycle();
+                    toast('Đã cập nhật trạng thái tổ chức.');
+                    await loadOrgDetail(currentOrgId);
+                    await loadUserOrganizations();
+                } catch (err) {
+                    toast(err.message || 'Không thể cập nhật trạng thái tổ chức');
+                }
+            };
+        }
+    </script>
+</body>
+</html>

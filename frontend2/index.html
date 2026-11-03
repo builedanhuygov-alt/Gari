@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan nông nghiệp • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar Container (Managed by setupSaaSShell) -->
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- Main Wrapper -->
+        <div class="app-main">
+            <!-- Header Container (Managed by setupSaaSShell) -->
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <!-- Page Body -->
+            <main class="content-body">
+                <!-- Page Head -->
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-head-title">Trợ lý sức khỏe cây trồng • Gari AgriTech</h1>
+                        <p class="page-head-sub">Hỗ trợ nhận diện bệnh sớm qua ảnh chụp lá, theo dõi diễn tiến vườn trồng và kết nối khuyến nông.</p>
+                    </div>
+                    <div class="page-head-actions">
+                        <a href="/frontend2/predict.html" class="btn btn-primary" id="btnDiagnoseLeaf">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.5"/></svg>
+                            Chẩn đoán cây trồng
+                        </a>
+                        <a href="/frontend2/farms.html" class="btn btn-secondary" id="btnAddFarm">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Thêm nông trại
+                        </a>
+                    </div>
+                </div>
+
+                <!-- User Entitlement & Quota Status Card (Sprint 1) -->
+                <div class="card" style="margin-bottom:20px; padding:16px 20px; background:var(--surface); border:1px solid var(--border); border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <div style="width:42px; height:42px; border-radius:10px; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">
+                            🌿
+                        </div>
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Gói Dịch Vụ:</span>
+                                <span class="pill pill-success" id="userPlanBadge" style="font-weight:700;">Đang kiểm tra...</span>
+                            </div>
+                            <div style="font-size:13.5px; font-weight:700; color:var(--text-main); margin-top:2px;" id="userQuotaNotice">
+                                Đang nạp hạn ngạch chẩn đoán thời gian thực...
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <a href="/frontend2/onboarding.html" class="btn btn-secondary btn-sm">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            Hồ sơ cây trồng
+                        </a>
+                        <a href="/frontend2/pricing.html" class="btn btn-primary btn-sm" id="btnUpgradeCTA">
+                            Nâng cấp / Đăng ký Pilot
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 4 KPI Cards (Linear / Stripe Style) -->
+                <div class="kpi-row">
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-label">Tổng diện tích canh tác</span>
+                            <div class="kpi-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            </div>
+                        </div>
+                        <div class="kpi-metric-wrap">
+                            <span class="kpi-metric" id="kpiArea"><span class="skeleton skeleton-metric"></span></span>
+                        </div>
+                        <div class="kpi-bottom">
+                            <span class="kpi-badge positive" id="kpiFarmsCount">Đang kiểm tra...</span>
+                            <span>vùng trồng đang canh tác</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-label">Lượt chẩn đoán AI</span>
+                            <div class="kpi-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/></svg>
+                            </div>
+                        </div>
+                        <div class="kpi-metric-wrap">
+                            <span class="kpi-metric" id="kpiDiagnoses"><span class="skeleton skeleton-metric"></span></span>
+                        </div>
+                        <div class="kpi-bottom">
+                            <span class="kpi-badge neutral">Suy luận cục bộ</span>
+                            <span>zero cloud transmission</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-label">Tỷ lệ cây trồng khỏe mạnh</span>
+                            <div class="kpi-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
+                            </div>
+                        </div>
+                        <div class="kpi-metric-wrap">
+                            <span class="kpi-metric" id="kpiHealthy"><span class="skeleton skeleton-metric"></span></span>
+                        </div>
+                        <div class="kpi-bottom">
+                            <span class="kpi-badge positive">Mẫu âm tính</span>
+                            <span>không phát hiện mầm bệnh</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-label">Hồ sơ chờ chuyên gia</span>
+                            <div class="kpi-icon-wrap" style="color:var(--warning);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+                            </div>
+                        </div>
+                        <div class="kpi-metric-wrap">
+                            <span class="kpi-metric" id="kpiPending"><span class="skeleton skeleton-metric"></span></span>
+                        </div>
+                        <div class="kpi-bottom">
+                            <a href="/frontend2/support.html" style="color:var(--primary); font-weight:600;">Xem danh sách chờ →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balanced Content Grid (1.45fr : 1fr) -->
+                <div class="dashboard-grid">
+                    <!-- LEFT COLUMN -->
+                    <div class="grid-col">
+                        <!-- Recent Diagnoses Activity -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h2 class="card-title">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        Hoạt động chẩn đoán gần đây
+                                    </h2>
+                                    <div class="card-subtitle">Nhật ký quét thực tế từ các nông trại kết nối và khảo sát thực địa</div>
+                                </div>
+                                <a href="/frontend2/reports.html" class="btn btn-secondary btn-sm">Xem toàn bộ</a>
+                            </div>
+
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã hồ sơ</th>
+                                            <th>Vị trí nông trại</th>
+                                            <th>Cây trồng</th>
+                                            <th>Mầm bệnh / Tình trạng</th>
+                                            <th>Mức độ</th>
+                                            <th>Độ tin cậy</th>
+                                            <th>Thời gian</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentDiagnosesBody">
+                                        <tr>
+                                            <td colspan="7" style="text-align:center; padding:24px;">
+                                                <span class="skeleton" style="width:60%; height:16px;"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Crop Distribution & Disease Insights -->
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title-group">
+                                        <h3 class="card-title">Phân bố cây trồng</h3>
+                                        <div class="card-subtitle">Các loại cây trồng đang được theo dõi</div>
+                                    </div>
+                                </div>
+                                <div id="cropDistributionContainer" style="display:flex; flex-direction:column; gap:10px;">
+                                    <div style="padding:16px 0;"><span class="skeleton" style="width:85%; height:14px;"></span></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-title-group">
+                                        <h3 class="card-title">Thống kê bệnh cây</h3>
+                                        <div class="card-subtitle">Mầm bệnh phát hiện trong các đợt quét</div>
+                                    </div>
+                                </div>
+                                <div id="diseaseInsightsContainer" style="display:flex; flex-direction:column; gap:10px;">
+                                    <div style="padding:16px 0;"><span class="skeleton" style="width:85%; height:14px;"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="grid-col">
+                        <!-- Agricultural Recommendations & Seasonal Advisory -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3 class="card-title">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--primary);"><path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"/><path d="M12 6v6l4 2"/></svg>
+                                        Khuyến nghị nông học mùa vụ
+                                    </h3>
+                                    <div class="card-subtitle">Hướng dẫn phòng bệnh & canh tác theo thời tiết</div>
+                                </div>
+                                <span class="pill pill-success">Vụ mùa khuyến cáo</span>
+                            </div>
+
+                            <div class="spec-list">
+                                <div class="spec-item">
+                                    <span class="spec-k">Lưu ý thời tiết:</span>
+                                    <span class="spec-v">Độ ẩm cao, sương sớm</span>
+                                </div>
+                                <div class="spec-item">
+                                    <span class="spec-k">Cây trồng trọng điểm:</span>
+                                    <span class="spec-v">Lúa, Sầu riêng, Tiêu, Cà phê</span>
+                                </div>
+                                <div class="spec-item">
+                                    <span class="spec-k">Nguy cơ nấm bệnh:</span>
+                                    <span class="spec-v" style="color:#d97706;font-weight:600;">Thán thư & Đốm lá vi khuẩn</span>
+                                </div>
+                                <div class="spec-item">
+                                    <span class="spec-k">Biện pháp ưu tiên:</span>
+                                    <span class="spec-v">Tỉa cành thông thoáng, tưới gốc</span>
+                                </div>
+                                <div class="spec-item">
+                                    <span class="spec-k">Chế phẩm sinh học:</span>
+                                    <span class="spec-v">Trichoderma & Bacillus subtilis</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border); display:flex; gap:8px;">
+                                <a href="/frontend2/predict.html" class="btn btn-primary btn-sm" style="flex:1; text-align:center;">
+                                    + Chẩn đoán bệnh lá
+                                </a>
+                                <a href="/frontend2/crops.html" class="btn btn-secondary btn-sm" style="flex:1; text-align:center;">
+                                    Sổ tay 51 cây trồng →
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Agricultural Alerts -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3 class="card-title">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        Cảnh báo nông nghiệp
+                                    </h3>
+                                    <div class="card-subtitle">Dự báo khí tượng & dịch tễ dịch hại</div>
+                                </div>
+                                <a href="/frontend2/risk.html" class="btn btn-ghost btn-sm">Xem tất cả</a>
+                            </div>
+
+                            <div class="alerts-list" id="alertsFeed">
+                                <div style="padding:14px 0;"><span class="skeleton" style="width:90%; height:16px;"></span></div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3 class="card-title">Thao tác nhanh</h3>
+                                    <div class="card-subtitle">Lối tắt tác vụ thường dùng</div>
+                                </div>
+                            </div>
+
+                            <div class="quick-action-grid">
+                                <a href="/frontend2/predict.html" class="quick-action-btn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><circle cx="12" cy="12" r="3.5"/></svg>
+                                    <span>Chẩn đoán lá</span>
+                                </a>
+                                <a href="/frontend2/farms.html" class="quick-action-btn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                                    <span>Thêm nông trại</span>
+                                </a>
+                                <a href="/frontend2/crops.html" class="quick-action-btn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/></svg>
+                                    <span>Cây trồng</span>
+                                </a>
+                                <a href="/frontend2/support.html" class="quick-action-btn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                                    <span>Hỏi chuyên gia</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Global Toast Container -->
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, animateCountUp, toast } from '/static/frontend2/app.js';
+
+        function init() {
+            setupSaaSShell('overview', 'Tổng quan nông nghiệp');
+            loadDashboardTelemetry();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        async function loadDashboardTelemetry() {
+            try {
+                // Fetch stats, models, health and user quota concurrently
+                const [statsRes, modelsRes, healthRes, quotaRes] = await Promise.allSettled([
+                    fetchJSON('/api/dashboard/stats'),
+                    fetchJSON('/api/models'),
+                    fetchJSON('/api/health'),
+                    fetchJSON('/api/user/quota')
+                ]);
+
+                // 0. Process User Plan & Quota Banner
+                if (quotaRes.status === 'fulfilled' && quotaRes.value && quotaRes.value.quota) {
+                    const q = quotaRes.value.quota;
+                    const badge = document.getElementById('userPlanBadge');
+                    const notice = document.getElementById('userQuotaNotice');
+                    if (badge) {
+                        badge.textContent = q.plan_name || (q.is_vip ? 'VIP / Pro' : 'Nông Hộ (Free)');
+                        badge.className = q.is_vip ? 'pill pill-warning' : 'pill pill-success';
+                    }
+                    if (notice) {
+                        if (q.is_unlimited) {
+                            notice.innerHTML = `<strong>Không giới hạn lượt phân loại</strong> — Toàn quyền truy cập mô hình nông nghiệp cao cấp.`;
+                        } else {
+                            notice.innerHTML = `Bạn còn <strong style="color:var(--primary);">${q.remaining}/${q.quota_limit} lượt</strong> chẩn đoán hôm nay. <span style="font-size:12px; color:var(--text-muted);">(Làm mới sau ${q.resets_in_human})</span>`;
+                        }
+                    }
+                }
+
+                // 1. Process Dashboard Stats
+                if (statsRes.status === 'fulfilled') {
+                    const stats = statsRes.value;
+
+                    // KPIs with animated count-up
+                    if (stats.total_hectares != null) {
+                        animateCountUp('kpiArea', stats.total_hectares, 750, ' ha', 1);
+                    } else {
+                        document.getElementById('kpiArea').textContent = 'Chưa có dữ liệu';
+                    }
+
+                    document.getElementById('kpiFarmsCount').textContent = stats.farms_total ? `${stats.farms_total} nông trại` : '0 nông trại';
+                    
+                    if (stats.diagnoses_total != null) {
+                        animateCountUp('kpiDiagnoses', stats.diagnoses_total, 750, ' lượt', 0);
+                    } else {
+                        document.getElementById('kpiDiagnoses').textContent = '0';
+                    }
+
+                    if (stats.healthy_rate_percent != null) {
+                        animateCountUp('kpiHealthy', stats.healthy_rate_percent, 750, '%', 1);
+                    } else {
+                        document.getElementById('kpiHealthy').textContent = 'Chưa có dữ liệu';
+                    }
+
+                    if (stats.pending_expert_cases != null) {
+                        animateCountUp('kpiPending', stats.pending_expert_cases, 750, ' hồ sơ', 0);
+                    } else {
+                        document.getElementById('kpiPending').textContent = '0';
+                    }
+
+                    // Recent Diagnoses Table
+                    renderRecentTable(stats.recent_diagnoses || []);
+
+                    // Crop Distribution
+                    renderCropDistribution(stats.crop_distribution || []);
+
+                    // Disease Insights
+                    renderDiseaseInsights(stats.disease_distribution || []);
+
+                    // Alerts
+                    renderAlerts(stats.recent_alerts || []);
+                } else {
+                    displayKpiError();
+                }
+
+                // Operational host telemetry has been moved to the dedicated Host Server Console (/frontend2/host.html)
+
+            } catch (err) {
+                console.error('Không thể nạp dữ liệu telemetry:', err);
+                displayKpiError();
+            }
+        }
+
+        function displayKpiError() {
+            document.getElementById('kpiArea').textContent = 'Chưa có dữ liệu';
+            document.getElementById('kpiDiagnoses').textContent = '0';
+            document.getElementById('kpiHealthy').textContent = 'Chưa có dữ liệu';
+            document.getElementById('kpiPending').textContent = '0';
+            renderRecentTable([]);
+            renderCropDistribution([]);
+            renderDiseaseInsights([]);
+            renderAlerts([]);
+        }
+
+        function renderRecentTable(items) {
+            const tbody = document.getElementById('recentDiagnosesBody');
+            if (!items || items.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-box">
+                                <div class="empty-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                </div>
+                                <div class="empty-title">Chưa có hoạt động chẩn đoán nào</div>
+                                <div class="empty-desc">Tải lên ảnh lá cây trong mục Chẩn đoán AI để tạo bản ghi đầu tiên.</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = items.map(d => {
+                const sevRaw = (d.severity || 'NORMAL').toUpperCase();
+                let pillClass = 'pill-warning';
+                let sevText = 'TRUNG BÌNH';
+                if (sevRaw === 'HIGH') {
+                    pillClass = 'pill-danger';
+                    sevText = 'CAO';
+                } else if (sevRaw === 'HEALTHY' || sevRaw === 'NORMAL') {
+                    pillClass = 'pill-healthy';
+                    sevText = 'KHỎE MẠNH';
+                }
+
+                const conf = d.confidence != null ? `${(d.confidence * 100).toFixed(1)}%` : '--';
+
+                return `
+                    <tr>
+                        <td style="font-weight:700; color:var(--primary); font-size:12px;">#DG-${d.id}</td>
+                        <td><strong>${d.farm_name || 'Vùng trồng chung'}</strong></td>
+                        <td>${d.crop_name || 'Cây trồng'}</td>
+                        <td>${d.predicted_disease || 'Khỏe mạnh'}</td>
+                        <td><span class="pill ${pillClass}">${sevText}</span></td>
+                        <td style="font-weight:600;">${conf}</td>
+                        <td style="font-size:11.5px; color:var(--text-muted);">${d.created_at || 'Vừa xong'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderCropDistribution(crops) {
+            const container = document.getElementById('cropDistributionContainer');
+            if (!crops || crops.length === 0) {
+                container.innerHTML = '<div class="empty-desc" style="padding:12px 0;">Chưa có dữ liệu phân bố cây trồng.</div>';
+                return;
+            }
+
+            container.innerHTML = crops.map(c => `
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="font-weight:600; color:var(--text-main);">${c.crop}</span>
+                        <span style="color:var(--text-secondary);">${c.count} lượt quét</span>
+                    </div>
+                    <div style="height:5px; background:var(--surface-muted); border-radius:99px; overflow:hidden;">
+                        <div style="height:100%; width:${Math.min(c.count * 25, 100)}%; background:var(--primary); border-radius:99px;"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderDiseaseInsights(diseases) {
+            const container = document.getElementById('diseaseInsightsContainer');
+            if (!diseases || diseases.length === 0) {
+                container.innerHTML = '<div class="empty-desc" style="padding:12px 0;">Chưa ghi nhận mầm bệnh nào.</div>';
+                return;
+            }
+
+            container.innerHTML = diseases.map(d => `
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="font-weight:600; color:var(--text-main);">${d.disease}</span>
+                        <span style="color:var(--danger); font-weight:600;">${d.count} ca</span>
+                    </div>
+                    <div style="height:5px; background:var(--surface-muted); border-radius:99px; overflow:hidden;">
+                        <div style="height:100%; width:${Math.min(d.count * 25, 100)}%; background:var(--danger); border-radius:99px;"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAlerts(alerts) {
+            const container = document.getElementById('alertsFeed');
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<div class="empty-desc" style="padding:12px 0;">Không có cảnh báo rủi ro nào tại khu vực này.</div>';
+                return;
+            }
+
+            container.innerHTML = alerts.slice(0, 3).map(a => `
+                <div class="alert-card ${a.risk_level || 'Moderate'}">
+                    <div class="alert-card-head">
+                        <span class="alert-title">${a.region || 'Khu vực'}</span>
+                        <span class="pill ${a.risk_level === 'High' ? 'pill-danger' : 'pill-warning'}">${a.risk_level === 'High' ? 'Nguy cơ cao' : 'Cảnh báo'}</span>
+                    </div>
+                    <div style="font-size:12px; font-weight:600; color:var(--primary);">
+                        ${a.disease_threat || 'Mối đe dọa'} (${a.crop || 'Cây trồng'})
+                    </div>
+                    <div class="alert-desc">${a.recommendation || ''}</div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

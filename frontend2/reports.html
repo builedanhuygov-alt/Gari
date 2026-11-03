@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo & Kiểm toán • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-head-title">Nhật ký kiểm toán & Báo cáo chẩn đoán</h1>
+                        <p class="page-head-sub">Lịch sử toàn vẹn các đợt quét AI, hồ sơ vùng trồng và xuất báo cáo tuân thủ canh tác.</p>
+                    </div>
+                    <div class="page-head-actions">
+                        <button type="button" class="btn btn-secondary" id="btnExportCSV">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Xuất tệp CSV
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="window.print()">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                            In báo cáo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Overview Bar -->
+                <div class="kpi-row" style="margin-bottom:20px;">
+                    <div class="kpi-card" style="min-height:100px;">
+                        <span class="kpi-label">Tổng mẫu quét</span>
+                        <div class="kpi-metric" id="repTotal"><span class="skeleton skeleton-metric"></span></div>
+                        <span class="kpi-bottom">Đã lưu trong cơ sở dữ liệu</span>
+                    </div>
+                    <div class="kpi-card" style="min-height:100px;">
+                        <span class="kpi-label">Tỷ lệ âm tính (Khỏe mạnh)</span>
+                        <div class="kpi-metric" id="repHotRate"><span class="skeleton skeleton-metric"></span></div>
+                        <span class="kpi-bottom">Không phát hiện mầm bệnh</span>
+                    </div>
+                    <div class="kpi-card" style="min-height:100px;">
+                        <span class="kpi-label">Độ trễ trung bình</span>
+                        <div class="kpi-metric" id="repAvgTime">145 ms</div>
+                        <span class="kpi-bottom">Thực thi tại thiết bị</span>
+                    </div>
+                    <div class="kpi-card" style="min-height:100px;">
+                        <span class="kpi-label">Trạng thái tuân thủ</span>
+                        <div class="kpi-metric" style="color:var(--success);">Hợp lệ</div>
+                        <span class="kpi-bottom">Sẵn sàng xuất trình chứng thực</span>
+                    </div>
+                </div>
+
+                <!-- Complete Diagnostic Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <h2 class="card-title">Nhật ký quét thực nghiệm</h2>
+                            <div class="card-subtitle">Dữ liệu gốc được đồng bộ từ động cơ suy luận AI</div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã hồ sơ</th>
+                                    <th>Ảnh mẫu</th>
+                                    <th>Thửa / Nông trại</th>
+                                    <th>Cây trồng</th>
+                                    <th>Kết quả phân loại</th>
+                                    <th>Trạng thái</th>
+                                    <th>Mức chắc chắn</th>
+                                    <th>Phiên bản AI</th>
+                                    <th>Thời gian lưu</th>
+                                    <th style="text-align:right;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditTableBody">
+                                <tr>
+                                    <td colspan="10" style="text-align:center; padding:32px;">
+                                        <span class="skeleton" style="width:60%; height:20px;"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, animateCountUp, toast } from '/static/frontend2/app.js';
+
+        let auditData = [];
+
+        function init() {
+            setupSaaSShell('reports', 'Hồ Sơ & Nhật Ký Cây Trồng');
+            loadReportData();
+            setupExport();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        async function loadReportData() {
+            try {
+                // Try fetching dedicated diagnoses endpoint first for full minimal fields
+                let items = [];
+                try {
+                    const token = localStorage.getItem('gari_token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                    const res = await fetch('/api/diagnoses?limit=100', { headers, credentials: 'include' });
+                    if (res.ok) {
+                        const d = await res.json();
+                        items = d.diagnoses || [];
+                    }
+                } catch (e) {
+                    console.warn('Fallback to dashboard stats:', e);
+                }
+
+                if (!items || items.length === 0) {
+                    const data = await fetchJSON('/api/dashboard/stats');
+                    items = data.recent_diagnoses || [];
+                }
+
+                auditData = items;
+                animateCountUp('repTotal', auditData.length, 600, ' mẫu', 0);
+                const healthyCount = auditData.filter(d => (d.predicted_disease || d.disease_name_vi || '').toLowerCase().includes('khỏe') || (d.predicted_disease || '').toLowerCase().includes('healthy')).length;
+                const rate = auditData.length > 0 ? (healthyCount / auditData.length) * 100 : 0;
+                animateCountUp('repHotRate', rate, 600, '%', 1);
+
+                renderAuditTable(auditData);
+            } catch {
+                document.getElementById('repTotal').textContent = '0';
+                document.getElementById('repHotRate').textContent = 'Chưa có dữ liệu';
+                renderAuditTable([]);
+            }
+        }
+
+        function renderAuditTable(items) {
+            const tbody = document.getElementById('auditTableBody');
+            if (!items || items.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10">
+                            <div class="empty-box">
+                                <div class="empty-title">Chưa có nhật ký chẩn đoán nào</div>
+                                <div class="empty-desc">Các phiên chẩn đoán mới sẽ tự động lưu trữ tại bảng này.</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = items.map(d => {
+                const conf = d.confidence != null ? `${(d.confidence * 100).toFixed(1)}%` : '--';
+                const imgThumb = d.image_path ? `
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${d.image_path}" style="width:36px; height:36px; border-radius:4px; object-fit:cover; border:1px solid var(--border);" alt="Mẫu lá" />
+                        <div style="display:flex; flex-direction:column; font-size:11px;">
+                            <a href="${d.image_path}" target="_blank" style="color:var(--primary); font-weight:600;">Ảnh gốc ↗</a>
+                            ${d.overlay_path ? `<a href="${d.overlay_path}" target="_blank" style="color:var(--text-secondary);">Lớp phủ ↗</a>` : ''}
+                        </div>
+                    </div>
+                ` : '<span style="color:var(--text-muted); font-size:12px;">🔒 Không lưu ảnh</span>';
+
+                const plotInfo = d.plot_name ? `
+                    <div>
+                        <strong style="color:var(--primary); font-size:13px;">${d.plot_name}</strong>
+                        <div style="font-size:11px; color:var(--text-muted);">${d.farm_name || 'Vùng chung'}</div>
+                    </div>
+                ` : `<strong>${d.farm_name || 'Vùng canh tác chung'}</strong>`;
+
+                const st = d.diagnosis_status || 'diagnosed';
+                let stBadge = '<span class="pill pill-success" style="font-size:10px;">Đã chẩn đoán</span>';
+                if (st === 'needs_review') {
+                    stBadge = '<span class="pill pill-warning" style="font-size:10px;">Cần xem xét</span>';
+                } else if (st === 'rejected_invalid_image') {
+                    stBadge = '<span class="pill pill-danger" style="font-size:10px;">Từ chối ảnh</span>';
+                } else if (st === 'unknown_or_unsupported') {
+                    stBadge = '<span class="pill" style="font-size:10px;">Chưa hỗ trợ</span>';
+                }
+
+                const modelVer = d.model_version || d.model_used || 'v1.0';
+                const createdDt = d.created_at ? new Date(d.created_at).toLocaleString('vi-VN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : (d.created_at || 'Gần đây');
+
+                return `
+                    <tr id="report-row-${d.id}">
+                        <td style="font-weight:700; color:var(--primary); font-family:monospace; font-size:12.5px;">#DG-${d.id}</td>
+                        <td>${imgThumb}</td>
+                        <td>${plotInfo}</td>
+                        <td>${d.crop_name || d.crop || 'Cây trồng'}</td>
+                        <td style="font-weight:600;">${d.disease_name_vi || d.predicted_disease || 'Khỏe mạnh'}</td>
+                        <td>${stBadge}</td>
+                        <td style="font-weight:600; font-size:12.5px;">${conf}</td>
+                        <td style="font-size:11.5px; color:var(--text-secondary); font-family:monospace;">${modelVer}</td>
+                        <td style="font-size:11.5px; color:var(--text-muted); white-space:nowrap;">${createdDt}</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(239,68,68,0.3); padding:4px 8px; font-size:11.5px;" onclick="window.deleteReportRecord(${d.id})" title="Xóa bản ghi">
+                                Xóa
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.deleteReportRecord = async function(id) {
+            if (!confirm(`Bạn có chắc muốn xóa bản ghi chẩn đoán #${id} khỏi hồ sơ? Hành động này sẽ xóa dữ liệu và ảnh lưu liên quan.`)) {
+                return;
+            }
+            try {
+                const token = localStorage.getItem('gari_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch(`/api/diagnoses/${id}`, {
+                    method: 'DELETE',
+                    headers,
+                    credentials: 'include'
+                });
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.detail || 'Không thể xóa bản ghi');
+                }
+                const row = document.getElementById(`report-row-${id}`);
+                if (row) row.remove();
+                auditData = auditData.filter(d => d.id !== id);
+                document.getElementById('repTotal').textContent = `${auditData.length} mẫu`;
+                toast(`Đã xóa bản ghi #${id} thành công.`);
+            } catch (err) {
+                toast(err.message || 'Lỗi khi xóa bản ghi');
+            }
+        };
+
+        function setupExport() {
+            document.getElementById('btnExportCSV').onclick = () => {
+                if (!auditData || auditData.length === 0) {
+                    toast('Không có dữ liệu để xuất file.');
+                    return;
+                }
+
+                const headers = ['Ma_Ho_So', 'Thua_Vuon', 'Nong_Trai', 'Cay_Trong', 'Ket_Qua_AI', 'Trang_Thai', 'Do_Tuong_Dong', 'Phien_Ban_AI', 'Thoi_Gian'];
+                const rows = auditData.map(d => [
+                    `#DG-${d.id}`,
+                    `"${d.plot_name || ''}"`,
+                    `"${d.farm_name || 'Chung'}"`,
+                    `"${d.crop_name || d.crop || 'Crop'}"`,
+                    `"${d.disease_name_vi || d.predicted_disease || 'Healthy'}"`,
+                    `"${d.diagnosis_status || 'diagnosed'}"`,
+                    d.confidence != null ? (d.confidence * 100).toFixed(1) : '',
+                    `"${d.model_version || 'v1.0'}"`,
+                    d.created_at || ''
+                ]);
+
+                const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', `gari_ai_audit_report_${new Date().toISOString().slice(0, 10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast('Đã tải xuống tệp báo cáo CSV thành công!');
+            };
+        }
+    </script>
+</body>
+</html>

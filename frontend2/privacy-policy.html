@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chính sách Bảo mật Dữ liệu Cá nhân — Gari AI Lab</title>
+    <meta name="description" content="Chính sách bảo vệ dữ liệu cá nhân của Gari AI Lab tuân thủ Nghị định 13/2023/NĐ-CP và tiêu chuẩn an toàn dữ liệu nông học.">
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <style>
+        .legal-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 36px 20px 80px 20px;
+        }
+        .legal-header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .legal-badge-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .legal-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        .legal-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .legal-nav-bar {
+            display: flex;
+            gap: 8px;
+            background: var(--surface);
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin-bottom: 28px;
+            overflow-x: auto;
+        }
+        .legal-nav-link {
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: var(--transition);
+        }
+        .legal-nav-link:hover, .legal-nav-link.active {
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+        .legal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-card);
+            line-height: 1.7;
+            font-size: 14.5px;
+            color: var(--text-secondary);
+        }
+        .legal-card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .legal-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 18px 0 8px 0;
+        }
+        .legal-card p {
+            margin-bottom: 12px;
+        }
+        .legal-card ul {
+            padding-left: 22px;
+            margin-bottom: 14px;
+        }
+        .legal-card li {
+            margin-bottom: 6px;
+        }
+        .notice-box {
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            margin: 14px 0;
+            font-size: 13.5px;
+            line-height: 1.6;
+        }
+        .notice-box.law {
+            background: rgba(34, 197, 94, 0.08);
+            border-left: 4px solid var(--primary);
+            color: var(--text-main);
+        }
+        .notice-box.verify {
+            background: rgba(245, 158, 11, 0.08);
+            border-left: 4px solid var(--warning);
+            color: var(--text-main);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 13.5px;
+        }
+        .data-table th, .data-table td {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .data-table th {
+            background: var(--surface-muted);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="legal-container">
+        <!-- Breadcrumb & Top Bar -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <a href="/frontend2/index.html" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
+                ← Quay lại Dashboard Gari
+            </a>
+            <div style="display:flex; gap:10px;">
+                <a href="/frontend2/data-management.html" class="btn btn-primary btn-sm">
+                    Quản lý dữ liệu cá nhân (DSR) →
+                </a>
+            </div>
+        </div>
+
+        <div class="legal-header">
+            <div class="legal-badge-row">
+                <span class="pill pill-success">CHÍNH THỨC</span>
+                <span class="pill pill-neutral">Áp dụng: Toàn bộ nền tảng Gari AI Lab</span>
+                <span class="pill pill-warning">CƠ CHẾ BẢO MẬT BẮT BUỘC</span>
+            </div>
+            <h1 class="legal-title">Chính sách Bảo mật & Quyền riêng tư Dữ liệu</h1>
+            <div class="legal-meta">
+                <span><strong>Đơn vị vận hành:</strong> Gari AI Lab (Dự án R&D Công nghệ Nông nghiệp Việt Nam)</span>
+                <span><strong>Ngày có hiệu lực:</strong> 01/11/2026</span>
+                <span><strong>Cập nhật lần cuối:</strong> 31/10/2026 (Phiên bản v1.0.0)</span>
+            </div>
+        </div>
+
+        <!-- Policy Navigation Links -->
+        <nav class="legal-nav-bar" aria-label="Danh mục chính sách pháp lý">
+            <a href="/frontend2/privacy-policy.html" class="legal-nav-link active">Chính sách bảo mật</a>
+            <a href="/frontend2/terms-of-service.html" class="legal-nav-link">Điều khoản dịch vụ</a>
+            <a href="/frontend2/cookie-policy.html" class="legal-nav-link">Chính sách Cookie</a>
+            <a href="/frontend2/refund-policy.html" class="legal-nav-link">Chính sách hoàn tiền</a>
+            <a href="/frontend2/data-management.html" class="legal-nav-link">Quyền dữ liệu cá nhân (DSR)</a>
+        </nav>
+
+        <!-- Section 0: Legal Framework Verification -->
+        <div class="legal-card">
+            <h2>⚖️ 1. Căn Cứ Pháp Lý & Xác Minh Văn Bản Quy Phạm</h2>
+            <p>
+                Gari AI Lab thiết lập chính sách bảo mật này dựa trên các văn bản quy phạm pháp luật đang có hiệu lực thi hành tại Việt Nam:
+            </p>
+            <div class="notice-box law">
+                <strong>Văn bản pháp luật đã xác minh áp dụng:</strong>
+                <ul style="margin:6px 0 0 16px;">
+                    <li><strong>Nghị định số 13/2023/NĐ-CP</strong> ngày 17/04/2023 của Chính phủ về Bảo vệ dữ liệu cá nhân.</li>
+                    <li><strong>Bộ luật Dân sự 2015</strong> (Điều 32 về Quyền của cá nhân đối với hình ảnh).</li>
+                    <li><strong>Luật An ninh mạng 2018</strong> (Bảo đảm an toàn thông tin trên không gian mạng).</li>
+                    <li><strong>Luật Sở hữu trí tuệ 2005 (sửa đổi, bổ sung 2022)</strong> về quyền sở hữu dữ liệu và tác quyền hình ảnh.</li>
+                </ul>
+            </div>
+            <div class="notice-box verify">
+                <strong>[NEEDS LEGAL VERIFICATION / CẦN RÀ SOÁT PHÁP LÝ] — Xác minh văn bản tham chiếu:</strong>
+                <p style="margin-top:6px;">
+                    1. <em>"Nghị quyết 13 về hình ảnh và giấy phép":</em> Trong hệ thống văn bản quy phạm pháp luật của Quốc hội và Chính phủ Nước CHXHCN Việt Nam, không có văn bản nào mang tên "Nghị quyết 13 về hình ảnh và giấy phép". Gari AI Lab chính thức ghi nhận việc áp dụng trực tiếp <strong>Nghị định 13/2023/NĐ-CP</strong> và <strong>Điều 32 Bộ luật Dân sự 2015</strong>, không suy diễn hoặc tạo lập các căn cứ pháp lý chưa được ban hành.<br>
+                    2. <em>"Quy tắc 20 điểm bảo mật":</em> Không phải là văn bản luật mà là bộ tiêu chuẩn kiểm soát kỹ thuật nội bộ (Internal Technical Checklist tham chiếu từ CIS Controls và OWASP Top 10 API Security).
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 2: Data Minimization -->
+        <div class="legal-card">
+            <h2>📦 2. Nguyên Tắc Thu Thập Dữ Liệu Tối Thiểu (Data Minimization)</h2>
+            <p>
+                Chúng tôi chỉ thu thập những thông tin thật sự cần thiết để thực hiện chẩn đoán bệnh lá và quản lý nông trại:
+            </p>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Loại dữ liệu</th>
+                        <th>Mục đích sử dụng</th>
+                        <th>Cơ sở xử lý</th>
+                        <th>Thời gian lưu trữ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Thông tin tài khoản</strong> (Họ tên, email, mật khẩu băm, số điện thoại)</td>
+                        <td>Đăng nhập, quản lý phiên làm việc, cấp phát quota dịch vụ.</td>
+                        <td>Thực hiện hợp đồng dịch vụ / Thỏa thuận thành viên</td>
+                        <td>Đến khi người dùng yêu cầu xóa tài khoản</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ảnh chụp phiến lá cây trồng</strong></td>
+                        <td>Trích xuất đặc trưng thị giác để chẩn đoán bệnh và lưu sổ tay nhật ký vườn.</td>
+                        <td>Sự đồng ý rõ ràng (Consent) của chủ tài khoản khi tải ảnh</td>
+                        <td>Lưu trong sổ tay của người dùng; xóa ngay khi xóa ca chẩn đoán</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hồ sơ nông trại & lô đất</strong> (Tên vườn, diện tích, tọa độ tùy chọn)</td>
+                        <td>Theo dõi diễn biến mùa vụ, cảnh báo dịch tễ vi khí hậu.</td>
+                        <td>Thực hiện hợp đồng / Sự đồng ý của người dùng</td>
+                        <td>Đến khi người dùng xóa lô đất hoặc xóa tài khoản</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Nhật ký kỹ thuật</strong> (Địa chỉ IP, User-Agent, thời gian suy luận)</td>
+                        <td>Ngăn chặn gian lận, chống tấn công DDoS, bảo đảm an toàn hệ thống theo Luật An ninh mạng.</td>
+                        <td>Nghĩa vụ pháp lý / Lợi ích an ninh hợp pháp</td>
+                        <td>Tối đa 90 ngày (sau đó ẩn danh hóa hoàn toàn)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="color:var(--text-muted); font-size:13px;">
+                * Gari AI Lab tuyệt đối KHÔNG thu thập dữ liệu sinh trắc học khuôn mặt, số căn cước công dân, tài khoản ngân hàng hoặc dữ liệu vị trí GPS nền của người dùng.
+            </p>
+        </div>
+
+        <!-- Section 3: Third Parties -->
+        <div class="legal-card">
+            <h2>🌐 3. Chia Sẻ & Chuyển Giao Dữ Liệu Cho Bên Thứ Ba</h2>
+            <p>
+                Gari AI Lab duy trì hạ tầng AI tự chủ và độc lập:
+            </p>
+            <ul>
+                <li><strong>Không bán hoặc chia sẻ dữ liệu:</strong> Dữ liệu nông hộ, sản lượng và ảnh lá cây của bạn không bao giờ bị bán cho các công ty quảng cáo hoặc môi giới dữ liệu.</li>
+                <li><strong>Mô hình chạy trực tiếp tại chỗ (Local Inference):</strong> Toàn bộ 51 mô hình AI (ViT-Base và ConvNeXt) chạy trực tiếp trên máy chủ của Gari, không gửi ảnh lá cây qua các API AI của bên thứ ba bên ngoài lãnh thổ Việt Nam.</li>
+                <li><strong>Không tích hợp SDK theo dõi bên ngoài:</strong> Gari không cài đặt Google Analytics, Facebook Pixel hay bất kỳ script quảng cáo theo dõi hành vi nào.</li>
+            </ul>
+        </div>
+
+        <!-- Section 4: User Rights (DSR) -->
+        <div class="legal-card">
+            <h2>🛡️ 4. Quyền Của Bạn Đối Với Dữ Liệu Cá Nhân (Data Subject Rights)</h2>
+            <p>
+                Căn cứ theo Điều 9 Nghị định 13/2023/NĐ-CP, bạn có toàn quyền:
+            </p>
+            <ul>
+                <li><strong>Quyền được biết & Quyền đồng ý:</strong> Được thông báo rõ ràng trước khi dữ liệu được xử lý và có quyền từ chối các mục đích phụ.</li>
+                <li><strong>Quyền truy cập & Xem dữ liệu:</strong> Xem toàn bộ lịch sử ca bệnh, ảnh chụp và thông tin cá nhân trong ứng dụng.</li>
+                <li><strong>Quyền tải bản sao dữ liệu (Data Portability):</strong> Tải toàn bộ dữ liệu nông trại và lịch sử chẩn đoán dưới định dạng máy đọc được (.JSON).</li>
+                <li><strong>Quyền xóa dữ liệu (Right to Erasure):</strong> Yêu cầu xóa vĩnh viễn tài khoản và toàn bộ ảnh lá cây vật lý trên máy chủ bất kỳ lúc nào.</li>
+                <li><strong>Quyền rút lại sự đồng ý:</strong> Rút lại đồng ý nhận thông tin khuyến nông hoặc các khảo sát tùy chọn mà không ảnh hưởng đến quyền sử dụng tính năng chẩn đoán lá cây cốt lõi.</li>
+            </ul>
+            <div style="margin-top:16px;">
+                <a href="/frontend2/data-management.html" class="btn btn-primary btn-sm">
+                    Thực hiện quyền dữ liệu tại Trang Quản lý Dữ liệu Cá nhân →
+                </a>
+            </div>
+        </div>
+
+        <!-- Section 5: Security Measures -->
+        <div class="legal-card">
+            <h2>🔒 5. Các Biện Pháp An Toàn & Bảo Mật</h2>
+            <p>
+                Gari áp dụng các cơ chế kỹ thuật để bảo vệ dữ liệu cá nhân theo tiêu chuẩn quốc tế:
+            </p>
+            <ul>
+                <li>Mật khẩu được băm một chiều với muối ngẫu nhiên (PBKDF2-HMAC-SHA256), máy chủ không thể đọc được mật khẩu gốc.</li>
+                <li>API Keys được lưu trữ dưới dạng băm SHA-256 kèm tiền tố che mờ, chỉ hiển thị mã gốc một lần duy nhất lúc tạo.</li>
+                <li>Kiểm soát truy cập đa tầng (Multi-Tenant RBAC): Ngăn chặn triệt để tình trạng một nông trại xem dữ liệu của nông trại khác.</li>
+                <li>Cơ chế khóa nguyên tử (Atomic SQLite + Concurrency Lock): Ngăn chặn xung đột dữ liệu và gian lận quota.</li>
+            </ul>
+        </div>
+
+        <!-- Section 6: Contact -->
+        <div class="legal-card">
+            <h2>📬 6. Đầu Mối Liên Hệ Về Quyền Riêng Tư</h2>
+            <p>
+                Mọi câu hỏi, khiếu nại hoặc yêu cầu liên quan đến bảo vệ dữ liệu cá nhân, xin vui lòng liên hệ Bộ phận Bảo mật & Pháp chế của Gari AI Lab:
+            </p>
+            <ul>
+                <li><strong>Email tiếp nhận:</strong> <a href="mailto:privacy@gari.vn" style="color:var(--primary); font-weight:600;">privacy@gari.vn</a></li>
+                <li><strong>Bộ phận chuyên trách:</strong> Nhóm An toàn Thông tin & Quyền riêng tư — Gari AI Lab</li>
+                <li><strong>Thời gian phản hồi cam kết:</strong> Trong vòng 72 giờ làm việc theo quy định của Nghị định 13/2023/NĐ-CP.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

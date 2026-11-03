@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài liệu API-as-a-Service • Gari Developer Hub</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body" style="max-width:960px;">
+                <div class="page-head">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <h1 class="page-head-title">Gari API-as-a-Service (v1)</h1>
+                            <span class="pill pill-success">v1.0.0 Production</span>
+                            <span class="pill pill-info">RESTful AI Engine</span>
+                        </div>
+                        <p class="page-head-sub">Tài liệu kỹ thuật tích hợp động cơ nhận diện bệnh lá cây Gari vào trạm quan trắc IoT, máy bay không người lái (Drone) và phần mềm quản lý trang trại ERP.</p>
+                    </div>
+                    <div class="page-head-actions">
+                        <a href="/frontend2/organization.html" class="btn btn-primary btn-sm">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                            Quản lý API Key tổ chức
+                        </a>
+                    </div>
+                </div>
+
+                <!-- API Key Authentication Section -->
+                <div class="card" style="margin-bottom:24px;">
+                    <h3 style="font-size:16px; font-weight:700; margin-bottom:10px;">1. Xác thực bằng API Key (Authentication)</h3>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">
+                        Mọi yêu cầu gửi đến API suy luận v1 bắt buộc phải kèm theo khóa API hợp lệ của tổ chức (gói Team hoặc Enterprise). Bạn có thể truyền khóa qua một trong hai cách:
+                    </p>
+                    <ul style="padding-left:20px; font-size:13px; color:var(--text-secondary); line-height:1.8;">
+                        <li><strong>Cách 1 (Khuyên dùng):</strong> Sử dụng Header HTTP <code>X-Gari-API-Key: gari_live_xxxxxxxxxxxxxxxxxxxx</code></li>
+                        <li><strong>Cách 2:</strong> Sử dụng Header Authorization <code>Authorization: Bearer gari_live_xxxxxxxxxxxxxxxxxxxx</code></li>
+                    </ul>
+                </div>
+
+                <!-- Inference Endpoint Specification -->
+                <div class="card" style="margin-bottom:24px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                        <span style="background:#0284c7; color:#fff; font-weight:800; font-size:12px; padding:3px 8px; border-radius:4px;">POST</span>
+                        <code style="font-size:15px; font-weight:700; color:var(--text-main);">/api/v1/diagnose</code>
+                    </div>
+                    <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:16px;">
+                        Kiểm định chất lượng lá cây (Leaf Validation Gate) -> Nhận diện loài cây -> Phân loại bệnh học và khoanh vùng tổn thương (Grad-CAM). Tự động kiểm tra hạn ngạch tổ chức và bảo vệ an toàn nông học.
+                    </p>
+
+                    <h4 style="font-size:13px; font-weight:700; margin-bottom:8px;">Tham số Request (multipart/form-data):</h4>
+                    <div class="table-wrap" style="margin-bottom:20px;">
+                        <table class="data-table" style="font-size:12.5px;">
+                            <thead>
+                                <tr>
+                                    <th>Trường (Field)</th>
+                                    <th>Kiểu dữ liệu</th>
+                                    <th>Bắt buộc</th>
+                                    <th>Mô tả</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>image</code></td>
+                                    <td>File (Binary)</td>
+                                    <td><strong style="color:var(--danger);">Bắt buộc</strong></td>
+                                    <td>Ảnh chụp lá cây (JPEG, PNG, WEBP), tối đa 15MB.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>mode</code></td>
+                                    <td>String</td>
+                                    <td>Tùy chọn</td>
+                                    <td><code>auto_standard</code> (chuẩn) hoặc <code>manual</code> hoặc <code>auto_pro</code> (gói Team/Enterprise).</td>
+                                </tr>
+                                <tr>
+                                    <td><code>crop</code></td>
+                                    <td>String</td>
+                                    <td>Tùy chọn</td>
+                                    <td>Chỉ định loại cây khi chạy chế độ manual (vd: <code>Tomato</code>, <code>Pepper</code>, <code>Rice</code>).</td>
+                                </tr>
+                                <tr>
+                                    <td><code>notes</code></td>
+                                    <td>String</td>
+                                    <td>Tùy chọn</td>
+                                    <td>Ghi chú lô canh tác hoặc trạm quan trắc.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Python Example Code -->
+                    <h4 style="font-size:13px; font-weight:700; margin-bottom:8px;">Ví dụ tích hợp Python (Requests):</h4>
+                    <pre style="background:var(--surface-muted); border:1px solid var(--border); border-radius:8px; padding:14px; font-size:12px; font-family:monospace; overflow-x:auto; line-height:1.5;"><code>import requests
+
+url = "http://localhost:8000/api/v1/diagnose"
+headers = {
+    "X-Gari-API-Key": "gari_live_your_org_api_key_here"
+}
+
+with open("leaf_sample.jpg", "rb") as f:
+    files = {"image": ("leaf.jpg", f, "image/jpeg")}
+    data = {"mode": "auto_standard"}
+    response = requests.post(url, headers=headers, files=files, data=data)
+
+result = response.json()
+print("Kết quả:", result["diagnosis"]["name_vi"], f"({result['diagnosis']['confidence_score'] * 100:.1f}%)")
+print("Hạn ngạch tổ chức còn lại:", result["quota"]["remaining"])</code></pre>
+                </div>
+
+                <!-- HTTP Error Codes Section -->
+                <div class="card">
+                    <h3 style="font-size:16px; font-weight:700; margin-bottom:12px;">2. Mã phản hồi HTTP (Error Codes)</h3>
+                    <div class="table-wrap">
+                        <table class="data-table" style="font-size:12.5px;">
+                            <thead>
+                                <tr>
+                                    <th>HTTP Code</th>
+                                    <th>Trạng thái</th>
+                                    <th>Nguyên nhân</th>
+                                    <th>Trừ Quota?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="pill pill-success">200 OK</span></td>
+                                    <td>Chẩn đoán thành công</td>
+                                    <td>Ảnh đạt tiêu chuẩn lá cây và mô hình hoàn thành phân loại.</td>
+                                    <td><strong>Có (-1 lượt)</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="pill pill-warning">422 Unprocessable</span></td>
+                                    <td>Ảnh bị từ chối</td>
+                                    <td>Ảnh không phải lá cây (NOT_A_LEAF) hoặc mờ nhòe.</td>
+                                    <td><strong style="color:var(--primary);">Không trừ</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="pill pill-danger">401 Unauthorized</span></td>
+                                    <td>Không có quyền</td>
+                                    <td>API Key không hợp lệ hoặc đã bị thu hồi.</td>
+                                    <td>Không trừ</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="pill pill-danger">403 Forbidden</span></td>
+                                    <td>Vượt gói dịch vụ</td>
+                                    <td>Gọi mô hình VIP khi tổ chức chưa kích hoạt gói Team/Enterprise.</td>
+                                    <td>Không trừ</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="pill pill-danger">429 Too Many Requests</span></td>
+                                    <td>Hết hạn ngạch</td>
+                                    <td>Tổ chức đã dùng hết số lượt quét trong chu kỳ 24 giờ.</td>
+                                    <td>Không trừ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module">
+        import { setupSaaSShell } from '/static/frontend2/app.js';
+        setupSaaSShell('api_docs', 'Tài Liệu API');
+    </script>
+</body>
+</html>

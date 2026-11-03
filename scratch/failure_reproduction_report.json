@@ -1,0 +1,154 @@
+{
+  "image_path": "D:\\leaf-diseases-detector-main\\database\\uploads\\leaf_2b67dcd175554c239fafb1b681bb9317.jpg",
+  "image_dimensions": [
+    256,
+    256
+  ],
+  "detector_16_top5": [
+    [
+      "Cherry",
+      0.3385466933250427
+    ],
+    [
+      "Strawberry",
+      0.23489950597286224
+    ],
+    [
+      "Watermelon",
+      0.1332954317331314
+    ],
+    [
+      "Apple",
+      0.09443528205156326
+    ],
+    [
+      "Castard_apple",
+      0.0537230521440506
+    ]
+  ],
+  "detector_36_top5": [
+    [
+      "Tomato",
+      0.9248417615890503
+    ],
+    [
+      "Cherry",
+      0.0031016848515719175
+    ],
+    [
+      "Potato",
+      0.0029417304322123528
+    ],
+    [
+      "Grape",
+      0.002858666703104973
+    ],
+    [
+      "Bitter_gourd",
+      0.002826211042702198
+    ]
+  ],
+  "gate_state": "CROP_CONFIDENT",
+  "selected_crop": "Tomato",
+  "disease_prediction": "Bacterial Spot",
+  "disease_confidence": 0.9532,
+  "total_latency_ms": 1433.0849000034505,
+  "full_result": {
+    "success": true,
+    "status": "OK",
+    "validation_state": "DIAGNOSIS_CONFIRMED",
+    "is_confident": true,
+    "crop": "Tomato",
+    "crop_name": "Cà chua",
+    "crop_full_name": "Cà chua (Tomato)",
+    "auto_detected": true,
+    "crop_detector_confidence": 0.9248,
+    "prediction": "Bacterial Spot",
+    "predicted_disease": "Bacterial Spot",
+    "disease_name": "Bacterial Spot",
+    "class_id": "Bacterial_spot",
+    "confidence": 0.9532,
+    "confidence_percent": 95.32,
+    "score_label": "Điểm dự đoán",
+    "severity": "HIGH",
+    "top_predictions": [
+      {
+        "class_id": "Bacterial_spot",
+        "label": "Bacterial Spot",
+        "name": "Bacterial Spot",
+        "disease": "Bacterial Spot",
+        "confidence": 0.9532,
+        "confidence_percent": 95.32
+      },
+      {
+        "class_id": "Late_blight",
+        "label": "Late Blight",
+        "name": "Late Blight",
+        "disease": "Late Blight",
+        "confidence": 0.0068,
+        "confidence_percent": 0.68
+      },
+      {
+        "class_id": "Early_blight",
+        "label": "Early Blight",
+        "name": "Early Blight",
+        "disease": "Early Blight",
+        "confidence": 0.006,
+        "confidence_percent": 0.6
+      }
+    ],
+    "crop_candidates": [
+      {
+        "crop_id": "Tomato",
+        "crop_name": "Cà chua",
+        "crop_full_name": "Cà chua (Tomato)",
+        "confidence": 0.9248,
+        "percent": 92.48,
+        "has_disease_model": true
+      },
+      {
+        "crop_id": "Cherry",
+        "crop_name": "Anh đào (Cherry)",
+        "crop_full_name": "Anh đào (Cherry) (Cherry)",
+        "confidence": 0.3385,
+        "percent": 33.85,
+        "has_disease_model": true
+      },
+      {
+        "crop_id": "Strawberry",
+        "crop_name": "Dâu tây",
+        "crop_full_name": "Dâu tây (Strawberry)",
+        "confidence": 0.2349,
+        "percent": 23.49,
+        "has_disease_model": true
+      },
+      {
+        "crop_id": "Watermelon",
+        "crop_name": "Dưa hấu",
+        "crop_full_name": "Dưa hấu (Watermelon)",
+        "confidence": 0.1333,
+        "percent": 13.33,
+        "has_disease_model": true
+      },
+      {
+        "crop_id": "Apple",
+        "crop_name": "Táo tây",
+        "crop_full_name": "Táo tây (Apple)",
+        "confidence": 0.0944,
+        "percent": 9.44,
+        "has_disease_model": true
+      }
+    ],
+    "model": {
+      "id": "Tomato",
+      "name": "Gari ConvNeXt (Cà chua)",
+      "arch": "convnext_small",
+      "classes_count": 13,
+      "device": "cpu",
+      "was_cached": false
+    },
+    "processing_time_ms": 1433.0,
+    "inference_time_ms": 1433.0,
+    "timestamp": "2026-10-30T13:48:47.081034+00:00"
+  }
+}

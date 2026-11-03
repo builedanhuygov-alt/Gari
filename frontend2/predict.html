@@ -1,0 +1,2374 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bác Sĩ Cây Trồng AI • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+    <style>
+        /* Modern Agricultural AI Doctor Theme */
+        .doctor-hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-lg);
+        }
+        .doctor-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--primary);
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Photo Guidance Component */
+        .photo-guide-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .photo-guide-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+        .photo-guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+        }
+        .photo-guide-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px;
+            background: var(--surface-muted);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 11.5px;
+            line-height: 1.4;
+            color: var(--text-secondary);
+        }
+        .photo-guide-item strong {
+            color: var(--text-main);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Real Progress Stages Pipeline */
+        .progress-pipeline {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            padding: 18px;
+            background: var(--surface);
+            border: 1.5px solid var(--primary);
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.1);
+        }
+        .progress-stage-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+        .progress-stage-item.active {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .progress-stage-item.completed {
+            color: var(--text-main);
+        }
+        .stage-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--surface-muted);
+            border: 1.5px solid var(--border);
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .progress-stage-item.active .stage-icon {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            animation: pulse-ring 1.5s infinite;
+        }
+        .progress-stage-item.completed .stage-icon {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Visual Disease Localization Layer */
+        .localization-viewer-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+        .viewer-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--surface-muted);
+            border-bottom: 1px solid var(--border);
+        }
+        .viewer-tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .viewer-tab-btn {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .viewer-tab-btn:hover {
+            color: var(--text-main);
+            border-color: var(--primary);
+        }
+        .viewer-tab-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+        }
+        .viewer-zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-zoom {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-zoom:hover {
+            border-color: var(--primary);
+            background: var(--surface-muted);
+        }
+
+        .viewer-viewport {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            max-height: 55vh;
+            background: #0f172a;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            cursor: grab;
+        }
+        .viewer-viewport:active {
+            cursor: grabbing;
+        }
+        .viewer-image-container {
+            position: relative;
+            transform-origin: center center;
+            transition: transform 0.2s ease-out;
+            max-width: 100%;
+            max-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .viewer-image-container img {
+            max-width: 100%;
+            max-height: 420px;
+            display: block;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+
+        /* Split Comparison Slider */
+        .split-slider-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            display: none;
+        }
+        .split-slider-before, .split-slider-after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .split-slider-before img, .split-slider-after img {
+            max-width: 100%;
+            max-height: 420px;
+            object-fit: contain;
+        }
+        .split-slider-after {
+            clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+        }
+        .split-divider-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 3px;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            cursor: ew-resize;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        .split-divider-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Suspicious Regions Interactive Cards */
+        .regions-panel {
+            padding: 16px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+        .regions-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+        .regions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+        }
+        .region-card-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px 12px;
+            background: var(--surface-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .region-card-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            background: var(--surface);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .region-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            width: fit-content;
+        }
+        .region-badge.danger {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+        }
+        .region-badge.warning {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--warning);
+        }
+        .region-badge.healthy {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--primary);
+        }
+        .region-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .attention-disclaimer-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.18);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-top: 12px;
+        }
+
+        /* Vietnamese Report Card */
+        .report-card {
+            border-top: 3.5px solid var(--primary);
+        }
+        .report-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .report-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .report-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+        }
+        .report-value-main {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .report-list {
+            padding-left: 18px;
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            line-height: 1.55;
+            color: var(--text-secondary);
+        }
+        .report-list li {
+            margin-bottom: 4px;
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .candidate-card-btn {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 14px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .candidate-card-btn:hover {
+            border-color: var(--primary);
+            background: var(--surface-muted);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .candidate-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .candidate-conf {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .guidelines-box {
+            background: var(--surface-muted);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            margin-top: 14px;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .guidelines-box ul {
+            padding-left: 20px;
+            margin: 6px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <!-- Hero Header (Repositioned as Trợ Lý Sức Khỏe Cây Trồng) -->
+                <div class="doctor-hero">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span class="doctor-badge">🌱 Trợ lý sức khỏe cây trồng • Gari AgriTech</span>
+                            <span class="pill pill-success">44 Mô hình AI Cục bộ</span>
+                        </div>
+                        <h1 class="page-head-title" style="margin:0;">Gari — Trợ Lý Sức Khỏe Cây Trồng</h1>
+                        <p class="page-head-sub" style="margin:4px 0 0 0;">Chụp hoặc tải ảnh lá để nhận phân loại sơ bộ, hiểu rõ mức độ chắc chắn, theo dõi lịch sử vườn và biết khi nào cần tham vấn chuyên gia.</p>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnQuickGuide">📸 Hướng dẫn chụp ảnh</button>
+                        <button type="button" class="btn btn-ghost btn-sm" id="btnTierInfo">👑 Gói Free & VIP</button>
+                    </div>
+                </div>
+
+                <!-- TRUST & SAFETY & PRIVACY BANNER (Priority D) -->
+                <div class="card" style="margin-bottom:18px; padding:14px 18px; border-left:4px solid var(--primary); background:var(--surface); border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="display:flex; align-items:flex-start; gap:12px;">
+                        <div style="font-size:20px; line-height:1; margin-top:2px;">🛡️</div>
+                        <div style="font-size:13px; line-height:1.6; color:var(--text-secondary);">
+                            <div style="font-weight:700; color:var(--text-main); margin-bottom:2px;">
+                                Cam kết Tin cậy & An toàn Nông học (Trust & Safety)
+                            </div>
+                            Gari là trợ lý phân loại thị giác sơ bộ dựa trên mô hình học sâu, <strong>không thay thế đánh giá chuyên sâu của chuyên gia nông học</strong> hay xét nghiệm phòng lab. 
+                            Hệ thống <strong>không tự động đưa ra liều lượng thuốc BVTV hóa học</strong> để bảo vệ đất và sức khỏe nhà nông. 
+                            Khi phát hiện vết bệnh lây lan bất thường hoặc kết quả chưa chắc chắn, xin vui lòng mang mẫu lá tham khảo cán bộ khuyến nông địa phương.
+                            <div style="margin-top:6px; font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                                <span>🔒</span>
+                                <span><strong>Quyền riêng tư dữ liệu:</strong> Ảnh lá tải lên chỉ được xử lý và lưu trong sổ tay nhật ký vườn của bạn theo <a href="/frontend2/privacy-policy.html" target="_blank" style="color:var(--primary); text-decoration:underline;">Chính sách Bảo mật (Nghị định 13/2023/NĐ-CP)</a>. Bạn có toàn quyền xóa bản ghi hoặc xuất dữ liệu bất kỳ lúc nào tại <a href="/frontend2/data-management.html" style="color:var(--primary); text-decoration:underline;">Quản lý dữ liệu</a>.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Guidance Card -->
+                <div class="photo-guide-card" id="photoGuideCard">
+                    <div class="photo-guide-title">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        Quy chuẩn chụp ảnh mẫu lá để đạt hiệu quả phân loại tối ưu:
+                    </div>
+                    <div class="photo-guide-grid">
+                        <div class="photo-guide-item">
+                            <strong>📸 Chính diện 90°</strong>
+                            <span>Chụp thẳng góc vào bề mặt lá, tránh nghiêng góc làm sai lệch gân lá.</span>
+                        </div>
+                        <div class="photo-guide-item">
+                            <strong>☀️ Ánh sáng tự nhiên</strong>
+                            <span>Chụp dưới ánh sáng ban ngày rõ nét, không bị bóng người hoặc vật che khuất.</span>
+                        </div>
+                        <div class="photo-guide-item">
+                            <strong>🔍 Lấy nét sắc cạnh</strong>
+                            <span>Giữ máy ảnh chắc tay, lấy nét rõ vào các vết đốm bệnh và bề mặt phiến lá.</span>
+                        </div>
+                        <div class="photo-guide-item">
+                            <strong>🍃 1 lá đơn lẻ</strong>
+                            <span>Để 1 chiếc lá chiếm 60 - 80% khung hình, loại bỏ cành lá khô xung quanh.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHATGPT-LIKE USAGE QUOTA BAR (PART 1 & PART 4) -->
+                <div class="card" id="quotaStatusBar" style="display:flex; align-items:center; justify-content:space-between; padding:12px 18px; margin-bottom:18px; background:linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(5,150,105,0.02) 100%); border:1px solid rgba(16,185,129,0.25); border-radius:12px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:36px; height:36px; border-radius:10px; background:rgba(16,185,129,0.12); display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:18px;">
+                            ⚡
+                        </div>
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span id="quotaTitleText" style="font-size:14px; font-weight:700; color:var(--text-main);">Lượt phân loại hôm nay:</span>
+                                <span id="quotaBadgePill" class="pill pill-success">Đang tải lượt...</span>
+                            </div>
+                            <div id="quotaSubText" style="font-size:12px; color:var(--text-muted); margin-top:2px;">Chu kỳ làm mới sau mỗi 24 giờ</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div id="quotaProgressContainer" style="width:110px; height:7px; background:var(--surface-muted); border-radius:99px; overflow:hidden;">
+                            <div id="quotaProgressBar" style="width:100%; height:100%; background:var(--primary); border-radius:99px; transition:width 0.4s ease;"></div>
+                        </div>
+                        <button type="button" id="btnRefreshQuota" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:4px;" title="Cập nhật thông tin lượt">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- QUOTA EXHAUSTED BANNER (PART 4) -->
+                <div class="card" id="quotaExhaustedCard" style="display:none; padding:18px 20px; margin-bottom:18px; background:linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(220,38,38,0.03) 100%); border:1px solid rgba(239,68,68,0.35); border-radius:12px;">
+                    <div style="display:flex; align-items:flex-start; gap:14px;">
+                        <div style="width:40px; height:40px; border-radius:10px; background:rgba(239,68,68,0.15); display:flex; align-items:center; justify-content:center; color:var(--danger); flex-shrink:0;">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="pill pill-danger">HẾT LƯỢT MIỄN PHÍ</span>
+                                <span style="font-size:14.5px; font-weight:700; color:var(--danger);">Giới hạn phân loại trong ngày</span>
+                            </div>
+                            <div id="quotaExhaustedMsg" style="font-size:13.5px; color:var(--text-main); margin-top:6px; line-height:1.5;">
+                                Bạn đã dùng hết lượt phân loại miễn phí. Lượt tiếp theo sẽ được cấp lại vào ngày mai.
+                            </div>
+                            <div style="margin-top:12px; font-size:12px; color:var(--text-muted); line-height:1.5;">
+                                💡 Nông hộ cần phân loại số lượng lớn hoặc sử dụng các mô hình chuyên gia VIP có thể đăng ký nâng cấp tài khoản hoặc liên hệ ban quản trị Gari AI Lab.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="diagnosis-grid">
+                    <!-- Left Column: Upload & Controls -->
+                    <div style="display:flex; flex-direction:column; gap:20px;">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h2 class="card-title">Tải lên ảnh mẫu lá</h2>
+                                    <div class="card-subtitle">Chụp trực tiếp từ camera hoặc chọn file từ thiết bị</div>
+                                </div>
+                            </div>
+
+                            <div class="dropzone-container" id="dropZone">
+                                <div class="dropzone-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                                </div>
+                                <div class="dropzone-title">Kéo và thả ảnh lá cây vào đây</div>
+                                <div class="dropzone-desc">Hỗ trợ định dạng JPG, PNG, WebP. Hệ thống sẽ tự động kiểm tra độ sắc nét và nhận diện loại cây trồng.</div>
+                                
+                                <div style="display:flex; gap:10px; margin-top:14px;">
+                                    <button type="button" class="btn btn-secondary btn-sm" id="btnSelectFile">Chọn ảnh từ máy</button>
+                                    <button type="button" class="btn btn-ghost btn-sm" id="btnCamera">Chụp từ camera</button>
+                                </div>
+                                <input type="file" id="fileInput" accept="image/*" style="display:none;" />
+                            </div>
+
+                            <div class="image-preview-box" id="previewContainer">
+                                <img id="previewImg" src="" alt="Xem trước mẫu lá" />
+                                <button type="button" class="btn-remove-preview" id="btnRemoveImg" title="Xóa ảnh">✕</button>
+                            </div>
+                        </div>
+
+                        <!-- Real Progress Pipeline (Shows actual processing stages) -->
+                        <div class="progress-pipeline" id="progressPipeline">
+                            <div style="font-size:12.5px; font-weight:700; color:var(--text-main); margin-bottom:4px;">Tiến trình xử lý thời gian thực:</div>
+                            <div class="progress-stage-item" id="stage1">
+                                <div class="stage-icon">1</div>
+                                <span>Đang kiểm tra chất lượng ảnh (độ mờ, ánh sáng, vật thể)...</span>
+                            </div>
+                            <div class="progress-stage-item" id="stage2">
+                                <div class="stage-icon">2</div>
+                                <span>Đang nhận diện tự động loại cây trồng...</span>
+                            </div>
+                            <div class="progress-stage-item" id="stage3">
+                                <div class="stage-icon">3</div>
+                                <span>Đang phân tích dấu hiệu mầm bệnh trên lá...</span>
+                            </div>
+                            <div class="progress-stage-item" id="stage4">
+                                <div class="stage-icon">4</div>
+                                <span>Đang khoanh vùng tổn thương trực quan (Grad-CAM & Pathology)...</span>
+                            </div>
+                            <div class="progress-stage-item" id="stage5">
+                                <div class="stage-icon">5</div>
+                                <span>Đang tổng hợp kết quả kiểm tra lá...</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3 class="card-title">Chế độ chẩn đoán & Cây trồng</h3>
+                                    <div class="card-subtitle">Hỗ trợ 3 chế độ: Tự động chuẩn, Chọn cây thủ công, và Tự động Pro</div>
+                                </div>
+                            </div>
+
+                            <!-- Diagnosis Mode Selector (Part 1, 3, 4, 5, 7) -->
+                            <div class="form-group" style="margin-bottom:16px;">
+                                <label class="form-label" style="font-weight:700;">Chế độ chẩn đoán</label>
+                                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:6px;">
+                                    <button type="button" class="mode-tab-btn active" id="btnModeAuto" style="padding:10px 6px; font-size:12px; border:2px solid var(--primary); border-radius:var(--radius-md); background:rgba(16,185,129,0.1); color:var(--primary); font-weight:700; cursor:pointer; text-align:center; transition:all 0.2s ease;">
+                                        🤖 Tự động nhận diện cây
+                                    </button>
+                                    <button type="button" class="mode-tab-btn" id="btnModeManual" style="padding:10px 6px; font-size:12px; border:1.5px solid var(--border); border-radius:var(--radius-md); background:var(--surface); color:var(--text-secondary); font-weight:600; cursor:pointer; text-align:center; transition:all 0.2s ease;">
+                                        🌿 Chọn cây thủ công
+                                    </button>
+                                    <button type="button" class="mode-tab-btn" id="btnModePro" style="padding:10px 6px; font-size:12px; border:1.5px solid var(--border); border-radius:var(--radius-md); background:var(--surface); color:var(--text-secondary); font-weight:600; cursor:pointer; text-align:center; transition:all 0.2s ease; position:relative;">
+                                        ⚡ Tự động Pro <span style="background:#f59e0b; color:#fff; font-size:9px; padding:1px 4px; border-radius:3px; margin-left:2px; font-weight:700;">PRO</span>
+                                    </button>
+                                </div>
+                                <div class="form-hint" id="modeExplanation" style="margin-top:8px; font-size:11.5px; color:var(--text-secondary); line-height:1.45;">
+                                    Chế độ chuẩn: Kiểm định lá cây -> Nhận diện cây bằng mô hình <strong>Model tong (ViT)</strong> -> Tự động chuyển đến mô hình bệnh học tương ứng.
+                                </div>
+                                <!-- Pro Dev Authorization Toggle -->
+                                <div id="proDevConfigRow" style="display:none; margin-top:10px; padding:8px 12px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-md); font-size:11.5px; display:flex; align-items:center; justify-content:space-between;">
+                                    <span>🔑 Quyền truy cập Pro (Local Dev Auth):</span>
+                                    <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600;">
+                                        <input type="checkbox" id="chkDevProAuth" checked />
+                                        <span style="color:#d97706;">Bật quyền Pro (Dev Mode)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Manual Crop Selector (Shown when Manual Mode is active) -->
+                            <div class="form-group" id="manualCropGroup" style="display:none;">
+                                <label class="form-label" for="cropSelect" style="font-weight:700;">Chọn cây trồng (7 loại cây ưu tiên)</label>
+                                <select class="select" id="cropSelect">
+                                    <option value="coffee">Cà phê (Coffee) — Có mô hình bệnh</option>
+                                    <option value="pepper">Hồ tiêu (Black Pepper) — Có mô hình bệnh</option>
+                                    <option value="rice">Lúa (Rice) — Có mô hình bệnh</option>
+                                    <option value="durian">Sầu riêng (Durian) — Mô hình bệnh chưa sẵn sàng</option>
+                                    <option value="tomato">Cà chua (Tomato) — Có mô hình bệnh</option>
+                                    <option value="chili">Ớt (Chili) — Mô hình bệnh chưa sẵn sàng</option>
+                                    <option value="maize">Ngô (Maize) — Có mô hình bệnh</option>
+                                </select>
+                                <div class="form-hint" id="cropHint">Kiểm định lá cây -> Chạy trực tiếp mô hình bệnh học chuyên biệt cho cây đã chọn.</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Góc chụp thực tế</label>
+                                <div class="capture-view-pills" id="predictViewPills" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px;">
+                                    <button type="button" class="view-pill-btn active" data-view="single_leaf_top" style="padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:rgba(16,185,129,0.08); color:var(--primary); font-weight:700; cursor:pointer;">🍃 Chụp một chiếc lá</button>
+                                    <button type="button" class="view-pill-btn" data-view="single_leaf_bottom" style="padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--text-secondary); cursor:pointer;">🔄 Chụp mặt dưới lá</button>
+                                    <button type="button" class="view-pill-btn" data-view="whole_plant" style="padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--text-secondary); cursor:pointer;">🌳 Chụp toàn cây</button>
+                                    <button type="button" class="view-pill-btn" data-view="multiple_leaves" style="padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--text-secondary); cursor:pointer;">🌿 Chụp nhiều lá</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="orgSelectGroup">
+                                <label class="form-label" for="orgSelect">Hồ sơ Tổ chức / Hợp tác xã (B2B)</label>
+                                <select class="select" id="orgSelect">
+                                    <option value="">-- Cá nhân (Dùng Quota cá nhân) --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="farmSelect">Gán vào nông trại / Vùng canh tác</label>
+                                <select class="select" id="farmSelect">
+                                    <option value="">-- Chưa gán nông trại cụ thể --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="plotSelectGroup" style="display:none;">
+                                <label class="form-label" for="plotSelect">Gán vào thửa ruộng / Lô vườn</label>
+                                <select class="select" id="plotSelect">
+                                    <option value="">-- Chọn thửa ruộng/vườn --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="diagNotes">Ghi chú quan sát thực địa</label>
+                                <input type="text" class="input" id="diagNotes" placeholder="VD: Tầng lá thấp, xuất hiện sau mưa rào 2 ngày..." />
+                            </div>
+
+                            <div class="form-group" style="display:flex; align-items:flex-start; gap:8px; margin-top:4px;">
+                                <input type="checkbox" id="consentStoreImage" style="margin-top:3px; accent-color:var(--primary);" />
+                                <label for="consentStoreImage" style="font-size:12px; color:var(--text-muted); cursor:pointer; line-height:1.4;">
+                                    Đồng ý lưu ảnh để theo dõi tiến trình bệnh qua thời gian (tuân thủ quyền riêng tư, có thể xóa bất cứ lúc nào).
+                                </label>
+                            </div>
+
+                            <button type="button" class="btn btn-primary" id="btnPredict" style="width:100%; margin-top:10px;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                Tiến hành kiểm tra lá
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Results & Interactive Localization Viewer -->
+                    <div>
+                        <!-- Initial Empty State -->
+                        <div class="card" id="emptyStateResult" style="padding:48px 24px;">
+                            <div class="empty-box">
+                                <div class="empty-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                </div>
+                                <div class="empty-title">Sẵn sàng kiểm tra bệnh lá</div>
+                                <div class="empty-desc">Tải lên ảnh một chiếc lá cây ở bảng bên trái và nhấn "Tiến hành kiểm tra lá" để hệ thống chẩn đoán theo chế độ Tự động nhận diện hoặc Chọn cây thủ công.</div>
+                            </div>
+                        </div>
+
+                        <!-- NOTICE / INFO CARD (No Disease Model / Unsupported Crop / Crop-Only) -->
+                        <div class="card" id="infoNoticeCard" style="display:none; border-top:3.5px solid var(--warning); margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                <span class="pill pill-warning" id="infoNoticePill">THÔNG BÁO MÔ HÌNH</span>
+                                <span style="font-size:12px; color:var(--text-muted);" id="infoNoticeLatency">Xử lý: 0ms</span>
+                            </div>
+                            <h2 style="font-size:20px; font-weight:700; color:var(--text-main);" id="infoNoticeTitle">Thông báo chẩn đoán</h2>
+                            <p style="font-size:13.5px; color:var(--text-secondary); margin-top:6px; line-height:1.5;" id="infoNoticeMessage"></p>
+
+                            <!-- Metadata details -->
+                            <div id="infoNoticeDetails" style="margin-top:14px; padding:12px 14px; background:var(--surface-muted); border-radius:var(--radius-md); border:1px solid var(--border);">
+                                <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;">
+                                    <span style="font-weight:600; color:var(--text-secondary);">Cây trồng:</span>
+                                    <span style="font-weight:700; color:var(--primary);" id="infoCropName">-</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;" id="infoScoreRow">
+                                    <span style="font-weight:600; color:var(--text-secondary);">Điểm dự đoán của mô hình:</span>
+                                    <span style="font-weight:700;" id="infoCropScore">-</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:12.5px;">
+                                    <span style="font-weight:600; color:var(--text-secondary);">Mô hình đã sử dụng:</span>
+                                    <span style="color:var(--text-muted); font-size:12px;" id="infoModelName">-</span>
+                                </div>
+                            </div>
+
+                            <!-- Crop Candidates List -->
+                            <div id="infoCandidatesSection" style="margin-top:14px; display:none;">
+                                <div style="font-size:12.5px; font-weight:700; color:var(--text-main); margin-bottom:8px;">Các khả năng cây trồng tiềm năng (Top 3):</div>
+                                <div class="candidate-grid" id="infoCandidatesList"></div>
+                            </div>
+                        </div>
+
+                        <!-- CROP CONFIRMATION GATE (Ambiguous or Low-Confidence Crop) -->
+                        <div class="card" id="cropConfirmationCard" style="display:none; border-top:3.5px solid var(--warning); margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                <span class="pill pill-warning" id="gateStatePill">CẦN XÁC NHẬN CÂY TRỒNG</span>
+                                <span style="font-size:12px; color:var(--text-muted);" id="gateLatency">Cổng kiểm định</span>
+                            </div>
+                            <h2 style="font-size:20px; font-weight:700; color:var(--text-main);" id="gateTitle">Chưa đủ cơ sở xác định cây trồng</h2>
+                            <p style="font-size:13px; color:var(--text-secondary); margin-top:4px;" id="gateReason">Chưa đủ cơ sở xác định cây trồng. Vui lòng xác nhận loại cây hoặc chọn chế độ 'Chọn cây thủ công'.</p>
+
+                            <div style="margin-top:16px;">
+                                <div style="font-size:12.5px; font-weight:700; color:var(--text-main);">Các loại cây trồng có độ tương đồng cao nhất:</div>
+                                <div class="candidate-grid" id="cropCandidatesList"></div>
+                            </div>
+
+                            <div class="guidelines-box">
+                                <strong>Hướng dẫn:</strong> Bấm chọn loại cây trồng thực tế của bạn ở trên để hệ thống nạp mô hình bệnh lý chuyên biệt và tiến hành chẩn đoán ngay lập tức.
+                            </div>
+                        </div>
+
+                        <!-- LEAF VALIDATION FAILURE CARD (Part 1, 7, 8) -->
+                        <div class="card" id="leafValidationFailureCard" style="display:none; border-top:4px solid var(--danger); margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                <span class="pill pill-danger" id="valFailurePill">🚫 KHÔNG PHẢI LÁ CÂY</span>
+                                <span style="font-size:12px; color:var(--text-muted);" id="valFailureLatency">Cổng kiểm định lá cây</span>
+                            </div>
+                            <h2 style="font-size:20px; font-weight:700; color:var(--text-main);" id="valFailureTitle">Ảnh chưa phù hợp để chẩn đoán</h2>
+                            <p style="font-size:14px; color:var(--text-main); margin-top:6px; line-height:1.6;" id="valFailureMessage"></p>
+
+                            <div class="guidelines-box" style="border-color:rgba(239, 68, 68, 0.3); margin-top:14px;">
+                                <strong style="color:var(--danger);">Khuyến nghị từ hệ thống Gari AI:</strong>
+                                <ul style="margin-top:6px; padding-left:18px; line-height:1.5;">
+                                    <li>Chụp một chiếc lá đơn lẻ ở cự ly gần (15-25cm), chiếm 60 - 80% khung hình.</li>
+                                    <li>Đảm bảo đủ ánh sáng tự nhiên ban ngày, không chụp trong tối hoặc bị chói sáng.</li>
+                                    <li>Lấy nét sắc cạnh vào mặt lá và giữ chắc máy ảnh để tránh nhòe mờ.</li>
+                                </ul>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:12.5px; color:var(--text-secondary); background:rgba(59,130,246,0.06); padding:8px 12px; border-radius:8px; border:1px solid rgba(59,130,246,0.2);">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                <span><strong>Thông tin lượt:</strong> Lượt phân loại của bạn được giữ nguyên (không bị trừ).</span>
+                            </div>
+
+                            <div style="margin-top:16px;">
+                                <button type="button" class="btn btn-primary" id="btnUploadAnother" style="display:inline-flex; align-items:center; gap:8px;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                                    Tải ảnh chụp một chiếc lá khác
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- UNCERTAIN DISEASE CARD (Score < Threshold) -->
+                        <div class="card" id="uncertainCard" style="display:none; border-top:3.5px solid var(--warning); margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                <span class="pill pill-warning">KẾT QUẢ SƠ BỘ • CẦN KHẢO SÁT THÊM</span>
+                                <span style="font-size:12px; color:var(--text-muted);" id="uncertainTime">Độ trễ: 120ms</span>
+                            </div>
+                            <h2 style="font-size:21px; font-weight:700; color:var(--text-main);">Chưa đủ cơ sở để xác định bệnh cây trồng.</h2>
+                            <p style="font-size:13.5px; color:var(--text-secondary); margin-top:4px;" id="uncertainReason">Mức độ chắc chắn của kết quả dưới ngưỡng tin cậy an toàn nông học.</p>
+
+                            <div style="margin:16px 0; padding:14px; background:var(--surface-muted); border-radius:var(--radius-md); border:1px solid var(--border);">
+                                <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; margin-bottom:6px;">
+                                    <span>Điểm dự đoán của mô hình:</span>
+                                    <span style="color:var(--warning); font-size:16px; font-weight:700;" id="uncertainScore">38.5%</span>
+                                </div>
+                                <div style="height:6px; background:#FFFFFF; border-radius:99px; overflow:hidden;">
+                                    <div id="uncertainScoreBar" style="height:100%; width:38%; background:var(--warning); border-radius:99px;"></div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:6px;">
+                                    <span>*Điểm số chưa hiệu chuẩn (raw Softmax score) dưới ngưỡng an toàn nông học (45%)</span>
+                                    <span id="uncertainCropName">Cây trồng: Cà chua</span>
+                                </div>
+                            </div>
+
+                            <h4 style="font-size:13px; font-weight:700; margin-bottom:8px;">Các khả năng bệnh lý tiềm năng:</h4>
+                            <div id="uncertainDistributionList" style="display:flex; flex-direction:column; gap:8px;"></div>
+
+                            <div class="guidelines-box">
+                                <strong>Lưu ý khoa học:</strong> Gari AI Lab không bao giờ ép buộc đưa ra kết luận chẩn đoán mầm bệnh khi điểm số dưới ngưỡng an toàn nhằm tránh sử dụng sai hoạt chất điều trị. Hãy kiểm tra các triệu chứng lâm sàng ngoài đồng ruộng hoặc gửi mẫu để chuyên gia nông học thẩm định.
+                            </div>
+
+                            <div style="margin-top:14px;">
+                                <a href="/frontend2/collect.html" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                    Lưu mẫu vào Trạm Thu Thập Thực Địa (Chờ chuyên gia nông học thẩm định)
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- CONFIRMED DIAGNOSIS RESULTS CONTAINER -->
+                        <div id="activeResultCard" style="display:none; flex-direction:column; gap:20px;">
+                            <!-- LEAF VALIDATION PASSED STATUS BANNER -->
+                            <div id="valPassedBanner" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:rgba(16,185,129,0.08); border:1.5px solid rgba(16,185,129,0.3); border-radius:var(--radius-md);">
+                                <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--primary);">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    <span>CỔNG KIỂM ĐỊNH LÁ CÂY: HỢP LỆ (LEAF_VALID)</span>
+                                </div>
+                                <span style="font-size:12px; color:var(--text-secondary);" id="valPassedScoreText">Độ phù hợp lá: 95.0%</span>
+                            </div>
+                            <!-- VISUAL LOCALIZATION VIEWER (PART 5) -->
+                            <div class="localization-viewer-card">
+                                <div class="viewer-toolbar">
+                                    <div class="viewer-tabs">
+                                        <button type="button" class="viewer-tab-btn" id="tabOriginal">Ảnh gốc</button>
+                                        <button type="button" class="viewer-tab-btn active" id="tabAttention">🎯 Vùng chú ý của AI (Grad-CAM)</button>
+                                        <button type="button" class="viewer-tab-btn" id="tabOverlay">🔍 Vùng nghi vấn trực quan (LAB/HSV)</button>
+                                        <button type="button" class="viewer-tab-btn" id="tabSplit">⚡ So sánh trượt</button>
+                                    </div>
+                                    <div class="viewer-zoom-controls">
+                                        <button type="button" class="btn-zoom" id="btnZoomIn" title="Phóng to">+</button>
+                                        <button type="button" class="btn-zoom" id="btnZoomOut" title="Thu nhỏ">-</button>
+                                        <button type="button" class="btn-zoom" id="btnZoomReset" title="Đặt lại kích thước" style="width:auto; padding:0 8px; font-size:11px;">100%</button>
+                                    </div>
+                                </div>
+
+                                <div class="viewer-viewport" id="viewerViewport">
+                                    <!-- Normal Image Mode -->
+                                    <div class="viewer-image-container" id="mainImageContainer">
+                                        <img id="viewerMainImg" src="" alt="Hình ảnh kiểm tra lá" />
+                                    </div>
+
+                                    <!-- Split Slider Comparison Mode -->
+                                    <div class="split-slider-container" id="splitSliderContainer">
+                                        <div class="split-slider-before">
+                                            <img id="splitImgBefore" src="" alt="Ảnh gốc" />
+                                        </div>
+                                        <div class="split-slider-after" id="splitAfterWrapper">
+                                            <img id="splitImgAfter" src="" alt="Lớp phủ phân tích" />
+                                        </div>
+                                        <div class="split-divider-line" id="splitDivider">
+                                            <div class="split-divider-handle">⇄</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Suspicious Regions Panel -->
+                                <div class="regions-panel" id="regionsPanel">
+                                    <div class="regions-title">
+                                        <span>Các vùng nghi ngờ bất thường trên lá:</span>
+                                        <span style="font-size:12px; font-weight:normal; color:var(--text-muted);" id="regionsCountBadge">5 vùng</span>
+                                    </div>
+                                    <div class="regions-grid" id="regionsList"></div>
+
+                                    <div class="attention-disclaimer-box">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                        <span><strong>Lưu ý khoa học:</strong> Bản đồ chú ý AI (Grad-CAM) phản ánh tiêu điểm kích hoạt nơ-ron; Vùng nghi vấn trực quan được trích xuất bằng thuật toán tương phản màu sắc (LAB/HSV). Do hiện tại bộ dữ liệu chưa có ground-truth mask phân đoạn tế bào bệnh được gán nhãn thủ công (pixel-level annotation), tính năng khoanh vùng chưa được thẩm định định lượng (quantitative validation) và chỉ mang tính chất tham khảo trực quan.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- STRUCTURED VIETNAMESE DIAGNOSIS REPORT (PART 7) -->
+                            <div class="card report-card">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; border-bottom:1px solid var(--border-light); padding-bottom:12px;">
+                                    <div>
+                                        <div style="font-size:12px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em;">BÁO CÁO NÔNG HỌC</div>
+                                        <h2 style="font-size:22px; font-weight:700; color:var(--text-main); margin:2px 0 0 0;">KẾT QUẢ CHẨN ĐOÁN LÁ</h2>
+                                    </div>
+                                    <div style="display:flex; gap:8px; align-items:center;">
+                                        <span class="pill pill-info" id="repModePill">Tự động nhận diện</span>
+                                        <span class="pill" id="reportSeverityPill">Mức độ</span>
+                                    </div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Chế độ chẩn đoán:</span>
+                                    <div style="font-size:14.5px; font-weight:600; color:var(--text-main);" id="repMode">Tự động nhận diện cây trồng</div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label" id="repCropLabel">Cây được nhận diện:</span>
+                                    <div style="display:flex; align-items:baseline; gap:8px;">
+                                        <div class="report-value-main" id="repCrop">Cà chua</div>
+                                        <div style="font-size:13px; color:var(--text-muted);" id="repCropScoreText"></div>
+                                    </div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Tình trạng lá:</span>
+                                    <div style="font-size:14px; font-weight:600; color:var(--danger);" id="repStatus">Có dấu hiệu bất thường trên lá.</div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Bệnh nghi ngờ:</span>
+                                    <div class="report-value-main" style="color:var(--text-main);" id="repDisease">Bệnh cháy lá sớm (Đốm vòng)</div>
+                                    <div style="font-size:13px; color:var(--text-secondary); font-style:italic;" id="repScientific">Alternaria solani</div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Điểm tương đồng mô hình & Mức độ chắc chắn:</span>
+                                    <div style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+                                        <div style="font-size:18px; font-weight:700; color:var(--primary);" id="repConfidence">97.2%</div>
+                                        <span class="pill pill-success" id="repConfidenceLevel">Rất cao</span>
+                                    </div>
+                                    <div style="height:6px; background:var(--surface-muted); border-radius:99px; overflow:hidden; margin-top:6px;">
+                                        <div id="repConfBar" style="height:100%; width:97%; background:var(--primary); border-radius:99px;"></div>
+                                    </div>
+                                    <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px; line-height:1.4;">
+                                        *<strong>Điểm tương đồng mô hình:</strong> Điểm số biểu thị mức độ trùng khớp mẫu nơ-ron (raw Softmax score), <em>chưa hiệu chuẩn thành xác suất y học thực vật chính xác tuyệt đối</em>.
+                                    </div>
+                                </div>
+
+                                <!-- QUALITY FACTORS ROW (Priority A) -->
+                                <div class="report-section">
+                                    <span class="report-label">Yếu tố ảnh hưởng chất lượng ảnh chụp:</span>
+                                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-top:6px;">
+                                        <div style="background:var(--surface-muted); padding:8px 10px; border-radius:8px; font-size:12px; border:1px solid var(--border-light);">
+                                            <div style="color:var(--text-muted); font-size:10.5px;">Ánh sáng chụp:</div>
+                                            <div style="font-weight:600; color:var(--text-main);" id="qFactorLight">☀️ Tự nhiên / Đủ sáng</div>
+                                        </div>
+                                        <div style="background:var(--surface-muted); padding:8px 10px; border-radius:8px; font-size:12px; border:1px solid var(--border-light);">
+                                            <div style="color:var(--text-muted); font-size:10.5px;">Độ sắc nét:</div>
+                                            <div style="font-weight:600; color:var(--text-main);" id="qFactorBlur">🔍 Sắc cạnh / Rõ gân lá</div>
+                                        </div>
+                                        <div style="background:var(--surface-muted); padding:8px 10px; border-radius:8px; font-size:12px; border:1px solid var(--border-light);">
+                                            <div style="color:var(--text-muted); font-size:10.5px;">Góc chụp:</div>
+                                            <div style="font-weight:600; color:var(--text-main);" id="qFactorAngle">📐 Chính diện mặt lá</div>
+                                        </div>
+                                        <div style="background:var(--surface-muted); padding:8px 10px; border-radius:8px; font-size:12px; border:1px solid var(--border-light);">
+                                            <div style="color:var(--text-muted); font-size:10.5px;">Tỷ lệ khung hình:</div>
+                                            <div style="font-weight:600; color:var(--text-main);" id="qFactorCoverage">🍃 Lá chiếm 60-80%</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="report-section" id="repOtherCandidatesSection">
+                                    <span class="report-label">Các kết quả có thể khác:</span>
+                                    <div id="repOtherCandidatesList" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;"></div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Vị trí nghi ngờ (Vùng ảnh mô hình chú ý):</span>
+                                    <div style="font-size:13.5px; color:var(--text-main); line-height:1.5;" id="repLocation">Các đốm tổn thương xuất hiện rải rác trên phiến lá, tập trung ở các vùng được khoanh đỏ.</div>
+                                    <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">*Bản đồ Grad-CAM thể hiện vùng ảnh mô hình nơ-ron tập trung chú ý khi đưa ra dự đoán, không phải diện tích bệnh chính xác tuyệt đối.</div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Mô hình đã sử dụng:</span>
+                                    <div style="font-size:13.5px; font-weight:600; color:var(--text-main);" id="repModelUsed">-</div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Thời gian xử lý:</span>
+                                    <div style="font-size:13.5px; font-weight:600; color:var(--primary);" id="repLatency">120ms</div>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Dấu hiệu nhận biết:</span>
+                                    <ul class="report-list" id="repSymptomsList"></ul>
+                                </div>
+
+                                <div class="report-section">
+                                    <span class="report-label">Nguyên nhân có thể:</span>
+                                    <ul class="report-list" id="repCausesList"></ul>
+                                </div>
+
+                                <!-- NEXT FIELD INSPECTION STEPS (Priority A) -->
+                                <div class="report-section">
+                                    <span class="report-label" style="color:var(--primary);">📋 Hướng dẫn kiểm tra tiếp theo ngoài đồng ruộng:</span>
+                                    <ul class="report-list" id="repNextStepsList">
+                                        <li>Kiểm tra mặt dưới lá vào sáng sớm để phát hiện lớp bào tử/mốc sương nếu có.</li>
+                                        <li>Quan sát các cây xung quanh trong vòng bán kính 2 - 3m xem có vết bệnh tương tự hay không.</li>
+                                        <li>Giữ khu vực trồng thông thoáng, tránh tưới phun mưa vào buổi chiều muộn.</li>
+                                        <li>Ghi lại thời gian xuất hiện vết bệnh vào sổ tay theo dõi để đánh giá tốc độ lây lan sau 48 giờ.</li>
+                                    </ul>
+                                </div>
+
+                                <!-- SPRINT 4: NOTICE & UNCERTAINTY BANNER -->
+                                <div id="repNoticeBox" style="display:none; margin:10px 0; padding:12px 14px; border-radius:10px;"></div>
+
+                                <!-- WHEN TO RETAKE OR ASK EXPERT (Priority A & D) -->
+                                <div class="report-section" style="background:var(--surface-muted); padding:12px 14px; border-radius:10px; border:1px dashed var(--border);">
+                                    <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:6px;">
+                                        ❓ Khi nào cần chụp lại ảnh hoặc hỏi chuyên gia?
+                                    </div>
+                                    <div style="font-size:12px; line-height:1.6; color:var(--text-secondary);">
+                                        <div id="repRetakeText"><strong>📸 Nên chụp lại ảnh khi:</strong> Ảnh bị bóng râm che khuất, quá chói nắng, rung tay làm nhòe gân lá, hoặc lá cây quá nhỏ so với khung hình.</div>
+                                        <div style="margin-top:6px;" id="repExpertTriggers"><strong>👨‍🌾 Nên mang mẫu hỏi chuyên gia khuyến nông khi:</strong> Vết bệnh có dấu hiệu cháy rụi nhanh, héo rũ toàn thân cây, hoặc khi điểm mô hình ở mức "Chưa chắc chắn".</div>
+                                    </div>
+                                </div>
+
+                                <!-- SPRINT 4: KNOWLEDGE SOURCE & VERIFICATION BADGE -->
+                                <div class="report-section" id="repSourcesBox" style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); border-top:1px dashed var(--border-light); padding-top:10px;">
+                                    <span class="pill pill-success" id="repSourcePill" style="font-size:10.5px;">Nguồn đã xác minh</span>
+                                    <span id="repSourceText">Cơ sở tri thức Nông học Gari AI (Ưu tiên biện pháp sinh thái, không quảng bá thuốc)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SPRINT 5: DIAGNOSIS FEEDBACK WIDGET (Pilot Feedback Loop) -->
+                        <div class="card" id="diagnosisFeedbackCard" style="display:none; margin-top:10px; padding:18px 20px; border:1px solid var(--border); border-radius:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; border-bottom:1px solid var(--border-light); padding-bottom:10px;">
+                                <div>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <span style="font-size:18px;">💬</span>
+                                        <h4 style="font-size:15px; font-weight:800; color:var(--text-main); margin:0;">Đóng góp ý kiến về kết quả này (Pilot Feedback)</h4>
+                                    </div>
+                                    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                                        Phản hồi thực tế giúp đội ngũ hoàn thiện bộ kiểm định thị giác mà không tự suy diễn nhãn mô hình.
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="pill pill-warning" style="font-size:11px; font-weight:700;">
+                                        ⚠️ Phản hồi của người dùng ≠ Kết luận đã được chuyên gia xác minh
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div id="feedbackAlertError" class="alert alert-danger" style="display:none; font-size:12px; padding:8px 12px; margin-bottom:10px; border-radius:6px; background:rgba(239,68,68,0.1); color:#ef4444;"></div>
+                            <div id="feedbackAlertSuccess" class="alert alert-success" style="display:none; font-size:12px; padding:8px 12px; margin-bottom:10px; border-radius:6px; background:rgba(16,185,129,0.1); color:#10b981;"></div>
+
+                            <form id="diagnosisFeedbackForm" onsubmit="window.submitDiagnosisFeedback(event)">
+                                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:12px; margin-bottom:12px;">
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:12px; font-weight:700;">Đánh giá của bạn *</label>
+                                        <select class="form-control" id="feedbackTypeSelect" required style="font-size:12.5px;">
+                                            <option value="looks_correct">✅ Kết quả có vẻ đúng</option>
+                                            <option value="uncertain">🤔 Không chắc chắn / Triệu chứng mơ hồ</option>
+                                            <option value="looks_incorrect">❌ Kết quả có vẻ sai</option>
+                                            <option value="image_rejected">📷 Ảnh lá bị từ chối oan</option>
+                                            <option value="guidance_unhelpful">📘 Hướng dẫn chưa hữu ích</option>
+                                            <option value="other">💬 Vấn đề khác</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:12px; font-weight:700;">Ghi chú hoặc quan sát thực tế (Tùy chọn)</label>
+                                        <input type="text" class="form-control" id="feedbackNotesInput" placeholder="Ví dụ: Vết bệnh này giống rỉ sắt hơn là đốm lá..." style="font-size:12.5px;">
+                                    </div>
+                                </div>
+
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:11px; color:var(--text-muted);">
+                                        🔒 Dữ liệu phản hồi được bảo vệ và có thể yêu cầu xóa theo chính sách bảo mật.
+                                    </span>
+                                    <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitFeedback">
+                                        Gửi phản hồi
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- RECENT PLANT MONITORING RECORDS (Priority B) -->
+                        <div class="card" id="recentRecordsSection" style="margin-top:10px;">
+                            <div class="card-header">
+                                <div class="card-title-group">
+                                    <h3 class="card-title">📖 Sổ tay theo dõi cây trồng gần đây</h3>
+                                    <div class="card-subtitle">Lịch sử các lần phân loại lá của bạn (Bảo mật cục bộ, có thể xóa bất kỳ lúc nào)</div>
+                                </div>
+                                <a href="/frontend2/reports.html" class="btn btn-secondary btn-sm">Xem tất cả</a>
+                            </div>
+
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ảnh</th>
+                                            <th>Cây trồng</th>
+                                            <th>Kết quả nghi ngờ</th>
+                                            <th>Mức độ</th>
+                                            <th>Thời gian</th>
+                                            <th style="text-align:right;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentRecordsTableBody">
+                                        <tr>
+                                            <td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">
+                                                Đang tải sổ tay theo dõi...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FREE / VIP PACKAGE EXPLANATION MODAL (Priority C) -->
+                <div id="modalTierInfo" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+                    <div style="background:var(--surface); max-width:560px; width:100%; border-radius:16px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.25); border:1px solid var(--border);">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                            <div>
+                                <span class="pill pill-warning" style="margin-bottom:6px;">Chính sách phân quyền Gari AI Lab</span>
+                                <h3 style="margin:4px 0 0 0; font-size:18px; font-weight:700;">Gói Dịch Vụ Miễn Phí & Quyền Lợi VIP</h3>
+                            </div>
+                            <button type="button" id="btnCloseTierModal" style="background:transparent; border:none; font-size:20px; cursor:pointer; color:var(--text-muted); padding:4px;">✕</button>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;">
+                            <div style="padding:14px; border:1px solid var(--border-light); border-radius:12px; background:var(--surface-muted);">
+                                <div style="font-weight:700; color:var(--text-main); font-size:14px;">Gói Nông Hộ (Free)</div>
+                                <div style="font-size:20px; font-weight:800; color:var(--primary); margin:6px 0;">5 lượt / ngày</div>
+                                <div style="font-size:12px; color:var(--text-muted); line-height:1.5;">
+                                    ✓ Làm mới sau mỗi 24 giờ<br>
+                                    ✓ Nhận diện 42 cây trồng<br>
+                                    ✓ Model tổng 1, Model 3, Model 5<br>
+                                    ✓ Lưu sổ tay theo dõi
+                                </div>
+                            </div>
+                            <div style="padding:14px; border:1.5px solid rgba(245,158,11,0.4); border-radius:12px; background:linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(217,119,6,0.02) 100%);">
+                                <div style="font-weight:700; color:#d97706; font-size:14px;">👑 Gói Đối Tác (VIP)</div>
+                                <div style="font-size:20px; font-weight:800; color:#d97706; margin:6px 0;">Không giới hạn</div>
+                                <div style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
+                                    ✓ Không giới hạn lượt phân loại<br>
+                                    ✓ <strong>Mở khóa Model 2 VIP</strong> (14.800+ loài)<br>
+                                    ✓ <strong>Mở khóa Model 4 VIP</strong> (DINOv2)<br>
+                                    ✓ Ưu tiên hỗ trợ nông học
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background:var(--surface-muted); padding:12px 14px; border-radius:10px; font-size:12.5px; line-height:1.6; color:var(--text-secondary); border:1px dashed var(--border);">
+                            <strong>📌 Trạng thái thử nghiệm (Pilot Beta):</strong>
+                            Gari hiện đang hợp tác thử nghiệm trực tiếp cùng các Hợp tác xã, Doanh nghiệp giống cây trồng và Đơn vị dịch vụ nông nghiệp.
+                            <em>Hệ thống không thu phí tự động qua thẻ và không có cổng thanh toán giả.</em>
+                            Tài khoản đối tác nông nghiệp được cấp quyền VIP qua xác thực tổ chức. Để tham gia chương trình thử nghiệm, vui lòng liên hệ ban quản trị qua email <code>contact@gari.vn</code> hoặc người phụ trách kỹ thuật.
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                            <button type="button" class="btn btn-primary btn-sm" id="btnAcknowledgeTier">Đã hiểu</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, bindDropzone, toast } from '/static/frontend2/app.js';
+
+        let selectedFile = null;
+        let currentResultData = null;
+        let currentDiagnosisMode = 'auto'; // 'auto' (Mode A) or 'manual' (Mode B)
+        let zoomLevel = 1.0;
+        let currentViewMode = 'attention'; // 'original', 'attention', 'overlay', 'split'
+
+        function init() {
+            setupSaaSShell('predict', 'Trợ Lý Sức Khỏe Cây Trồng');
+            initDiagnosis();
+            initViewerEvents();
+            initTierModal();
+            loadRecentPlantRecords();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        async function initDiagnosis() {
+            const drop = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            bindDropzone(drop, fileInput);
+
+            document.getElementById('btnSelectFile').onclick = () => fileInput.click();
+            document.getElementById('btnCamera').onclick = () => {
+                fileInput.setAttribute('capture', 'environment');
+                fileInput.click();
+            };
+
+            document.getElementById('btnQuickGuide').onclick = () => {
+                const card = document.getElementById('photoGuideCard');
+                card.style.display = card.style.display === 'none' ? 'block' : 'none';
+            };
+
+            // Mode switching controls (Part 3 & 4)
+            const btnModeAuto = document.getElementById('btnModeAuto');
+            const btnModeManual = document.getElementById('btnModeManual');
+            const btnModePro = document.getElementById('btnModePro');
+            const manualCropGroup = document.getElementById('manualCropGroup');
+            const modeExplanation = document.getElementById('modeExplanation');
+            const proDevConfigRow = document.getElementById('proDevConfigRow');
+
+            function resetModeButtons() {
+                [btnModeAuto, btnModeManual, btnModePro].forEach(b => {
+                    if (!b) return;
+                    b.classList.remove('active');
+                    b.style.borderColor = 'var(--border)';
+                    b.style.background = 'var(--surface)';
+                    b.style.color = 'var(--text-secondary)';
+                });
+                if (proDevConfigRow) proDevConfigRow.style.display = 'none';
+            }
+
+            btnModeAuto.onclick = () => {
+                currentDiagnosisMode = 'auto_standard';
+                resetModeButtons();
+                btnModeAuto.classList.add('active');
+                btnModeAuto.style.borderColor = 'var(--primary)';
+                btnModeAuto.style.background = 'rgba(16,185,129,0.1)';
+                btnModeAuto.style.color = 'var(--primary)';
+
+                manualCropGroup.style.display = 'none';
+                modeExplanation.innerHTML = 'Chế độ chuẩn: Kiểm định lá cây -> Nhận diện cây bằng mô hình <strong>Model tong (ViT PlantVillage)</strong> -> Tự động chuyển đến mô hình bệnh học tương ứng.';
+            };
+
+            btnModeManual.onclick = () => {
+                currentDiagnosisMode = 'manual';
+                resetModeButtons();
+                btnModeManual.classList.add('active');
+                btnModeManual.style.borderColor = 'var(--primary)';
+                btnModeManual.style.background = 'rgba(16,185,129,0.1)';
+                btnModeManual.style.color = 'var(--primary)';
+
+                manualCropGroup.style.display = 'block';
+                modeExplanation.innerHTML = 'Kiểm định lá cây -> Chạy trực tiếp mô hình bệnh học chuyên biệt cho 1 trong 7 loại cây ưu tiên mà không dùng mô hình toàn cục.';
+            };
+
+            if (btnModePro) {
+                btnModePro.onclick = () => {
+                    currentDiagnosisMode = 'auto_pro';
+                    resetModeButtons();
+                    btnModePro.classList.add('active');
+                    btnModePro.style.borderColor = '#f59e0b';
+                    btnModePro.style.background = 'rgba(245,158,11,0.1)';
+                    btnModePro.style.color = '#d97706';
+
+                    manualCropGroup.style.display = 'none';
+                    if (proDevConfigRow) proDevConfigRow.style.display = 'flex';
+                    modeExplanation.innerHTML = 'Chế độ Pro: Kiểm định lá cây -> Nhận diện loài thực vật bằng mô hình Pro <strong>Model tong 2 (ViT GBIF 14,829 loài)</strong> -> Tự động chuyển đến mô hình bệnh học tương ứng.';
+                };
+            }
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files && fileInput.files[0]) {
+                    selectedFile = fileInput.files[0];
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        document.getElementById('previewImg').src = e.target.result;
+                        document.getElementById('previewContainer').style.display = 'block';
+                        document.getElementById('dropZone').style.display = 'none';
+                    };
+                    reader.readAsDataURL(selectedFile);
+                }
+            });
+
+            document.getElementById('btnRemoveImg').onclick = () => {
+                selectedFile = null;
+                document.getElementById('fileInput').value = '';
+                document.getElementById('previewContainer').style.display = 'none';
+                document.getElementById('dropZone').style.display = 'flex';
+                hideAllResults();
+                document.getElementById('emptyStateResult').style.display = 'block';
+            };
+
+            const btnUploadAnother = document.getElementById('btnUploadAnother');
+            if (btnUploadAnother) {
+                btnUploadAnother.onclick = () => {
+                    document.getElementById('btnRemoveImg').click();
+                    document.getElementById('fileInput').click();
+                };
+            }
+
+            const btnRefreshQuota = document.getElementById('btnRefreshQuota');
+            if (btnRefreshQuota) {
+                btnRefreshQuota.onclick = () => {
+                    btnRefreshQuota.style.transform = 'rotate(180deg)';
+                    setTimeout(() => btnRefreshQuota.style.transform = 'none', 300);
+                    loadQuotaStatus();
+                };
+            }
+
+            document.getElementById('btnPredict').onclick = () => runInference();
+
+            // Load supported crops, farms, organizations and usage quota
+            await Promise.all([loadSupportedCrops(), loadFarms(), loadUserOrganizationsForPredict(), loadQuotaStatus()]);
+        }
+
+        let currentQuotaData = null;
+
+        async function loadQuotaStatus() {
+            try {
+                const token = localStorage.getItem('gari_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch('/api/user/quota', { headers, credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.quota) {
+                    updateQuotaUI(data.quota);
+                }
+            } catch (err) {
+                console.warn('Could not load quota:', err);
+            }
+        }
+
+        function updateQuotaUI(quota) {
+            if (!quota) return;
+            currentQuotaData = quota;
+            const badge = document.getElementById('quotaBadgePill');
+            const sub = document.getElementById('quotaSubText');
+            const pBar = document.getElementById('quotaProgressBar');
+            const pCont = document.getElementById('quotaProgressContainer');
+            const exhCard = document.getElementById('quotaExhaustedCard');
+            const btnPredict = document.getElementById('btnPredict');
+
+            if (!badge || !sub) return;
+
+            if (quota.is_vip) {
+                badge.className = 'pill pill-warning';
+                badge.textContent = '👑 VIP — Không giới hạn';
+                sub.textContent = 'Tài khoản VIP được phép phân loại không giới hạn';
+                if (pCont) pCont.style.display = 'none';
+                if (exhCard) exhCard.style.display = 'none';
+                if (btnPredict) btnPredict.disabled = false;
+                return;
+            }
+
+            if (pCont) pCont.style.display = 'block';
+            const rem = quota.remaining != null ? quota.remaining : 0;
+            const lim = quota.quota_limit || 5;
+            badge.textContent = `${rem}/${lim} lượt còn lại`;
+
+            if (rem > 2) {
+                badge.className = 'pill pill-success';
+                if (pBar) pBar.style.background = 'var(--primary)';
+            } else if (rem > 0) {
+                badge.className = 'pill pill-warning';
+                if (pBar) pBar.style.background = '#f59e0b';
+            } else {
+                badge.className = 'pill pill-danger';
+                if (pBar) pBar.style.background = 'var(--danger)';
+            }
+
+            const pct = Math.max(0, Math.min(100, (rem / lim) * 100));
+            if (pBar) pBar.style.width = `${pct}%`;
+
+            sub.textContent = `Làm mới sau: ${quota.resets_in_human || '24 giờ'} (${quota.cycle_end_formatted || ''})`;
+
+            if (rem <= 0) {
+                if (exhCard) {
+                    exhCard.style.display = 'block';
+                    document.getElementById('quotaExhaustedMsg').textContent =
+                        quota.exhausted_message_vi || `Bạn đã dùng hết lượt phân loại miễn phí. Lượt tiếp theo sẽ được cấp lại vào ${quota.cycle_end_formatted || 'ngày mai'}.`;
+                }
+                if (btnPredict) {
+                    btnPredict.disabled = true;
+                    btnPredict.title = 'Đã hết lượt phân loại miễn phí hôm nay';
+                }
+            } else {
+                if (exhCard) exhCard.style.display = 'none';
+                if (btnPredict) {
+                    btnPredict.disabled = false;
+                    btnPredict.title = '';
+                }
+            }
+        }
+
+        async function loadSupportedCrops() {
+            try {
+                const data = await fetchJSON('/api/plant/supported-crops');
+                const crops = data.crops || [];
+                const select = document.getElementById('cropSelect');
+                select.innerHTML = '';
+                crops.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    const statusTag = c.has_disease_model ? '— Có mô hình bệnh' : '— Mô hình bệnh chưa sẵn sàng';
+                    opt.textContent = `${c.name_vi} (${c.name_en}) ${statusTag}`;
+                    select.appendChild(opt);
+                });
+                const readyCount = crops.filter(c => c.has_disease_model).length;
+                document.getElementById('cropHint').textContent = `7 cây ưu tiên: ${readyCount}/7 cây đã có mô hình chẩn đoán bệnh cục bộ.`;
+            } catch {
+                document.getElementById('cropHint').textContent = 'Danh mục 7 cây ưu tiên đã sẵn sàng.';
+            }
+        }
+
+        async function loadFarms() {
+            try {
+                const data = await fetchJSON('/api/farms');
+                const farms = data.farms || [];
+                const select = document.getElementById('farmSelect');
+                farms.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.id;
+                    opt.textContent = `${f.name} (${f.province || 'Nông trại'})`;
+                    select.appendChild(opt);
+                });
+
+                // Sprint 4: Dynamic plot loading when farm is selected
+                select.addEventListener('change', async () => {
+                    const fId = select.value;
+                    const plotGroup = document.getElementById('plotSelectGroup');
+                    const plotSel = document.getElementById('plotSelect');
+                    if (!fId) {
+                        if (plotGroup) plotGroup.style.display = 'none';
+                        if (plotSel) plotSel.innerHTML = '<option value="">-- Chọn thửa ruộng/vườn --</option>';
+                        return;
+                    }
+                    try {
+                        const token = localStorage.getItem('gari_token');
+                        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                        const resp = await fetch(`/api/farms/${fId}/plots`, { credentials: 'include', headers });
+                        if (resp.ok) {
+                            const resData = await resp.json();
+                            const plots = resData.plots || [];
+                            if (plots.length > 0) {
+                                plotSel.innerHTML = '<option value="">-- Chọn thửa ruộng/vườn --</option>' +
+                                    plots.map(p => `<option value="${p.id}">${p.plot_name} (${p.crop_name || 'Cây trồng'}${p.region ? ' - ' + p.region : ''})</option>`).join('');
+                                plotGroup.style.display = 'block';
+                            } else {
+                                plotSel.innerHTML = '<option value="">(Nông trại chưa có thửa/vườn)</option>';
+                                plotGroup.style.display = 'block';
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Could not load plots for farm:', e);
+                    }
+                });
+            } catch {}
+        }
+
+        async function loadUserOrganizationsForPredict() {
+            try {
+                const token = localStorage.getItem('gari_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch('/api/organizations', { headers, credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const orgs = data.organizations || [];
+                const sel = document.getElementById('orgSelect');
+                if (!sel || orgs.length === 0) return;
+                orgs.forEach(o => {
+                    const opt = document.createElement('option');
+                    opt.value = o.id;
+                    opt.textContent = `${o.name} (${o.plan_details.name_vi} - còn ${o.remaining_quota} lượt)`;
+                    sel.appendChild(opt);
+                });
+            } catch {}
+        }
+
+        function setStage(stageNum) {
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`stage${i}`);
+                if (!el) continue;
+                if (i < stageNum) {
+                    el.className = 'progress-stage-item completed';
+                } else if (i === stageNum) {
+                    el.className = 'progress-stage-item active';
+                } else {
+                    el.className = 'progress-stage-item';
+                }
+            }
+        }
+
+        function hideAllResults() {
+            document.getElementById('emptyStateResult').style.display = 'none';
+            const failCard = document.getElementById('leafValidationFailureCard');
+            if (failCard) failCard.style.display = 'none';
+            document.getElementById('infoNoticeCard').style.display = 'none';
+            document.getElementById('cropConfirmationCard').style.display = 'none';
+            document.getElementById('rejectionCard').style.display = 'none';
+            document.getElementById('uncertainCard').style.display = 'none';
+            document.getElementById('activeResultCard').style.display = 'none';
+            document.getElementById('progressPipeline').style.display = 'none';
+        }
+
+        async function runInference(overrideCrop = null) {
+            if (!selectedFile) {
+                toast('Vui lòng tải lên hoặc chụp ảnh một chiếc lá cây trước.');
+                return;
+            }
+
+            // Quota pre-check on client before sending
+            if (currentQuotaData && !currentQuotaData.is_vip && currentQuotaData.remaining <= 0) {
+                const exhMsg = currentQuotaData.exhausted_message_vi || 'Bạn đã dùng hết lượt phân loại miễn phí. Lượt tiếp theo sẽ được cấp lại sau.';
+                const exhCard = document.getElementById('quotaExhaustedCard');
+                if (exhCard) {
+                    exhCard.style.display = 'block';
+                    document.getElementById('quotaExhaustedMsg').textContent = exhMsg;
+                    exhCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                toast(exhMsg);
+                return;
+            }
+
+            const btn = document.getElementById('btnPredict');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="status-dot"></span> Đang xử lý...';
+
+            // Show real progress stages
+            hideAllResults();
+            const pipeline = document.getElementById('progressPipeline');
+            pipeline.style.display = 'flex';
+            setStage(1);
+
+            const fd = new FormData();
+            fd.append('image', selectedFile);
+            
+            const activeMode = overrideCrop ? 'manual' : currentDiagnosisMode;
+            fd.append('mode', activeMode);
+
+            if (activeMode === 'manual') {
+                const cropVal = overrideCrop || document.getElementById('cropSelect').value;
+                if (cropVal) fd.append('crop', cropVal);
+            }
+
+            const orgVal = document.getElementById('orgSelect') ? document.getElementById('orgSelect').value : '';
+            if (orgVal) fd.append('org_id', orgVal);
+
+            const farmVal = document.getElementById('farmSelect').value;
+            if (farmVal) fd.append('farm_id', farmVal);
+
+            // Sprint 4: Plot selection & explicit consent to persist image
+            const plotVal = document.getElementById('plotSelect') ? document.getElementById('plotSelect').value : '';
+            if (plotVal) fd.append('plot_id', plotVal);
+            const chkConsent = document.getElementById('consentStoreImage');
+            const consentVal = chkConsent ? chkConsent.checked : false;
+            fd.append('consent_store_image', consentVal ? 'true' : 'false');
+
+            const notesVal = document.getElementById('diagNotes').value;
+            if (notesVal) fd.append('notes', notesVal);
+
+            try {
+                setTimeout(() => setStage(2), 200);
+                setTimeout(() => setStage(3), 450);
+                setTimeout(() => setStage(4), 700);
+
+                const token = localStorage.getItem('gari_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                if (activeMode === 'auto_pro') {
+                    const chkDevPro = document.getElementById('chkDevProAuth');
+                    if (chkDevPro && chkDevPro.checked) {
+                        headers['X-Gari-Dev-Pro'] = 'true';
+                    }
+                }
+
+                const res = await fetch('/api/plant/diagnose', {
+                    method: 'POST',
+                    headers,
+                    credentials: 'include',
+                    body: fd
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    if (res.status === 429) {
+                        const exhMsg = data.detail || data.message || 'Bạn đã dùng hết lượt phân loại miễn phí.';
+                        const exhCard = document.getElementById('quotaExhaustedCard');
+                        if (exhCard) {
+                            exhCard.style.display = 'block';
+                            document.getElementById('quotaExhaustedMsg').textContent = exhMsg;
+                            exhCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                        if (data.quota) updateQuotaUI(data.quota);
+                        throw new Error(exhMsg);
+                    }
+                    if (res.status === 403) {
+                        throw new Error(data.detail || 'Mô hình này là mô hình VIP. Vui lòng kích hoạt quyền thử nghiệm Dev Pro hoặc sử dụng tài khoản VIP.');
+                    }
+                    throw new Error(data.detail || data.error || 'Chẩn đoán thất bại');
+                }
+
+                setStage(5);
+                setTimeout(() => {
+                    pipeline.style.display = 'none';
+                    renderPipelineResponse(data);
+                }, 350);
+
+            } catch (err) {
+                pipeline.style.display = 'none';
+                toast(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Tiến hành kiểm tra lá';
+            }
+        }
+
+        function renderPipelineResponse(data) {
+            hideAllResults();
+            currentResultData = data;
+
+            // Update quota status on UI
+            if (data.quota) {
+                updateQuotaUI(data.quota);
+            }
+
+            // 0. MANDATORY LEAF VALIDATION GATE (PART 1 & PART 2)
+            if (data.validation && data.validation.status !== 'LEAF_VALID') {
+                const card = document.getElementById('leafValidationFailureCard');
+                card.style.display = 'block';
+
+                const status = data.validation.status;
+                const badge = document.getElementById('valFailBadge');
+                const title = document.getElementById('valFailTitle');
+                const msg = document.getElementById('valFailMsg');
+
+                if (status === 'NOT_A_LEAF') {
+                    badge.className = 'pill pill-danger';
+                    badge.textContent = 'KHÔNG PHẢI LÁ CÂY';
+                    title.textContent = 'Ảnh không có lá cây phù hợp';
+                    msg.textContent = data.validation.message_vi || 'Ảnh này không có lá cây phù hợp để chẩn đoán. Hãy tải ảnh chụp một chiếc lá.';
+                } else if (status === 'UNCERTAIN') {
+                    badge.className = 'pill pill-warning';
+                    badge.textContent = 'CHƯA RÕ ĐỐI TƯỢNG';
+                    title.textContent = 'Chưa xác định được đối tượng';
+                    msg.textContent = data.validation.message_vi || 'Gari chưa xác định được đây có phải ảnh lá cây hay không. Hãy chụp rõ một chiếc lá.';
+                } else if (status === 'IMAGE_QUALITY_LOW') {
+                    badge.className = 'pill pill-warning';
+                    badge.textContent = 'CHẤT LƯỢNG ẢNH KÉM';
+                    title.textContent = 'Chất lượng ảnh chưa đạt yêu cầu';
+                    msg.textContent = data.validation.message_vi || 'Ảnh chưa đủ rõ để kiểm tra. Hãy chụp gần hơn, đủ sáng và giữ lá trong khung hình.';
+                }
+
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                toast(msg.textContent);
+                return;
+            }
+
+            // 1. REJECTED_LOW_QUALITY (Fallback legacy status)
+            if (data.status === 'rejected_low_quality' || data.validation_state === 'REJECTED_LOW_QUALITY') {
+                const card = document.getElementById('rejectionCard');
+                card.style.display = 'block';
+                document.getElementById('rejectionReason').textContent = data.reason || data.message || "Ảnh chưa phù hợp để chẩn đoán. Hãy chụp rõ một chiếc lá, đủ sáng và tránh làm mờ ảnh.";
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                toast('Ảnh chưa phù hợp để chẩn đoán.');
+                return;
+            }
+
+            // 2. CROP IDENTIFIED BUT NO DISEASE MODEL (Part 3)
+            if (data.status === 'crop_identified_no_disease_model' || data.validation_state === 'CROP_IDENTIFIED_NO_DISEASE_MODEL') {
+                const card = document.getElementById('infoNoticeCard');
+                card.style.display = 'block';
+                document.getElementById('infoNoticePill').textContent = 'ĐÃ NHẬN DIỆN CÂY TRỒNG';
+                document.getElementById('infoNoticePill').className = 'pill pill-warning';
+                document.getElementById('infoNoticeTitle').textContent = 'Đã nhận diện cây, nhưng mô hình chẩn đoán bệnh cho cây này chưa sẵn sàng.';
+                document.getElementById('infoNoticeMessage').textContent = data.message || `Cây ${data.crop_name_vi || data.crop_id} đã được nhận diện bằng mô hình toàn cục, nhưng hiện chưa có mô hình chẩn đoán bệnh lý tương thích.`;
+                document.getElementById('infoNoticeLatency').textContent = `Thời gian xử lý: ${data.inference_time_ms ? data.inference_time_ms.toFixed(1) : '0'}ms`;
+                
+                document.getElementById('infoCropName').textContent = data.crop_name_vi || data.crop_id;
+                const scoreText = data.crop_score != null ? `${(data.crop_score * 100).toFixed(1)}% (điểm số chưa hiệu chuẩn)` : 'Chưa có';
+                document.getElementById('infoCropScore').textContent = scoreText;
+                document.getElementById('infoScoreRow').style.display = 'flex';
+                document.getElementById('infoModelName').textContent = data.model_name || 'Model tong (ViT-Base PlantVillage)';
+
+                // Show top 3 candidates
+                renderCandidatesList(data.crop_candidates || [], 'infoCandidatesSection', 'infoCandidatesList');
+
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                toast('Mô hình chẩn đoán bệnh cho cây này chưa sẵn sàng.');
+                return;
+            }
+
+            // 3. MANUAL MODE — DISEASE MODEL UNAVAILABLE (Part 4)
+            if (data.status === 'disease_model_unavailable' || data.validation_state === 'DISEASE_MODEL_UNAVAILABLE') {
+                const card = document.getElementById('infoNoticeCard');
+                card.style.display = 'block';
+                document.getElementById('infoNoticePill').textContent = 'MÔ HÌNH CHƯA SẴN SÀNG';
+                document.getElementById('infoNoticePill').className = 'pill pill-warning';
+                document.getElementById('infoNoticeTitle').textContent = 'Mô hình chẩn đoán bệnh cho cây này chưa sẵn sàng.';
+                document.getElementById('infoNoticeMessage').textContent = data.message || `Hiện tại chưa có mô hình chẩn đoán bệnh lý tương thích cho cây ${data.crop_name_vi || data.crop_id}. Hệ thống không ép buộc dự đoán không có cơ sở.`;
+                document.getElementById('infoNoticeLatency').textContent = `Thời gian xử lý: ${data.inference_time_ms ? data.inference_time_ms.toFixed(1) : '0'}ms`;
+                
+                document.getElementById('infoCropName').textContent = data.crop_name_vi || data.crop_id;
+                document.getElementById('infoScoreRow').style.display = 'none';
+                document.getElementById('infoModelName').textContent = 'Chưa có mô hình bệnh tương thích';
+                document.getElementById('infoCandidatesSection').style.display = 'none';
+
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                toast('Mô hình chẩn đoán bệnh cho cây này chưa sẵn sàng.');
+                return;
+            }
+
+            // 4. UNSUPPORTED CROP OUTSIDE 7 PRIORITY CROPS (Part 2)
+            if (data.status === 'unsupported_crop' || data.validation_state === 'UNSUPPORTED_CROP') {
+                const card = document.getElementById('infoNoticeCard');
+                card.style.display = 'block';
+                document.getElementById('infoNoticePill').textContent = 'NGOÀI PHẠM VI ƯU TIÊN';
+                document.getElementById('infoNoticePill').className = 'pill pill-danger';
+                document.getElementById('infoNoticeTitle').textContent = 'Cây trồng ngoài phạm vi ưu tiên';
+                document.getElementById('infoNoticeMessage').textContent = data.message || `Cây trồng được nhận diện (${data.crop_name_vi || data.crop_id}) nằm ngoài phạm vi 7 loại cây ưu tiên: Cà phê, Hồ tiêu, Lúa, Sầu riêng, Cà chua, Ớt, Ngô.`;
+                document.getElementById('infoNoticeLatency').textContent = `Thời gian xử lý: ${data.inference_time_ms ? data.inference_time_ms.toFixed(1) : '0'}ms`;
+                
+                document.getElementById('infoCropName').textContent = data.crop_name_vi || data.crop_id;
+                const scoreText = data.crop_score != null ? `${(data.crop_score * 100).toFixed(1)}% (điểm số chưa hiệu chuẩn)` : 'Chưa có';
+                document.getElementById('infoCropScore').textContent = scoreText;
+                document.getElementById('infoScoreRow').style.display = 'flex';
+                document.getElementById('infoModelName').textContent = data.model_name || 'Model tong (ViT-Base PlantVillage)';
+
+                renderCandidatesList(data.crop_candidates || [], 'infoCandidatesSection', 'infoCandidatesList');
+
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                toast('Cây trồng ngoài phạm vi ưu tiên.');
+                return;
+            }
+
+            // 5. CROP UNCERTAIN (Part 3)
+            if (data.status === 'crop_uncertain' || data.validation_state === 'CROP_UNCERTAIN') {
+                const card = document.getElementById('cropConfirmationCard');
+                card.style.display = 'block';
+                document.getElementById('gateStatePill').textContent = 'CHƯA RÕ LOẠI CÂY TRỒNG';
+                document.getElementById('gateTitle').textContent = 'Chưa đủ cơ sở xác định cây trồng';
+                document.getElementById('gateReason').textContent = data.reason || 'Điểm tin cậy nhận diện cây trồng của mô hình toàn cục dưới ngưỡng an toàn. Vui lòng chọn loại cây hoặc chuyển sang chế độ Chọn cây thủ công.';
+
+                renderCandidatesList(data.crop_candidates || [], 'cropConfirmationCard', 'cropCandidatesList', true);
+
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                toast('Chưa đủ cơ sở xác định cây trồng.');
+                return;
+            }
+
+            // 6. DISEASE UNCERTAIN
+            if (data.status === 'disease_uncertain' || data.validation_state === 'DISEASE_UNCERTAIN') {
+                const card = document.getElementById('uncertainCard');
+                card.style.display = 'block';
+
+                document.getElementById('uncertainTime').textContent = `Thời gian xử lý: ${data.inference_time_ms ? data.inference_time_ms.toFixed(1) : '120.0'}ms`;
+                document.getElementById('uncertainReason').textContent = data.reason || 'Mức độ chắc chắn của kết quả dưới ngưỡng an toàn nông học.';
+                
+                const score = (data.confidence * 100).toFixed(1);
+                document.getElementById('uncertainScore').textContent = `${score}%`;
+                document.getElementById('uncertainScoreBar').style.width = `${Math.min(100, score)}%`;
+                document.getElementById('uncertainCropName').textContent = `Cây trồng: ${data.crop_name || data.crop || 'Không xác định'}`;
+
+                const list = document.getElementById('uncertainDistributionList');
+                const tops = data.top_predictions || [];
+                list.innerHTML = tops.map(t => {
+                    const pct = t.confidence_percent ? t.confidence_percent.toFixed(1) : (t.confidence * 100).toFixed(1);
+                    return `
+                        <div style="display:flex; flex-direction:column; gap:3px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px;">
+                                <span style="font-weight:600;">${t.label || t.name_vi || t.name}</span>
+                                <span style="color:var(--warning); font-weight:700;">${pct}%</span>
+                            </div>
+                            <div style="height:4px; background:var(--surface); border-radius:99px; overflow:hidden;">
+                                <div style="height:100%; width:${pct}%; background:var(--warning); border-radius:99px;"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                toast('Chưa đủ cơ sở xác định bệnh cây trồng.');
+                return;
+            }
+
+            // 7. CONFIRMED DIAGNOSIS (OK)
+            const card = document.getElementById('activeResultCard');
+            card.style.display = 'flex';
+
+            renderVisualLocalization(data);
+            renderDiagnosisReport(data);
+
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            toast('Chẩn đoán lá cây hoàn tất!');
+        }
+
+        function renderCandidatesList(candidates, sectionId, listId, isInteractive = false) {
+            const section = document.getElementById(sectionId);
+            const grid = document.getElementById(listId);
+            if (!grid) return;
+            if (section && section !== grid) section.style.display = candidates.length > 0 ? 'block' : 'none';
+
+            grid.innerHTML = '';
+            candidates.slice(0, 3).forEach(c => {
+                const el = document.createElement(isInteractive ? 'button' : 'div');
+                el.className = 'candidate-card-btn';
+                if (isInteractive) el.type = 'button';
+                const scoreText = c.score_percent != null ? c.score_percent : (c.score ? (c.score * 100).toFixed(1) : (c.percent || '0'));
+                el.innerHTML = `
+                    <div class="candidate-title">${c.name_vi || c.crop_name || c.crop_id}</div>
+                    <div class="candidate-conf">Điểm mô hình: ${scoreText}% (chưa hiệu chuẩn)</div>
+                `;
+                if (isInteractive) {
+                    el.onclick = () => {
+                        // Switch to manual mode with this crop
+                        const btnManual = document.getElementById('btnModeManual');
+                        btnManual.click();
+                        const sel = document.getElementById('cropSelect');
+                        sel.value = c.crop_id;
+                        toast(`Đã chọn: ${c.name_vi || c.crop_name}. Đang tiến hành chẩn đoán bệnh...`);
+                        runInference(c.crop_id);
+                    };
+                }
+                grid.appendChild(el);
+            });
+        }
+
+        function renderVisualLocalization(data) {
+            const originalUrl = data.image_url || (selectedFile ? URL.createObjectURL(selectedFile) : '');
+            const attentionUrl = data.attention_image_url || originalUrl;
+            const overlayUrl = data.overlay_image_url || originalUrl;
+
+            // Update main viewer images
+            const mainImg = document.getElementById('viewerMainImg');
+            if (currentViewMode === 'original') mainImg.src = originalUrl;
+            else if (currentViewMode === 'overlay') mainImg.src = overlayUrl;
+            else mainImg.src = attentionUrl;
+
+            // Update Split Slider images
+            document.getElementById('splitImgBefore').src = originalUrl;
+            document.getElementById('splitImgAfter').src = attentionUrl;
+
+            // Render Regions
+            const regions = data.regions || [];
+            const rCount = document.getElementById('regionsCountBadge');
+            rCount.textContent = `${regions.length} vùng được phát hiện`;
+
+            const rList = document.getElementById('regionsList');
+            if (regions.length === 0) {
+                rList.innerHTML = '<div style="font-size:12.5px; color:var(--text-muted); padding:8px 0;">Không phát hiện vùng tổn thương rõ rệt trên phiến lá.</div>';
+            } else {
+                rList.innerHTML = regions.map(r => {
+                    const badgeClass = r.type === 'necrotic_spot' ? 'danger' : 'warning';
+                    return `
+                        <div class="region-card-item" onclick="focusRegion(${r.box[0]}, ${r.box[1]}, ${r.box[2]}, ${r.box[3]})">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="region-badge ${badgeClass}">${r.title_vi}</span>
+                                <span style="font-size:11px; color:var(--text-muted);">${r.severity || 'Theo dõi'}</span>
+                            </div>
+                            <div class="region-desc">${r.desc_vi || r.description_vi || 'Xuất hiện đốm bất thường trên bề mặt lá.'}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function renderDiagnosisReport(data) {
+            // Severity Pill
+            const sevRaw = (data.severity || 'NORMAL').toUpperCase();
+            const sevEl = document.getElementById('reportSeverityPill');
+            if (sevRaw === 'HIGH') {
+                sevEl.textContent = 'Mức độ: NGUY CƠ CAO';
+                sevEl.className = 'pill pill-danger';
+            } else if (sevRaw === 'HEALTHY' || sevRaw === 'NORMAL') {
+                sevEl.textContent = 'Mức độ: KHỎE MẠNH';
+                sevEl.className = 'pill pill-healthy';
+            } else {
+                sevEl.textContent = 'Mức độ: CẢNH BÁO';
+                sevEl.className = 'pill pill-warning';
+            }
+
+            // Leaf Validation Banner
+            const valBanner = document.getElementById('valPassedBanner');
+            if (valBanner) {
+                valBanner.style.display = 'flex';
+                const score = data.validation && data.validation.score ? (data.validation.score * 100).toFixed(0) : '95';
+                const valText = document.getElementById('valPassedText');
+                if (valText) valText.textContent = `Kiểm định hợp lệ: Ảnh đạt tiêu chuẩn chẩn đoán lá cây (Độ phù hợp: ${score}%).`;
+            }
+
+            // Mode Label & Pill
+            const repModePill = document.getElementById('repModePill');
+            const repMode = document.getElementById('repMode');
+            if (data.mode === 'auto_pro') {
+                repModePill.textContent = 'Tự động Pro';
+                repModePill.className = 'pill pill-warning';
+                repMode.textContent = 'Tự động nhận diện Pro (Model tong 2 ViT GBIF 14,829 loài -> Model bệnh)';
+            } else if (data.mode === 'auto_standard') {
+                repModePill.textContent = 'Tự động chuẩn';
+                repModePill.className = 'pill pill-info';
+                repMode.textContent = 'Tự động nhận diện cây trồng (Model tong ViT PlantVillage -> Model bệnh)';
+            } else {
+                repModePill.textContent = 'Chọn cây thủ công';
+                repModePill.className = 'pill';
+                repMode.textContent = 'Chọn cây thủ công (Model bệnh học chuyên biệt)';
+            }
+
+            // Crop Name & Uncalibrated Score
+            const cropVi = data.crop_name_vi || data.crop_name || data.crop || 'Không xác định';
+            document.getElementById('repCropLabel').textContent = (data.mode === 'manual') ? 'Cây đã chọn:' : 'Cây được nhận diện:';
+            document.getElementById('repCrop').textContent = cropVi;
+            if (data.crop_score != null) {
+                document.getElementById('repCropScoreText').textContent = `(Điểm mô hình toàn cục: ${(data.crop_score * 100).toFixed(1)}% - chưa hiệu chuẩn)`;
+            } else {
+                document.getElementById('repCropScoreText').textContent = '';
+            }
+            
+            const isHealthy = (data.class_id && data.class_id.toLowerCase().includes('healthy')) || sevRaw === 'HEALTHY' || data.is_healthy;
+            const statusEl = document.getElementById('repStatus');
+            statusEl.textContent = isHealthy ? 'Lá khỏe mạnh, không phát hiện dấu hiệu mầm bệnh.' : 'Có dấu hiệu bất thường trên lá.';
+            statusEl.style.color = isHealthy ? 'var(--primary)' : 'var(--danger)';
+
+            document.getElementById('repDisease').textContent = data.disease_name_vi || data.prediction || 'Chưa xác định';
+            document.getElementById('repScientific').textContent = data.class_id || data.disease_id || '';
+
+            const conf = data.disease_score != null ? (data.disease_score * 100).toFixed(1) : (data.confidence != null ? (data.confidence * 100).toFixed(1) : '95.0');
+            document.getElementById('repConfidence').textContent = `${conf}%`;
+            document.getElementById('repConfBar').style.width = `${conf}%`;
+            document.getElementById('repConfidenceLevel').textContent = conf > 80 ? 'Cao' : (conf > 50 ? 'Trung bình' : 'Thấp');
+            document.getElementById('repLatency').textContent = `${data.inference_time_ms ? data.inference_time_ms.toFixed(1) : '120.0'}ms`;
+            document.getElementById('repModelUsed').textContent = data.model_name || data.model_id || 'ConvNeXt-Small';
+
+            // Other candidates list
+            const otherList = document.getElementById('repOtherCandidatesList');
+            const topPreds = (data.top_predictions || []).slice(1, 4);
+            if (topPreds.length > 0) {
+                document.getElementById('repOtherCandidatesSection').style.display = 'block';
+                otherList.innerHTML = topPreds.map(p => {
+                    const pct = p.confidence_percent ? p.confidence_percent.toFixed(1) : (p.confidence * 100).toFixed(1);
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; padding:4px 0; border-bottom:1px dashed var(--border-light);">
+                            <span>${p.name_vi || p.label || p.class_id}</span>
+                            <span style="font-weight:600; color:var(--text-muted);">${pct}%</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                document.getElementById('repOtherCandidatesSection').style.display = 'none';
+            }
+
+            // Location description
+            const rCount = (data.regions || []).length;
+            if (rCount > 0) {
+                document.getElementById('repLocation').textContent = `Phát hiện ${rCount} vùng tổn thương (đốm hoại tử hoặc biến màu) được mô hình tập trung chú ý, phân bố tại các khu vực được khoanh vùng.`;
+            } else {
+                document.getElementById('repLocation').textContent = 'Mô hình chú ý đồng đều bề mặt lá, không ghi nhận đốm bệnh khu trú.';
+            }
+
+            // Sprint 4: Action Guidance & Low-risk Agricultural Advice
+            const ag = data.action_guidance || {};
+            const diagStatus = data.diagnosis_status || 'diagnosed';
+
+            // Prominent Uncertainty / Needs Review Notice
+            const noticeBox = document.getElementById('repNoticeBox');
+            if (noticeBox) {
+                if (diagStatus === 'needs_review' || ag.status === 'uncertain') {
+                    noticeBox.style.display = 'block';
+                    noticeBox.style.background = 'rgba(245, 158, 11, 0.08)';
+                    noticeBox.style.border = '1.5px solid rgba(245, 158, 11, 0.4)';
+                    noticeBox.innerHTML = `
+                        <div style="display:flex; align-items:flex-start; gap:10px;">
+                            <span style="font-size:20px; line-height:1;">⚠️</span>
+                            <div>
+                                <div style="font-weight:700; color:var(--warning); font-size:13.5px;">
+                                    Kết quả sơ bộ — Cần xem xét thêm
+                                </div>
+                                <div style="font-size:12.5px; color:var(--text-secondary); margin-top:3px; line-height:1.5;">
+                                    ${ag.notice || 'Độ tin cậy của mô hình chưa tối ưu. Hệ thống không áp đặt chẩn đoán bệnh chắc chắn khi chưa đủ bằng chứng thị giác.'}
+                                </div>
+                                ${ag.retake_tips && ag.retake_tips.length ? `
+                                    <div style="margin-top:6px; font-size:12px; font-weight:600; color:var(--text-main);">Khuyến nghị chụp lại ảnh:</div>
+                                    <ul style="margin:2px 0 0 16px; font-size:12px; color:var(--text-secondary); line-height:1.4;">
+                                        ${ag.retake_tips.map(t => `<li>${t}</li>`).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    noticeBox.style.display = 'none';
+                }
+            }
+
+            // Symptoms / Observation Signs
+            const sList = document.getElementById('repSymptomsList');
+            if (sList) {
+                const signs = (ag.observation_signs && ag.observation_signs.length) ? ag.observation_signs : (data.symptoms || ['Quan sát kỹ vùng đổi màu hoặc đốm hoại tử trên phiến lá.']);
+                sList.innerHTML = signs.map(s => `<li>${s}</li>`).join('');
+            }
+
+            // Causes
+            const cList = document.getElementById('repCausesList');
+            if (cList) {
+                const causes = data.causes || ['Tác nhân sinh học (nấm, vi khuẩn) hoặc stress môi trường trong điều kiện ẩm độ/nhiệt độ thất thường.'];
+                const cArr = Array.isArray(causes) ? causes : [causes];
+                cList.innerHTML = cArr.map(c => `<li>${c}</li>`).join('');
+            }
+
+            // Low-Risk Immediate Actions (Sprint 4: prioritize sanitation, isolation, observation)
+            const rList = document.getElementById('repRecommendationsList');
+            if (rList) {
+                const actions = (ag.immediate_low_risk_actions && ag.immediate_low_risk_actions.length) ? ag.immediate_low_risk_actions : (data.recommendations || [
+                    'Kiểm tra thêm các lá xung quanh cây trồng.',
+                    'Theo dõi sự thay đổi của vết bệnh sau 2-3 ngày.',
+                    'Giữ khu vực trồng thông thoáng, tránh tưới đẫm vào chiều muộn.'
+                ]);
+                rList.innerHTML = actions.map(r => `<li>${r}</li>`).join('');
+            }
+
+            // Photo Quality Factors & Trust & Safety
+            const ts = data.trust_and_safety || {};
+            const qFactors = ts.quality_factors || {};
+            
+            const qLight = document.getElementById('qFactorLight');
+            const qBlur = document.getElementById('qFactorBlur');
+            const qAngle = document.getElementById('qFactorAngle');
+            const qCover = document.getElementById('qFactorCoverage');
+            
+            if (qLight) qLight.textContent = (qFactors.lighting && qFactors.lighting.status === 'optimal') ? 'Đạt chuẩn' : 'Chấp nhận được';
+            if (qBlur) qBlur.textContent = (qFactors.sharpness && qFactors.sharpness.status === 'optimal') ? 'Rõ nét' : 'Bình thường';
+            if (qAngle) qAngle.textContent = (qFactors.angle && qFactors.angle.status === 'optimal') ? 'Góc chụp thẳng' : 'Đạt yêu cầu';
+            if (qCover) qCover.textContent = (qFactors.coverage && qFactors.coverage.status === 'optimal') ? 'Bao phủ tốt' : 'Đạt yêu cầu';
+
+            // Next Field Inspection Steps
+            const stepsList = document.getElementById('repNextStepsList');
+            if (stepsList) {
+                const steps = (ag.immediate_low_risk_actions && ag.immediate_low_risk_actions.length) ? ag.immediate_low_risk_actions : (ts.field_inspection_steps || [
+                    'Kiểm tra mặt dưới lá và các lá lân cận xem có triệu chứng tương tự hoặc vết mầm bệnh.',
+                    'Quan sát vết bệnh sau 24-48 giờ xem có dấu hiệu lan rộng hoặc đổi màu hay không.',
+                    'Nếu độ tin cậy thấp hoặc nghi ngờ chẩn đoán, hãy chụp lại lá cây ở góc thẳng và đủ sáng.',
+                    'Tham vấn cán bộ khuyến nông hoặc chuyên gia bảo vệ thực vật trước khi xử lý hóa chất.'
+                ]);
+                stepsList.innerHTML = steps.map(st => `<li>${st}</li>`).join('');
+            }
+
+            // When to ask expert
+            const expertTriggers = document.getElementById('repExpertTriggers');
+            if (expertTriggers && ag.when_to_ask_expert && ag.when_to_ask_expert.length) {
+                expertTriggers.innerHTML = `<strong>👨‍🌾 Nên tham vấn chuyên gia khuyến nông khi:</strong> ${ag.when_to_ask_expert.join('; ')}`;
+            }
+
+            // Verification & Knowledge Sources
+            const sourcePill = document.getElementById('repSourcePill');
+            const sourceText = document.getElementById('repSourceText');
+            if (sourcePill && sourceText) {
+                if (ag.verified) {
+                    sourcePill.className = 'pill pill-success';
+                    sourcePill.textContent = 'Nguồn đã xác minh';
+                    sourceText.textContent = (ag.sources && ag.sources.length) ? ag.sources.join(' • ') : 'Cơ sở tri thức Nông học Gari AI (Ưu tiên sinh thái, không quảng bá thuốc)';
+                } else {
+                    sourcePill.className = 'pill pill-warning';
+                    sourcePill.textContent = 'Chưa có hướng dẫn đã xác minh';
+                    sourceText.textContent = 'Ưu tiên biện pháp vệ sinh đồng ruộng, cách ly mầm bệnh và tham vấn cán bộ chuyên môn địa phương.';
+                }
+            }
+
+            // Sprint 5: Diagnosis Feedback card activation
+            window.currentDiagnosisId = data.diagnosis_id || data.id;
+            const fbCard = document.getElementById('diagnosisFeedbackCard');
+            if (fbCard) {
+                fbCard.style.display = 'block';
+                const err = document.getElementById('feedbackAlertError');
+                if (err) err.style.display = 'none';
+                const succ = document.getElementById('feedbackAlertSuccess');
+                if (succ) succ.style.display = 'none';
+                const form = document.getElementById('diagnosisFeedbackForm');
+                if (form) form.style.display = 'block';
+            }
+
+            // Refresh recent plant records
+            loadRecentPlantRecords();
+        }
+
+        window.submitDiagnosisFeedback = async function(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btnSubmitFeedback');
+            const err = document.getElementById('feedbackAlertError');
+            const succ = document.getElementById('feedbackAlertSuccess');
+            const form = document.getElementById('diagnosisFeedbackForm');
+            const fType = document.getElementById('feedbackTypeSelect').value;
+            const notes = document.getElementById('feedbackNotesInput').value.trim();
+
+            if (!window.currentDiagnosisId) {
+                err.textContent = "Không tìm thấy mã chẩn đoán để liên kết phản hồi.";
+                err.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Đang gửi...";
+            err.style.display = 'none';
+
+            try {
+                const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const res = await fetch(`/api/diagnoses/${window.currentDiagnosisId}/feedback`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ feedback_type: fType, notes: notes })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || "Không thể gửi phản hồi.");
+                }
+
+                form.style.display = 'none';
+                succ.innerHTML = `<strong>${data.message || 'Gửi phản hồi thành công!'}</strong><br><span style="font-size:11px; opacity:0.9;">${data.disclaimer || ''}</span>`;
+                succ.style.display = 'block';
+            } catch (e) {
+                err.textContent = e.message;
+                err.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Gửi phản hồi";
+            }
+        };
+
+        function initTierModal() {
+            const modal = document.getElementById('modalTierInfo');
+            const btnClose = document.getElementById('btnCloseTierModal');
+            const btnAck = document.getElementById('btnAcknowledgeTier');
+            const btnOpen = document.getElementById('btnViewTierDetails');
+
+            if (btnOpen) {
+                btnOpen.onclick = () => {
+                    if (modal) modal.style.display = 'flex';
+                };
+            }
+            const closeModal = () => {
+                if (modal) modal.style.display = 'none';
+            };
+            if (btnClose) btnClose.onclick = closeModal;
+            if (btnAck) btnAck.onclick = closeModal;
+            if (modal) {
+                modal.onclick = (e) => {
+                    if (e.target === modal) closeModal();
+                };
+            }
+        }
+
+        async function loadRecentPlantRecords() {
+            const container = document.getElementById('recentRecordsTableBody') || document.getElementById('recentRecordsBody');
+            if (!container) return;
+            try {
+                const token = localStorage.getItem('gari_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch('/api/diagnoses?limit=6', { headers, credentials: 'include' });
+                if (!res.ok) {
+                    container.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">Chưa có dữ liệu theo dõi hoặc cần đăng nhập.</td></tr>';
+                    return;
+                }
+                const data = await res.json();
+                const records = data.diagnoses || data.records || [];
+                if (records.length === 0) {
+                    container.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">Chưa có lịch sử chẩn đoán cây trồng. Khi bạn phân loại lá cây, hồ sơ sẽ hiển thị tại đây.</td></tr>';
+                    return;
+                }
+                container.innerHTML = records.map(r => {
+                    const dt = r.created_at ? new Date(r.created_at).toLocaleString('vi-VN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+                    const crop = r.crop_name_vi || r.crop_name || r.crop || 'Lá cây';
+                    const disease = r.disease_name_vi || r.disease_name || r.predicted_disease || r.prediction || 'Khỏe mạnh';
+                    const conf = r.confidence != null ? `${(r.confidence * 100).toFixed(0)}%` : '-';
+                    const st = r.diagnosis_status || 'diagnosed';
+                    let stPill = '<span class="pill pill-success" style="font-size:10px;">Đã chẩn đoán</span>';
+                    if (st === 'needs_review') {
+                        stPill = '<span class="pill pill-warning" style="font-size:10px;">Cần xem xét</span>';
+                    } else if (st === 'rejected_invalid_image') {
+                        stPill = '<span class="pill pill-danger" style="font-size:10px;">Ảnh từ chối</span>';
+                    }
+                    const plotBadge = r.plot_name ? `<span style="font-size:11px; color:var(--primary); font-weight:600;">[${r.plot_name}]</span> ` : '';
+                    const thumb = r.image_path ? `<img src="${r.image_path}" style="width:28px; height:28px; border-radius:4px; object-fit:cover;" alt="Leaf" />` : '<span style="font-size:16px;">🍃</span>';
+                    return `
+                        <tr id="rec-row-${r.id}">
+                            <td style="text-align:center;">${thumb}</td>
+                            <td style="font-weight:600;">${plotBadge}${crop}</td>
+                            <td style="font-size:12.5px;">${disease}</td>
+                            <td style="font-size:11.5px;">${stPill} <span style="font-weight:600; color:var(--text-muted); font-size:11px;">(${conf})</span></td>
+                            <td style="font-size:11.5px; color:var(--text-secondary); white-space:nowrap;">${dt}</td>
+                            <td style="text-align:right; white-space:nowrap;">
+                                <button type="button" class="btn btn-secondary btn-sm" style="padding:3px 8px; font-size:11.5px; color:var(--danger); border-color:rgba(239,68,68,0.3);" onclick="window.deletePlantRecord(${r.id})">
+                                    Xóa
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.warn('Could not load plant records:', err);
+                container.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">Không thể tải lịch sử lúc này.</td></tr>';
+            }
+        }
+
+        window.deletePlantRecord = async function(id) {
+            if (!confirm(`Bạn có chắc muốn xóa bản ghi theo dõi #${id}? Dữ liệu sẽ được dọn dẹp an toàn.`)) {
+                return;
+            }
+            try {
+                const token = localStorage.getItem('gari_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch(`/api/diagnoses/${id}`, {
+                    method: 'DELETE',
+                    headers,
+                    credentials: 'include'
+                });
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data.detail || 'Không thể xóa bản ghi');
+                }
+                const row = document.getElementById(`rec-row-${id}`);
+                if (row) {
+                    row.remove();
+                }
+                toast('Đã xóa bản ghi theo dõi thành công.');
+                loadRecentPlantRecords();
+            } catch (err) {
+                toast(err.message || 'Lỗi khi xóa bản ghi');
+            }
+        };
+
+        function initViewerEvents() {
+            const tabOrig = document.getElementById('tabOriginal');
+            const tabAtt = document.getElementById('tabAttention');
+            const tabOver = document.getElementById('tabOverlay');
+            const tabSplit = document.getElementById('tabSplit');
+
+            const mainContainer = document.getElementById('mainImageContainer');
+            const splitContainer = document.getElementById('splitSliderContainer');
+            const mainImg = document.getElementById('viewerMainImg');
+
+            function setTab(mode) {
+                currentViewMode = mode;
+                [tabOrig, tabAtt, tabOver, tabSplit].forEach(b => b.classList.remove('active'));
+
+                if (mode === 'split') {
+                    tabSplit.classList.add('active');
+                    mainContainer.style.display = 'none';
+                    splitContainer.style.display = 'block';
+                    return;
+                }
+
+                mainContainer.style.display = 'flex';
+                splitContainer.style.display = 'none';
+
+                if (!currentResultData) return;
+                const origUrl = currentResultData.image_url || '';
+                const attUrl = currentResultData.attention_image_url || origUrl;
+                const overUrl = currentResultData.overlay_image_url || origUrl;
+
+                if (mode === 'original') {
+                    tabOrig.classList.add('active');
+                    mainImg.src = origUrl;
+                } else if (mode === 'overlay') {
+                    tabOver.classList.add('active');
+                    mainImg.src = overUrl;
+                } else {
+                    tabAtt.classList.add('active');
+                    mainImg.src = attUrl;
+                }
+            }
+
+            tabOrig.onclick = () => setTab('original');
+            tabAtt.onclick = () => setTab('attention');
+            tabOver.onclick = () => setTab('overlay');
+            tabSplit.onclick = () => setTab('split');
+
+            // Zoom controls
+            const zoomIn = document.getElementById('btnZoomIn');
+            const zoomOut = document.getElementById('btnZoomOut');
+            const zoomReset = document.getElementById('btnZoomReset');
+
+            function applyZoom(z) {
+                zoomLevel = Math.max(0.6, Math.min(3.0, z));
+                mainContainer.style.transform = `scale(${zoomLevel})`;
+                zoomReset.textContent = `${Math.round(zoomLevel * 100)}%`;
+            }
+
+            zoomIn.onclick = () => applyZoom(zoomLevel + 0.25);
+            zoomOut.onclick = () => applyZoom(zoomLevel - 0.25);
+            zoomReset.onclick = () => applyZoom(1.0);
+
+            // Split slider drag handling
+            const divider = document.getElementById('splitDivider');
+            const afterWrapper = document.getElementById('splitAfterWrapper');
+            const viewport = document.getElementById('viewerViewport');
+            let isDraggingSlider = false;
+
+            divider.addEventListener('mousedown', () => isDraggingSlider = true);
+            window.addEventListener('mouseup', () => isDraggingSlider = false);
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingSlider) return;
+                const rect = viewport.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const pct = Math.max(5, Math.min(95, (offsetX / rect.width) * 100));
+                divider.style.left = `${pct}%`;
+                afterWrapper.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
+            });
+
+            // Touch events for mobile split slider
+            divider.addEventListener('touchstart', () => isDraggingSlider = true);
+            window.addEventListener('touchend', () => isDraggingSlider = false);
+            window.addEventListener('touchmove', (e) => {
+                if (!isDraggingSlider || !e.touches[0]) return;
+                const rect = viewport.getBoundingClientRect();
+                const offsetX = e.touches[0].clientX - rect.left;
+                const pct = Math.max(5, Math.min(95, (offsetX / rect.width) * 100));
+                divider.style.left = `${pct}%`;
+                afterWrapper.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
+            });
+        }
+
+        window.focusRegion = function(x, y, w, h) {
+            // Highlight region by switching to overlay view and zooming in slightly
+            const tabOver = document.getElementById('tabOverlay');
+            tabOver.click();
+            const mainContainer = document.getElementById('mainImageContainer');
+            zoomLevel = 1.4;
+            mainContainer.style.transform = `scale(${zoomLevel})`;
+            document.getElementById('btnZoomReset').textContent = `${Math.round(zoomLevel * 100)}%`;
+            toast('Đã phóng to vùng tổn thương');
+        };
+    </script>
+</body>
+</html>

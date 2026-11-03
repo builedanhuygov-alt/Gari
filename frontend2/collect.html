@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thu Thập Mẫu Thực Địa Nông Nghiệp • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {}
+    </script>
+    <style>
+        .crop-readiness-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .readiness-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .readiness-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .readiness-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .readiness-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .readiness-meta {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+        .readiness-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 99px;
+            width: fit-content;
+        }
+        .readiness-status.ready {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--primary);
+        }
+        .readiness-status.need-data {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--warning);
+        }
+        .readiness-status.no-model {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+        }
+
+        .upload-section-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 900px) {
+            .upload-section-grid { grid-template-columns: 1fr; }
+        }
+
+        .capture-view-pills {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .view-pill-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .view-pill-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .view-pill-btn.active {
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .gallery-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Review modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+        .modal-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 600px;
+            padding: 24px;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar" id="appSidebar"></aside>
+
+        <div class="main-wrapper">
+            <header class="topbar" id="appTopbar"></header>
+
+            <main class="content-area">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <div class="page-title-row">
+                            <span class="pill pill-success">TRẠM THỰC NGHIỆM</span>
+                            <h1 class="page-title">Thu Thập & Thẩm Định Mẫu Thực Địa</h1>
+                        </div>
+                        <p class="page-subtitle">Xây dựng tập dữ liệu hình ảnh nông nghiệp thực tế tại Việt Nam phục vụ huấn luyện và kiểm định mô hình AI</p>
+                    </div>
+
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnExportCSV">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                            Xuất CSV
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnExportJSON">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                            Xuất Schema JSON
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SECTION 1: VIETNAM 8 KEY CROPS READINESS -->
+                <div class="card" style="margin-bottom:24px;">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <h3 class="card-title">Mức độ sẵn sàng đối với 8 cây trồng trọng điểm Việt Nam</h3>
+                            <div class="card-subtitle">Đối chiếu giữa mô hình cục bộ và tập dữ liệu thẩm định thực địa</div>
+                        </div>
+                    </div>
+                    <div class="crop-readiness-grid" id="cropReadinessGrid">
+                        <!-- Populated dynamically via /api/field/inventory -->
+                        <div class="readiness-card"><span class="skeleton" style="height:60px;"></span></div>
+                        <div class="readiness-card"><span class="skeleton" style="height:60px;"></span></div>
+                        <div class="readiness-card"><span class="skeleton" style="height:60px;"></span></div>
+                        <div class="readiness-card"><span class="skeleton" style="height:60px;"></span></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: FIELD IMAGE INGESTION WORKFLOW -->
+                <div class="upload-section-grid">
+                    <!-- Left: Upload Box -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <h3 class="card-title">Tải lên ảnh thực địa</h3>
+                                <div class="card-subtitle">Hỗ trợ tải 1 hoặc nhiều ảnh chụp từ camera thực địa</div>
+                            </div>
+                        </div>
+
+                        <div class="dropzone-container" id="fieldDropZone">
+                            <div class="dropzone-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                            </div>
+                            <div class="dropzone-title">Kéo thả ảnh thực địa hoặc bấm để chọn</div>
+                            <div class="dropzone-desc">Hỗ trợ JPG, PNG. Có thể chọn cùng lúc nhiều ảnh từ vườn hoặc nông trường.</div>
+                            <input type="file" id="fieldFileInput" accept="image/*" multiple style="display:none;" />
+                        </div>
+
+                        <div class="gallery-preview-grid" id="previewGallery"></div>
+                    </div>
+
+                    <!-- Right: Metadata & Agronomic Conditions Form -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <h3 class="card-title">Thông tin thực địa & Bệnh học</h3>
+                                <div class="card-subtitle">Ghi nhận chính xác bối cảnh chụp và triệu chứng quan sát</div>
+                            </div>
+                        </div>
+
+                        <form id="fieldCollectForm" style="display:flex; flex-direction:column; gap:14px;">
+                            <div class="form-group">
+                                <label class="form-label" for="colCrop">Cây trồng thực tế</label>
+                                <select class="select" id="colCrop" required>
+                                    <optgroup label="8 Cây trồng trọng điểm Việt Nam">
+                                        <option value="Coffee" data-name="Cà phê">☕ Cà phê (Coffee - Có mô hình)</option>
+                                        <option value="Black_Pepper" data-name="Hồ tiêu">🌿 Hồ tiêu (Black Pepper - Có mô hình)</option>
+                                        <option value="Rice" data-name="Lúa">🌾 Lúa (Rice - Có mô hình)</option>
+                                        <option value="Durian" data-name="Sầu riêng">🍈 Sầu riêng (Durian - Chưa có mô hình)</option>
+                                        <option value="Rubber" data-name="Cao su">🌳 Cao su (Rubber - Chưa có mô hình)</option>
+                                        <option value="Dragon_Fruit" data-name="Thanh long">🌵 Thanh long (Dragon Fruit - Chưa có mô hình)</option>
+                                        <option value="Tomato" data-name="Cà chua">🍅 Cà chua (Tomato - Có mô hình)</option>
+                                        <option value="Potato" data-name="Khoai tây">🥔 Khoai tây (Potato - Có mô hình)</option>
+                                    </optgroup>
+                                    <optgroup label="Cây trồng khác">
+                                        <option value="Maize" data-name="Ngô">Ngô (Bắp)</option>
+                                        <option value="Banana" data-name="Chuối">Chuối</option>
+                                        <option value="Tea" data-name="Chè">Chè</option>
+                                        <option value="Citrus" data-name="Cam / Bưởi">Cam / Bưởi</option>
+                                    </optgroup>
+                                    <option value="Unknown" data-name="Chưa rõ cây trồng">❓ Tôi chưa biết cây gì (Unknown Crop)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Tình trạng lá / cây trồng</label>
+                                <div style="display:flex; gap:10px;">
+                                    <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                                        <input type="radio" name="healthStatus" value="healthy" checked />
+                                        <span>Khỏe mạnh (Healthy)</span>
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                                        <input type="radio" name="healthStatus" value="abnormal" />
+                                        <span>Có dấu hiệu bệnh (Abnormal)</span>
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                                        <input type="radio" name="healthStatus" value="unknown" />
+                                        <span>Chưa rõ tình trạng</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="groupDisease">
+                                <label class="form-label" for="colDisease">Mầm bệnh nghi ngờ (hoặc ghi rõ triệu chứng)</label>
+                                <input type="text" class="input" id="colDisease" placeholder="VD: Gỉ sắt, Đốm mắt cua, Cháy bìa lá, hoặc 'Chưa rõ'..." />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Góc chụp mẫu (Capture View)</label>
+                                <div class="capture-view-pills" id="captureViewPills">
+                                    <button type="button" class="view-pill-btn active" data-view="single_leaf_top">🍃 Chụp một chiếc lá</button>
+                                    <button type="button" class="view-pill-btn" data-view="single_leaf_bottom">🔄 Chụp mặt dưới lá</button>
+                                    <button type="button" class="view-pill-btn" data-view="whole_plant">🌳 Chụp toàn cây</button>
+                                    <button type="button" class="view-pill-btn" data-view="multiple_leaves">🌿 Chụp nhiều lá</button>
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <div class="form-group">
+                                    <label class="form-label" for="colLighting">Điều kiện ánh sáng</label>
+                                    <select class="select" id="colLighting">
+                                        <option value="natural_sunlight">☀️ Nắng tự nhiên</option>
+                                        <option value="overcast_diffuse">☁️ Trời râm / Mây</option>
+                                        <option value="low_light_dawn_dusk">🌅 Thiếu sáng (Sáng sớm/Chiều muộn)</option>
+                                        <option value="backlit">⚡ Ngược sáng</option>
+                                        <option value="flash">🔦 Đèn Flash</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="colEnvironment">Môi trường canh tác</label>
+                                    <select class="select" id="colEnvironment">
+                                        <option value="outdoor_field">Vườn thực địa mở</option>
+                                        <option value="greenhouse">Nhà màng công nghệ cao</option>
+                                        <option value="shade_net">Nhà lưới</option>
+                                        <option value="indoor_studio">Phòng thí nghiệm</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <div class="form-group">
+                                    <label class="form-label" for="colProvince">Tỉnh / Thành phố</label>
+                                    <select class="select" id="colProvince">
+                                        <option value="Đắk Lắk">Đắk Lắk (Tây Nguyên)</option>
+                                        <option value="Lâm Đồng">Lâm Đồng (Tây Nguyên)</option>
+                                        <option value="Gia Lai">Gia Lai (Tây Nguyên)</option>
+                                        <option value="Cần Thơ">Cần Thơ (ĐBSCL)</option>
+                                        <option value="Tiền Giang">Tiền Giang (ĐBSCL)</option>
+                                        <option value="Đồng Nai">Đồng Nai (Đông Nam Bộ)</option>
+                                        <option value="Bình Phước">Bình Phước (Đông Nam Bộ)</option>
+                                        <option value="Hà Nội">Hà Nội (ĐBSH)</option>
+                                        <option value="Khác">Khu vực khác</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="colDistrict">Huyện / Thị xã (Bảo mật)</label>
+                                    <input type="text" class="input" id="colDistrict" placeholder="VD: Cư M'gar, Di Linh, Cái Bè..." />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="colNotes">Ghi chú thực địa</label>
+                                <input type="text" class="input" id="colNotes" placeholder="VD: Triệu chứng xuất hiện sau đợt sương muối..." />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" id="btnSubmitCollect" style="width:100%; margin-top:6px;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                Lưu vào tập dữ liệu thực địa
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: FIELD DATASET REVIEW & VERIFICATION TABLE -->
+                <div class="card">
+                    <div class="card-header" style="flex-wrap:wrap; gap:12px;">
+                        <div class="card-title-group">
+                            <h3 class="card-title">Nhật ký mẫu thực địa & Trạng thái thẩm định</h3>
+                            <div class="card-subtitle">Dữ liệu thực nghiệm được lưu trữ theo quy chuẩn schema an toàn</div>
+                        </div>
+
+                        <div style="display:flex; gap:10px;">
+                            <select class="select select-sm" id="filterStatus" style="width:140px;">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="pending">Chờ thẩm định</option>
+                                <option value="reviewed">Đã duyệt sơ bộ</option>
+                                <option value="verified">Đã xác thực</option>
+                                <option value="disputed">Tranh chấp / Chưa rõ</option>
+                            </select>
+                            <select class="select select-sm" id="filterCrop" style="width:140px;">
+                                <option value="">Tất cả cây trồng</option>
+                                <option value="Coffee">Cà phê</option>
+                                <option value="Black_Pepper">Hồ tiêu</option>
+                                <option value="Rice">Lúa</option>
+                                <option value="Tomato">Cà chua</option>
+                                <option value="Potato">Khoai tây</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mã mẫu</th>
+                                    <th>Ảnh thực địa</th>
+                                    <th>Cây trồng</th>
+                                    <th>Mầm bệnh nghi ngờ</th>
+                                    <th>Góc chụp & Ánh sáng</th>
+                                    <th>Vị trí</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fieldTableBody">
+                                <tr><td colspan="8" style="text-align:center; padding:24px;">Đang nạp dữ liệu thực địa...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Reviewer Moderation Modal -->
+    <div class="modal-overlay" id="reviewModal">
+        <div class="modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="font-size:18px; font-weight:700; margin:0;" id="modalTitle">Thẩm định chuyên gia</h3>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnCloseModal">✕</button>
+            </div>
+
+            <form id="reviewForm" style="display:flex; flex-direction:column; gap:12px;">
+                <input type="hidden" id="modalRecordId" />
+
+                <div class="form-group">
+                    <label class="form-label">Quyết định thẩm định</label>
+                    <select class="select" id="revStatus" required>
+                        <option value="verified">✅ Đã xác thực (Verified by Agronomist)</option>
+                        <option value="reviewed">🔍 Đã duyệt sơ bộ (Reviewed)</option>
+                        <option value="disputed">⚠️ Tranh chấp / Chưa rõ (Disputed / Unknown)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="revCorrectedCrop">Hiệu chỉnh loại cây trồng (nếu phát hiện sai lệch)</label>
+                    <input type="text" class="input" id="revCorrectedCrop" placeholder="Để trống nếu cây trồng đã chính xác" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="revCorrectedDisease">Hiệu chỉnh mầm bệnh (nếu cần)</label>
+                    <input type="text" class="input" id="revCorrectedDisease" placeholder="Tên bệnh chính xác được xác nhận" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="revNotes">Nhận xét của chuyên gia nông học</label>
+                    <textarea class="input" id="revNotes" rows="3" placeholder="Ghi chú phân tích triệu chứng hoặc nguyên nhân tranh chấp..."></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                    <button type="button" class="btn btn-secondary" id="btnCancelReview">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveReview">Lưu kết quả thẩm định</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js';
+
+        let selectedFiles = [];
+        let currentRecords = [];
+        let selectedView = 'single_leaf_top';
+
+        async function init() {
+            setupSaaSShell('collect', 'Thu thập thực địa');
+            loadInventory();
+            loadRecords();
+            setupDropzone();
+            setupForm();
+            setupPills();
+            setupExport();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        async function loadInventory() {
+            try {
+                const inv = await fetchJSON('/api/field/inventory');
+                const grid = document.getElementById('cropReadinessGrid');
+                if (!grid) return;
+
+                const crops = inv.vietnam_8_key_crops || [];
+                grid.innerHTML = crops.map(c => {
+                    let badgeClass = 'ready';
+                    if (c.category === 'no_model' || !c.compatible_model_exists) badgeClass = 'no-model';
+                    else if (c.field_images_count === 0) badgeClass = 'need-data';
+
+                    return `
+                        <div class="readiness-card">
+                            <div class="readiness-header">
+                                <span class="readiness-title">${c.crop_name_vi}</span>
+                                <span class="readiness-status ${badgeClass}">${c.compatible_model_exists ? 'Có mô hình AI' : 'Chưa có mô hình'}</span>
+                            </div>
+                            <div class="readiness-meta">
+                                Mẫu thực địa: <strong>${c.field_images_count}</strong> (Đã xác thực: ${c.verified_images_count})
+                            </div>
+                            <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
+                                ${c.readiness_status}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Lỗi tải inventory:', e);
+            }
+        }
+
+        async function loadRecords() {
+            try {
+                const statusFilter = document.getElementById('filterStatus')?.value || '';
+                const cropFilter = document.getElementById('filterCrop')?.value || '';
+                let url = '/api/field/records';
+                const params = new URLSearchParams();
+                if (statusFilter) params.append('status', statusFilter);
+                if (cropFilter) params.append('crop_id', cropFilter);
+                if (params.toString()) url += '?' + params.toString();
+
+                const res = await fetchJSON(url);
+                currentRecords = res.records || [];
+                renderTable(currentRecords);
+            } catch (e) {
+                console.error('Lỗi tải records:', e);
+            }
+        }
+
+        function renderTable(records) {
+            const tbody = document.getElementById('fieldTableBody');
+            if (!tbody) return;
+
+            if (records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">Chưa có mẫu thực địa nào phù hợp bộ lọc. Hãy tải lên mẫu ảnh đầu tiên ở trên.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = records.map(r => {
+                const st = r.annotation_status || 'pending';
+                let stPill = '<span class="pill">Chờ duyệt</span>';
+                if (st === 'verified') stPill = '<span class="pill pill-success">Đã xác thực</span>';
+                else if (st === 'reviewed') stPill = '<span class="pill pill-primary">Đã duyệt sơ bộ</span>';
+                else if (st === 'disputed') stPill = '<span class="pill pill-danger">Tranh chấp / Chưa rõ</span>';
+
+                const imgUrl = `/api/field/image/${r.filename}`;
+                const cropName = r.crop?.crop_name_vi || r.crop?.crop_id;
+                const disease = r.diagnosis?.disease_name_vi || (r.health_status === 'healthy' ? 'Lá khỏe mạnh' : 'Chưa rõ mầm bệnh');
+                const cond = `${r.capture_conditions?.capture_view || ''} • ${r.capture_conditions?.lighting || ''}`;
+                const loc = `${r.location?.district ? r.location.district + ', ' : ''}${r.location?.province || 'VN'}`;
+
+                return `
+                    <tr>
+                        <td><span style="font-family:monospace; font-weight:700; font-size:11.5px;">${r.id}</span></td>
+                        <td>
+                            <a href="${imgUrl}" target="_blank">
+                                <img src="${imgUrl}" alt="${cropName}" style="width:48px; height:48px; border-radius:6px; object-fit:cover; border:1px solid var(--border);" />
+                            </a>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;">${cropName}</div>
+                            <div style="font-size:11px; color:var(--text-muted);">${r.crop?.compatible_model_exists ? 'Có mô hình' : 'Thiếu mô hình'}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600; color:${r.health_status === 'healthy' ? 'var(--primary)' : 'var(--text-main)'};">${disease}</div>
+                        </td>
+                        <td style="font-size:12px; color:var(--text-secondary);">${cond}</td>
+                        <td style="font-size:12px;">${loc}</td>
+                        <td>${stPill}</td>
+                        <td>
+                            <button type="button" class="btn btn-secondary btn-sm btn-review" data-id="${r.id}" style="padding:4px 8px; font-size:11.5px;">Thẩm định</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Bind review buttons
+            tbody.querySelectorAll('.btn-review').forEach(btn => {
+                btn.onclick = () => openReviewModal(btn.dataset.id);
+            });
+        }
+
+        function setupPills() {
+            const container = document.getElementById('captureViewPills');
+            if (!container) return;
+            container.querySelectorAll('.view-pill-btn').forEach(btn => {
+                btn.onclick = () => {
+                    container.querySelectorAll('.view-pill-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedView = btn.dataset.view;
+                };
+            });
+        }
+
+        function setupDropzone() {
+            const drop = document.getElementById('fieldDropZone');
+            const fileInput = document.getElementById('fieldFileInput');
+            if (!drop || !fileInput) return;
+
+            drop.onclick = () => fileInput.click();
+            fileInput.onchange = (e) => handleFiles(Array.from(e.target.files));
+
+            drop.ondragover = (e) => { e.preventDefault(); drop.style.borderColor = 'var(--primary)'; };
+            drop.ondragleave = () => { drop.style.borderColor = 'var(--border)'; };
+            drop.ondrop = (e) => {
+                e.preventDefault();
+                drop.style.borderColor = 'var(--border)';
+                if (e.dataTransfer.files) handleFiles(Array.from(e.dataTransfer.files));
+            };
+        }
+
+        function handleFiles(files) {
+            selectedFiles = files.filter(f => f.type.startsWith('image/'));
+            const gallery = document.getElementById('previewGallery');
+            if (!gallery) return;
+
+            if (selectedFiles.length === 0) {
+                gallery.innerHTML = '';
+                return;
+            }
+
+            gallery.innerHTML = selectedFiles.map((f, i) => `
+                <div class="gallery-item">
+                    <img src="${URL.createObjectURL(f)}" alt="Preview ${i+1}" />
+                </div>
+            `).join('');
+
+            toast(`Đã chọn ${selectedFiles.length} tệp ảnh thực địa.`);
+        }
+
+        function setupForm() {
+            const form = document.getElementById('fieldCollectForm');
+            if (!form) return;
+
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                if (selectedFiles.length === 0) {
+                    toast('Vui lòng chọn ít nhất 1 ảnh thực địa trước khi lưu.', 'error');
+                    return;
+                }
+
+                const btn = document.getElementById('btnSubmitCollect');
+                btn.disabled = true;
+                btn.textContent = 'Đang tải lên và lập chỉ mục...';
+
+                const cropEl = document.getElementById('colCrop');
+                const cropId = cropEl.value;
+                const cropNameVi = cropEl.options[cropEl.selectedIndex].getAttribute('data-name') || cropId;
+                const healthStatus = form.querySelector('input[name="healthStatus"]:checked')?.value || 'unknown';
+                const disease = document.getElementById('colDisease').value.trim() || null;
+                const lighting = document.getElementById('colLighting').value;
+                const environment = document.getElementById('colEnvironment').value;
+                const province = document.getElementById('colProvince').value;
+                const district = document.getElementById('colDistrict').value.trim() || 'Chưa rõ';
+                const notes = document.getElementById('colNotes').value.trim();
+
+                let successCount = 0;
+                for (const file of selectedFiles) {
+                    const fd = new FormData();
+                    fd.append('image', file);
+                    fd.append('crop_id', cropId);
+                    fd.append('crop_name_vi', cropNameVi);
+                    fd.append('health_status', healthStatus);
+                    if (disease) {
+                        fd.append('disease_id', disease);
+                        fd.append('disease_name_vi', disease);
+                    }
+                    fd.append('capture_view', selectedView);
+                    fd.append('lighting', lighting);
+                    fd.append('environment', environment);
+                    fd.append('province', province);
+                    fd.append('district', district);
+                    fd.append('notes', notes);
+
+                    try {
+                        const token = localStorage.getItem('gari_token');
+                        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                        const res = await fetch('/api/field/upload', {
+                            method: 'POST',
+                            headers,
+                            body: fd
+                        });
+                        if (res.ok) successCount++;
+                    } catch (err) {
+                        console.error('Lỗi upload:', err);
+                    }
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Lưu vào tập dữ liệu thực địa`;
+
+                toast(`Đã lưu thành công ${successCount}/${selectedFiles.length} ảnh vào tập dữ liệu.`);
+                selectedFiles = [];
+                document.getElementById('previewGallery').innerHTML = '';
+                form.reset();
+                loadInventory();
+                loadRecords();
+            };
+
+            document.getElementById('filterStatus').onchange = loadRecords;
+            document.getElementById('filterCrop').onchange = loadRecords;
+        }
+
+        function openReviewModal(recordId) {
+            const rec = currentRecords.find(r => r.id === recordId);
+            if (!rec) return;
+
+            document.getElementById('modalRecordId').value = recordId;
+            document.getElementById('modalTitle').textContent = `Thẩm định: ${rec.crop?.crop_name_vi} (${rec.id})`;
+            document.getElementById('revStatus').value = rec.annotation_status || 'reviewed';
+            document.getElementById('revCorrectedCrop').value = '';
+            document.getElementById('revCorrectedDisease').value = rec.diagnosis?.disease_name_vi || '';
+            document.getElementById('revNotes').value = rec.reviewer_audit?.notes || '';
+
+            document.getElementById('reviewModal').style.display = 'flex';
+        }
+
+        const modal = document.getElementById('reviewModal');
+        document.getElementById('btnCloseModal').onclick = () => { modal.style.display = 'none'; };
+        document.getElementById('btnCancelReview').onclick = () => { modal.style.display = 'none'; };
+
+        document.getElementById('reviewForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const recordId = document.getElementById('modalRecordId').value;
+            const status = document.getElementById('revStatus').value;
+            const correctedCrop = document.getElementById('revCorrectedCrop').value.trim();
+            const correctedDisease = document.getElementById('revCorrectedDisease').value.trim();
+            const notes = document.getElementById('revNotes').value.trim();
+
+            try {
+                const token = localStorage.getItem('gari_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const payload = {
+                    reviewer_name: 'Kỹ sư Đan Huỳnh',
+                    status: status,
+                    corrected_crop_id: correctedCrop || null,
+                    corrected_crop_name_vi: correctedCrop || null,
+                    corrected_disease_id: correctedDisease || null,
+                    corrected_disease_name_vi: correctedDisease || null,
+                    notes: notes,
+                    dispute_reason: status === 'disputed' ? notes : null
+                };
+
+                const res = await fetch(`/api/field/review/${recordId}`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    toast('Đã lưu kết quả thẩm định.');
+                    modal.style.display = 'none';
+                    loadRecords();
+                    loadInventory();
+                } else {
+                    toast('Lỗi cập nhật thẩm định.', 'error');
+                }
+            } catch (err) {
+                toast('Lỗi máy chủ: ' + err.message, 'error');
+            }
+        };
+
+        function setupExport() {
+            document.getElementById('btnExportJSON').onclick = () => {
+                window.open('/api/field/export?format=json', '_blank');
+            };
+            document.getElementById('btnExportCSV').onclick = () => {
+                window.open('/api/field/export?format=csv', '_blank');
+            };
+        }
+    </script>
+</body>
+</html>

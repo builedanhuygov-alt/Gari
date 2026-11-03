@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thư viện bệnh cây • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-head-title">Thư viện bệnh cây & Dịch hại</h1>
+                        <p class="page-head-sub">Cẩm nang bệnh học thực vật, nhận biết triệu chứng lâm sàng và hướng dẫn phòng trừ IPM.</p>
+                    </div>
+                    <div class="page-head-actions">
+                        <a href="/frontend2/predict.html" class="btn btn-primary">Chẩn đoán mẫu lá</a>
+                    </div>
+                </div>
+
+                <!-- Filters Bar -->
+                <div class="card" style="margin-bottom:20px; padding:14px 18px;">
+                    <div style="display:grid; grid-template-columns: 1.5fr 1fr auto; gap:12px; align-items:center;">
+                        <input type="text" class="input" id="diseaseSearch" placeholder="Tìm kiếm bệnh hoặc triệu chứng (VD: Đốm vi khuẩn, Mốc sương, Đạo ôn...)" />
+                        <select class="select" id="cropFilter">
+                            <option value="">Tất cả loại cây trồng</option>
+                        </select>
+                        <span class="pill pill-neutral" id="diseaseCountBadge">Đang nạp...</span>
+                    </div>
+                </div>
+
+                <!-- Disease Catalog -->
+                <div class="catalog-grid" id="diseaseGrid">
+                    <div style="grid-column:1/-1; padding:32px 0;"><span class="skeleton" style="width:60%; height:20px;"></span></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js';
+
+        let allDiseases = [];
+
+        function init() {
+            setupSaaSShell('disease', 'Thư viện bệnh cây');
+            
+            const params = new URLSearchParams(window.location.search);
+            const initialCrop = params.get('crop') || '';
+
+            initDiseases(initialCrop);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        async function initDiseases(crop) {
+            await loadCrops(crop);
+            await fetchDiseases(crop, '');
+
+            document.getElementById('diseaseSearch').addEventListener('input', e => {
+                const q = e.target.value.trim();
+                const sel = document.getElementById('cropFilter').value;
+                fetchDiseases(sel, q);
+            });
+
+            document.getElementById('cropFilter').addEventListener('change', e => {
+                const q = document.getElementById('diseaseSearch').value.trim();
+                fetchDiseases(e.target.value, q);
+            });
+        }
+
+        async function loadCrops(selectedCrop) {
+            try {
+                const data = await fetchJSON('/api/knowledge/crops');
+                const crops = data.crops || [];
+                const select = document.getElementById('cropFilter');
+                crops.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.crop_id;
+                    opt.textContent = c.crop_name;
+                    if (c.crop_id === selectedCrop) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            } catch {}
+        }
+
+        async function fetchDiseases(crop, q) {
+            const container = document.getElementById('diseaseGrid');
+            const badge = document.getElementById('diseaseCountBadge');
+
+            let url = '/api/knowledge/diseases';
+            const params = new URLSearchParams();
+            if (crop) params.append('crop', crop);
+            if (q) params.append('q', q);
+            if (params.toString()) url += `?${params.toString()}`;
+
+            try {
+                const data = await fetchJSON(url);
+                allDiseases = data.diseases || [];
+                badge.textContent = `${allDiseases.length} Bệnh học`;
+                renderDiseases(allDiseases);
+            } catch (err) {
+                try {
+                    const data = await fetchJSON(q ? `/api/diseases/search?q=${encodeURIComponent(q)}` : '/api/diseases');
+                    allDiseases = data.diseases || [];
+                    badge.textContent = `${allDiseases.length} Bệnh học`;
+                    renderDiseases(allDiseases);
+                } catch {
+                    badge.textContent = '0 Bệnh học';
+                    container.innerHTML = '<div style="grid-column:1/-1;" class="empty-box"><div class="empty-title">Không tìm thấy mầm bệnh nào</div></div>';
+                }
+            }
+        }
+
+        function renderDiseases(items) {
+            const container = document.getElementById('diseaseGrid');
+            if (!items || items.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column:1/-1;" class="empty-box">
+                        <div class="empty-title">Không tìm thấy bệnh cây phù hợp tiêu chí</div>
+                        <div class="empty-desc">Thử xóa bộ lọc cây trồng hoặc tìm kiếm với từ khóa khác.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = items.map(d => {
+                const symptoms = Array.isArray(d.symptoms) ? d.symptoms.join('; ') : (d.symptoms || 'Triệu chứng xuất hiện trên phiến lá và thân.');
+                const prevention = Array.isArray(d.prevention) ? d.prevention.slice(0, 2).join('; ') : (d.prevention || '');
+
+                return `
+                    <div class="disease-card">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                                <div>
+                                    <h3 style="font-size:15px; font-weight:700; color:var(--text-main); margin:0;">${d.disease_vi || d.disease_name || d.name}</h3>
+                                    <span style="font-size:12px; color:var(--text-muted); font-style:italic;">${d.disease_name || d.scientificName || ''}</span>
+                                </div>
+                                <span class="pill pill-neutral">${d.crop_name || d.crop_id || 'Cây trồng'}</span>
+                            </div>
+
+                            <p style="font-size:12px; color:var(--text-secondary); line-height:1.4; margin:8px 0;">
+                                <strong>Triệu chứng:</strong> ${symptoms}
+                            </p>
+
+                            ${prevention ? `
+                                <p style="font-size:11.5px; color:var(--text-muted); line-height:1.4; margin:4px 0;">
+                                    <strong>Phòng trừ:</strong> ${prevention}
+                                </p>
+                            ` : ''}
+                        </div>
+
+                        <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:11px; color:var(--text-muted); font-family:monospace;">${d.class_id || 'Kiểm định'}</span>
+                            <a href="/frontend2/predict.html?crop=${encodeURIComponent(d.crop_id || '')}" class="btn btn-secondary btn-sm">
+                                Thử nghiệm mẫu lá →
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

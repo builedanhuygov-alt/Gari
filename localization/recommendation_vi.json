@@ -1,0 +1,65 @@
+{
+  "Bacterial_spot": {
+    "action": "Cách ly tàn dư, tránh tưới phun mưa trên tán lá, ưu tiên chế phẩm sinh học hoặc gốc đồng.",
+    "steps": [
+      "Tưới nước trực tiếp vào gốc vào buổi sáng, tuyệt đối không tưới phun mưa làm ướt tán lá vào chiều tối.",
+      "Tỉa bỏ các lá bị đốm nặng và gom vào túi nilon đem tiêu hủy xa vườn, khử trùng kéo cắt.",
+      "Khi bệnh chớm xuất hiện, sử dụng chế phẩm vi sinh đối kháng Bacillus subtilis hoặc dung dịch gốc đồng (Copper hydroxide) theo nồng độ hướng dẫn."
+    ],
+    "caution": "Hạn chế lạm dụng kháng sinh nông nghiệp để phòng ngừa vi khuẩn kháng thuốc."
+  },
+  "Early_blight": {
+    "action": "Tỉa lá già sát gốc, phủ bạt giữ ẩm ngăn bào tử từ đất, bón cân đối dinh dưỡng.",
+    "steps": [
+      "Vệ sinh sạch cỏ dại, tỉa bỏ tầng lá chân sát mặt đất để gốc cây luôn thông thoáng và khô ráo.",
+      "Phủ rơm rạ sạch hoặc màng phủ nông nghiệp quanh gốc để ngăn giọt mưa bắn đất mang mầm bệnh lên lá dưới.",
+      "Bón phân cân đối N-P-K, tăng cường Kali và Canxi-Bo để làm dày vách tế bào lá, giảm bón thừa đạm."
+    ],
+    "caution": "Luân canh cây trồng khác họ ít nhất 2 năm để làm đứt chu kỳ sống của nấm Alternaria trong đất."
+  },
+  "Late_blight": {
+    "action": "Ngừng tưới nước ngay lập tức, cách ly khẩn cấp ổ bệnh, xử lý bằng hoạt chất chuyên biệt.",
+    "steps": [
+      "Ngừng mọi hình thức tưới nước trên tán lá; kiểm tra độ thoát nước của luống trong mùa mưa lạnh.",
+      "Cắt bỏ và tiêu hủy toàn bộ các lá và quả bị thâm úng, không ủ làm phân hữu cơ.",
+      "Khi thời tiết lạnh ẩm kéo dài, phun phòng ngừa bằng các hoạt chất đặc trị mốc sương như Metalaxyl, Cymoxanil hoặc Dimethomorph theo đúng khuyến cáo BVTV."
+    ],
+    "caution": "Bệnh mốc sương lây lan cực nhanh theo gió và nước, cần can thiệp xử lý ngay trong 24-48 giờ đầu."
+  },
+  "Powdery_mildew": {
+    "action": "Tạo độ thông thoáng cho giàn/tán, phun phòng chế phẩm sinh học hoặc lưu huỳnh dạng bột/nước.",
+    "steps": [
+      "Tỉa bớt cành nhánh rậm rạp để ánh nắng chiếu sâu vào trong tán cây.",
+      "Sử dụng dầu khoáng nông nghiệp hoặc chế phẩm nấm đối kháng Trichoderma phun đều 2 mặt lá.",
+      "Có thể sử dụng các chế phẩm chứa hoạt chất Azoxystrobin hoặc gốc lưu huỳnh hữu cơ khi bệnh bùng phát."
+    ],
+    "caution": "Tránh phun lưu huỳnh khi nhiệt độ ngoài trời vượt quá 32°C để tránh gây cháy lá non."
+  },
+  "Downy_mildew": {
+    "action": "Giảm độ ẩm vườn, nhổ bỏ cây bệnh nặng, phun phòng bằng gốc đồng hoặc hoạt chất diệt noãn nấm.",
+    "steps": [
+      "Giảm mật độ trồng, làm giàn vững chắc và dọn sạch lá khô tàn dư dưới gốc.",
+      "Tưới tiêu hợp lý, tránh để nước tù đọng qua đêm trong rãnh luống.",
+      "Phun luân phiên Mancozeb, Fosetyl-aluminium hoặc Metalaxyl khi quan sát thấy vết vàng góc cạnh đầu tiên."
+    ],
+    "caution": "Nấm sương mai dễ kháng thuốc, bắt buộc phải luân phiên các nhóm hoạt chất có cơ chế tác động khác nhau."
+  },
+  "Healthy": {
+    "action": "Duy trì chế độ chăm sóc hiện tại, bổ sung dinh dưỡng hữu cơ và nấm đối kháng định kỳ.",
+    "steps": [
+      "Tiếp tục tưới nước hợp lý theo nhu cầu độ ẩm của từng giai đoạn sinh trưởng.",
+      "Bổ sung phân hữu cơ hoai mục ủ Trichoderma vào gốc để tăng sức đề kháng tự nhiên cho bộ rễ.",
+      "Kiểm tra bẫy dính vàng định kỳ để giám sát côn trùng truyền virus (bọ trĩ, rầy mềm, bọ phấn trắng)."
+    ],
+    "caution": "Không cần sử dụng thuốc BVTV hóa học khi lá cây đang ở trạng thái khỏe mạnh."
+  },
+  "Default": {
+    "action": "Theo dõi sát diễn biến vết bệnh, giữ vườn thông thoáng và tham khảo ý kiến cán bộ khuyến nông.",
+    "steps": [
+      "Chụp thêm ảnh theo dõi sau 2-3 ngày để đánh giá tốc độ lan rộng của đốm tổn thương.",
+      "Tạm thời ngưng bón phân đạm lá, tăng cường phân bón hữu cơ và vi lượng cân đối.",
+      "Trao đổi trực tiếp với cán bộ nông nghiệp địa phương nếu xuất hiện lây lan trên diện rộng."
+    ],
+    "caution": "Không tự ý phối trộn nhiều loại thuốc BVTV khi chưa xác định chính xác tác nhân gây hại."
+  }
+}

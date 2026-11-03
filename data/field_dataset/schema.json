@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GariFieldDatasetRecord",
+  "description": "Standard schema for Vietnam agricultural field images, metadata, and multi-level disease annotations.",
+  "type": "object",
+  "required": [
+    "id",
+    "filename",
+    "crop",
+    "health_status",
+    "capture_conditions",
+    "location",
+    "source",
+    "annotation_status",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the field image (UUID or prefixed hash, e.g. field_1793374901234)."
+    },
+    "filename": {
+      "type": "string",
+      "description": "Image file basename stored in images/ directory."
+    },
+    "filepath": {
+      "type": "string",
+      "description": "Relative path to image from dataset root (e.g. images/coffee_rust_001.jpg)."
+    },
+    "image_metadata": {
+      "type": "object",
+      "properties": {
+        "width": { "type": "integer" },
+        "height": { "type": "integer" },
+        "channels": { "type": "integer", "default": 3 },
+        "file_size_bytes": { "type": "integer" },
+        "format": { "type": "string", "enum": ["JPEG", "PNG", "WEBP"] },
+        "md5_checksum": { "type": "string" }
+      }
+    },
+    "crop": {
+      "type": "object",
+      "required": ["crop_id", "crop_name_vi"],
+      "properties": {
+        "crop_id": {
+          "type": "string",
+          "description": "Canonical English crop ID (e.g. Coffee, Black_Pepper, Rice, Durian, Rubber, Dragon_Fruit, Tomato, Potato, Unknown)."
+        },
+        "crop_name_vi": {
+          "type": "string",
+          "description": "Standard Vietnamese crop name (e.g. Cà phê, Hồ tiêu, Lúa, Sầu riêng, Cao su, Thanh long, Cà chua, Khoai tây, Chưa rõ cây trồng)."
+        },
+        "scientific_name": { "type": "string" },
+        "compatible_model_exists": {
+          "type": "boolean",
+          "description": "Explicit declaration whether a neural model exists in models/ registry for this crop."
+        }
+      }
+    },
+    "health_status": {
+      "type": "string",
+      "enum": ["healthy", "abnormal", "unknown"],
+      "description": "Status of the plant tissue: healthy (khỏe mạnh), abnormal (bất thường/mầm bệnh), or unknown (chưa rõ)."
+    },
+    "diagnosis": {
+      "type": "object",
+      "properties": {
+        "disease_id": {
+          "type": ["string", "null"],
+          "description": "Standard disease ID if identified, null if healthy or unknown."
+        },
+        "disease_name_vi": {
+          "type": ["string", "null"],
+          "description": "Vietnamese disease name (e.g. Bệnh gỉ sắt cà phê, Đốm nâu hại lúa, Cháy lá chết nhanh hồ tiêu)."
+        },
+        "is_verified": {
+          "type": "boolean",
+          "default": false,
+          "description": "True only if verified by an agronomist or PCR/laboratory test."
+        },
+        "confidence_level": {
+          "type": "string",
+          "enum": ["suspected", "field_verified", "laboratory_confirmed", "unknown"],
+          "default": "suspected"
+        }
+      }
+    },
+    "capture_conditions": {
+      "type": "object",
+      "required": ["environment", "lighting", "capture_view"],
+      "properties": {
+        "environment": {
+          "type": "string",
+          "enum": ["outdoor_field", "greenhouse", "shade_net", "indoor_studio", "unknown"],
+          "description": "Physical environment where the photo was taken."
+        },
+        "lighting": {
+          "type": "string",
+          "enum": ["natural_sunlight", "overcast_diffuse", "low_light_dawn_dusk", "backlit", "flash", "unusual_tint"],
+          "description": "Ambient lighting condition."
+        },
+        "capture_view": {
+          "type": "string",
+          "enum": ["single_leaf_top", "single_leaf_bottom", "whole_plant", "multiple_leaves", "fruit_stem", "unknown"],
+          "description": "Focal perspective of the camera."
+        },
+        "device_type": {
+          "type": "string",
+          "enum": ["smartphone", "dslr_mirrorless", "drone", "tablet", "unknown"],
+          "default": "smartphone"
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "description": "Privacy-preserving geographic location (coarse level).",
+      "properties": {
+        "province": {
+          "type": "string",
+          "description": "Province/City in Vietnam (e.g. Đắk Lắk, Lâm Đồng, Gia Lai, Cần Thơ, Tiền Giang, Bình Phước, Đồng Nai)."
+        },
+        "district": {
+          "type": "string",
+          "description": "District name (e.g. Cư M'gar, Di Linh, Chư Sê, Phong Điền, Cái Bè)."
+        },
+        "agro_ecological_zone": {
+          "type": "string",
+          "enum": [
+            "Tây Nguyên (Central Highlands)",
+            "Đồng bằng sông Cửu Long (Mekong Delta)",
+            "Đông Nam Bộ (Southeast)",
+            "Duyên hải Nam Trung Bộ (South Central Coast)",
+            "Bắc Trung Bộ (North Central Coast)",
+            "Đồng bằng sông Hồng (Red River Delta)",
+            "Trung du và miền núi phía Bắc (Northern Midlands & Mountains)",
+            "Khác"
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_type"],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": ["vietnam_field_collection", "farmer_mobile_upload", "extension_officer", "research_station", "plantvillage_benchmark"]
+        },
+        "contributor_id": { "type": "string" },
+        "session_id": {
+          "type": "string",
+          "description": "Collection session ID to prevent data leakage during train/eval splitting."
+        }
+      }
+    },
+    "localization": {
+      "type": "object",
+      "description": "Multi-tier lesion spatial annotations (bounding boxes, polygons, and pixel masks).",
+      "properties": {
+        "has_manual_annotations": {
+          "type": "boolean",
+          "default": false,
+          "description": "Set to true ONLY when a human annotator manually drew the boxes/polygons."
+        },
+        "bounding_boxes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["box_xywh", "disease_label"],
+            "properties": {
+              "id": { "type": "string" },
+              "box_xywh": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[x_min, y_min, width, height] in pixel coordinates."
+              },
+              "disease_label": { "type": "string" },
+              "confidence": { "type": "number", "default": 1.0 }
+            }
+          }
+        },
+        "polygons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["points", "disease_label"],
+            "properties": {
+              "id": { "type": "string" },
+              "points": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "description": "List of [x, y] coordinates forming closed polygon outline."
+              },
+              "disease_label": { "type": "string" },
+              "area_px": { "type": "number" }
+            }
+          }
+        },
+        "mask_file": {
+          "type": ["string", "null"],
+          "description": "Relative path to binary/indexed PNG mask file for pixel-level ground truth."
+        }
+      }
+    },
+    "annotation_status": {
+      "type": "string",
+      "enum": ["pending", "reviewed", "verified", "disputed"],
+      "default": "pending",
+      "description": "Review status: pending (chờ duyệt), reviewed (đã duyệt sơ bộ), verified (đã xác thực chuyên gia), disputed (tranh chấp/chưa thống nhất nhãn)."
+    },
+    "reviewer_audit": {
+      "type": "object",
+      "properties": {
+        "reviewer_id": { "type": "string" },
+        "reviewer_name": { "type": "string" },
+        "reviewed_at": { "type": "string" },
+        "notes": { "type": "string" },
+        "dispute_reason": { "type": "string" }
+      }
+    },
+    "created_at": { "type": "string" },
+    "updated_at": { "type": "string" }
+  }
+}

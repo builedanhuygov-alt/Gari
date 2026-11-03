@@ -1,0 +1,160 @@
+{
+  "timestamp": "2026-10-30 20:48:04",
+  "total_time_seconds": 243.44,
+  "crop_evaluation": {
+    "original_16": {
+      "top1": 0.0,
+      "top3": 0.0,
+      "macro_f1": 0.0,
+      "ece": 0.6331915505727131,
+      "per_class": {
+        "Pepper": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "Potato": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "Tomato": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        }
+      }
+    },
+    "new_36": {
+      "top1": 0.98,
+      "top3": 1.0,
+      "macro_f1": 0.9722,
+      "ece": 0.0843556608756383,
+      "per_class": {
+        "Pepper": {
+          "precision": 1.0,
+          "recall": 0.95,
+          "f1": 0.9744,
+          "support": 40
+        },
+        "Potato": {
+          "precision": 0.9091,
+          "recall": 1.0,
+          "f1": 0.9524,
+          "support": 60
+        },
+        "Tomato": {
+          "precision": 1.0,
+          "recall": 0.98,
+          "f1": 0.9899,
+          "support": 200
+        }
+      }
+    },
+    "gari_gate": {
+      "top1": 0.98,
+      "top3": 0.9933333333333333,
+      "macro_f1": 0.9928,
+      "ece": 0.07152133333333341,
+      "per_class": {
+        "Pepper": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 38
+        },
+        "Potato": {
+          "precision": 0.9677,
+          "recall": 1.0,
+          "f1": 0.9836,
+          "support": 60
+        },
+        "Tomato": {
+          "precision": 1.0,
+          "recall": 0.9899,
+          "f1": 0.9949,
+          "support": 198
+        }
+      },
+      "states": {
+        "CROP_CONFIDENT": 260,
+        "UNSUPPORTED_CROP": 38,
+        "MULTIPLE_CANDIDATES": 2
+      }
+    },
+    "latency_sec": 0.6887799374262492,
+    "sample_count": 300
+  },
+  "disease_evaluation": {
+    "accuracy": 0.49,
+    "top3_accuracy": 0.5,
+    "macro_f1": 0.9799,
+    "ece": 0.44400500000000004,
+    "per_class": {
+      "Bacterial_spot": {
+        "precision": 1.0,
+        "recall": 0.9,
+        "f1": 0.9474,
+        "support": 20
+      },
+      "Early_blight": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 20
+      },
+      "Healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 20
+      },
+      "Late_blight": {
+        "precision": 0.9091,
+        "recall": 1.0,
+        "f1": 0.9524,
+        "support": 20
+      },
+      "Leaf_Mold": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "Septoria_leaf_spot": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 20
+      },
+      "Spider_mites_Two_spotted_spider_mite": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "Target_Spot": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "Tomato_YellowLeaf__Curl_Virus": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "Tomato_mosaic_virus": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      }
+    },
+    "sample_count": 200
+  }
+}

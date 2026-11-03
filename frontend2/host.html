@@ -1,0 +1,1979 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển Máy Chủ • GARI Host Server Console</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <style>
+        :root {
+            --host-bg: #0b130e;
+            --host-card: #121e16;
+            --host-border: #1e3325;
+            --host-accent: #10b981;
+            --host-text: #f0fdf4;
+            --host-muted: #94a3b8;
+            --host-danger: #ef4444;
+            --host-warning: #f59e0b;
+        }
+        body {
+            background: var(--host-bg);
+            color: var(--host-text);
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+        }
+        .host-topbar {
+            background: #0e1911;
+            border-bottom: 1px solid var(--host-border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .host-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .host-logo-badge {
+            width: 36px;
+            height: 36px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--host-accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .host-brand-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .host-pill {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 99px;
+            letter-spacing: 0.5px;
+        }
+        .host-pill-active { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .host-pill-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .host-pill-warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .host-user-nav {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .host-admin-tag {
+            font-size: 13px;
+            color: var(--host-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .host-admin-tag strong {
+            color: #fff;
+        }
+        .btn-ghost-sm {
+            background: transparent;
+            border: 1px solid var(--host-border);
+            color: var(--host-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        .btn-ghost-sm:hover {
+            border-color: #334155;
+            color: #fff;
+        }
+        .btn-logout {
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        /* Tabs Navigation */
+        .host-tabs-bar {
+            background: #0d1710;
+            border-bottom: 1px solid var(--host-border);
+            padding: 0 24px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+        .host-tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--host-muted);
+            padding: 14px 16px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .host-tab-btn:hover {
+            color: #fff;
+        }
+        .host-tab-btn.active {
+            color: var(--host-accent);
+            border-bottom-color: var(--host-accent);
+        }
+
+        /* Main Content Container */
+        .host-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Metric Grid */
+        .host-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .host-card {
+            background: var(--host-card);
+            border: 1px solid var(--host-border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .host-card-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--host-muted);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .host-metric-val {
+            font-size: 26px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .host-metric-sub {
+            font-size: 12.5px;
+            color: var(--host-muted);
+            margin-top: 6px;
+        }
+
+        .meter-bar {
+            height: 6px;
+            background: #1b2e21;
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .meter-fill {
+            height: 100%;
+            background: var(--host-accent);
+            border-radius: 99px;
+            transition: width 0.3s ease;
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        /* Data Tables */
+        .host-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--host-border);
+            border-radius: 10px;
+            background: var(--host-card);
+        }
+        .host-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: left;
+        }
+        .host-table th {
+            background: #0e1911;
+            padding: 12px 16px;
+            font-weight: 700;
+            color: #cbd5e1;
+            border-bottom: 1px solid var(--host-border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .host-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #16261a;
+            color: #e2e8f0;
+        }
+        .host-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .host-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Form Controls */
+        .input-group-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .host-input {
+            background: #0d1610;
+            border: 1px solid var(--host-border);
+            color: #fff;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            outline: none;
+        }
+        .host-input:focus {
+            border-color: var(--host-accent);
+        }
+        .btn-host-action {
+            background: var(--host-accent);
+            color: #062413;
+            font-weight: 700;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s ease;
+        }
+        .btn-host-action:hover {
+            background: #059669;
+            color: #fff;
+        }
+        .btn-host-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-host-danger:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+        .btn-host-sec {
+            background: #1e3325;
+            color: #cbd5e1;
+            border: 1px solid var(--host-border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-host-sec:hover {
+            background: #284432;
+            color: #fff;
+        }
+
+        /* Modal Styles */
+        .host-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .host-modal-backdrop.open {
+            display: flex;
+        }
+        .host-modal {
+            background: #132017;
+            border: 1px solid var(--host-border);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 500px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        .host-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 8px 0;
+        }
+        .host-modal-sub {
+            font-size: 13px;
+            color: var(--host-muted);
+            margin: 0 0 20px 0;
+            line-height: 1.5;
+        }
+        .host-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        /* Toast notification */
+        .host-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1e293b;
+            color: #fff;
+            border: 1px solid #334155;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 2000;
+        }
+        .host-toast.success { background: #064e3b; border-color: #059669; color: #a7f3d0; }
+        .host-toast.error { background: #7f1d1d; border-color: #dc2626; color: #fecaca; }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <header class="host-topbar">
+        <div class="host-brand">
+            <div class="host-logo-badge">🛡️</div>
+            <div>
+                <div class="host-brand-title">
+                    GARI Host Server Admin Console
+                    <span class="host-pill host-pill-active" id="serverStatePill">Hệ thống sẵn sàng</span>
+                </div>
+                <div style="font-size:12px; color:var(--host-muted); margin-top:2px;" id="uptimeSub">
+                    Đang nạp dữ liệu telemetry thời gian thực...
+                </div>
+            </div>
+        </div>
+
+        <div class="host-user-nav">
+            <div class="host-admin-tag">
+                <span>Quản trị viên:</span>
+                <strong id="hostAdminEmail">Đang xác thực...</strong>
+            </div>
+            <a href="/frontend2/index.html" class="btn-ghost-sm" target="_blank">
+                🌐 Xem Dashboard Nông Dân
+            </a>
+            <button class="btn-ghost-sm btn-logout" id="btnLogout">
+                Đăng xuất
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="host-tabs-bar">
+        <button class="host-tab-btn active" data-tab="tab-overview">
+            📊 Tổng quan Máy chủ
+        </button>
+        <button class="host-tab-btn" data-tab="tab-users">
+            👥 Quản lý Tài khoản (Users)
+        </button>
+        <button class="host-tab-btn" data-tab="tab-vouchers">
+            🎟️ Quản lý Voucher
+        </button>
+        <button class="host-tab-btn" data-tab="tab-moderation">
+            🛡️ Kiểm Duyệt & Vi Phạm (Moderation)
+        </button>
+        <button class="host-tab-btn" data-tab="tab-api">
+            ⚙️ Cấu hình API & Toggles
+        </button>
+        <button class="host-tab-btn" data-tab="tab-audit">
+            📜 Nhật ký Kiểm toán (Audit Logs)
+        </button>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="host-container">
+
+        <!-- TAB 1: SERVER OVERVIEW & TELEMETRY -->
+        <section id="tab-overview" class="tab-panel active">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Thông số Hoạt động Máy chủ Thời gian thực</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Dữ liệu phần cứng, tiến trình, cơ sở dữ liệu và AI Engine thu thập trực tiếp (Không dựng số liệu giả).</span>
+                </div>
+                <button class="btn-ghost-sm" onclick="loadOverviewData()">
+                    🔄 Làm mới dữ liệu
+                </button>
+            </div>
+
+            <div class="host-grid-4">
+                <!-- CPU Card -->
+                <div class="host-card">
+                    <div class="host-card-title">
+                        <span>CPU Utilization</span>
+                        <span id="cpuPill" class="host-pill host-pill-active">Bình thường</span>
+                    </div>
+                    <div class="host-metric-val" id="metricCpu">--%</div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="cpuBar" style="width: 0%;"></div>
+                    </div>
+                    <div class="host-metric-sub" id="cpuPlatform">Hệ điều hành: --</div>
+                </div>
+
+                <!-- RAM Card -->
+                <div class="host-card">
+                    <div class="host-card-title">
+                        <span>Bộ nhớ RAM</span>
+                        <span id="ramPill" class="host-pill host-pill-active">Khả dụng</span>
+                    </div>
+                    <div class="host-metric-val" id="metricRam">-- / -- GB</div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="ramBar" style="width: 0%;"></div>
+                    </div>
+                    <div class="host-metric-sub" id="ramPercent">Đã sử dụng: --%</div>
+                </div>
+
+                <!-- Disk Storage -->
+                <div class="host-card">
+                    <div class="host-card-title">
+                        <span>Lưu trữ Ổ đĩa</span>
+                        <span class="host-pill host-pill-active">Ổn định</span>
+                    </div>
+                    <div class="host-metric-val" id="metricDisk">-- / -- GB</div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="diskBar" style="width: 0%;"></div>
+                    </div>
+                    <div class="host-metric-sub" id="diskFree">Còn trống: -- GB</div>
+                </div>
+
+                <!-- Process Uptime -->
+                <div class="host-card">
+                    <div class="host-card-title">
+                        <span>Thời gian Hoạt động</span>
+                        <span class="host-pill host-pill-active">Uvicorn Active</span>
+                    </div>
+                    <div class="host-metric-val" id="metricUptime">--</div>
+                    <div class="host-metric-sub" id="bootTimeSub">Khởi động lúc: --</div>
+                </div>
+            </div>
+
+            <!-- Second Grid: API & AI Telemetry -->
+            <div class="host-grid-4">
+                <div class="host-card">
+                    <div class="host-card-title">Lưu lượng API & Độ trễ</div>
+                    <div class="host-metric-val" id="metricApiReq">--</div>
+                    <div class="host-metric-sub" id="metricApiSub">Độ trễ trung bình: --ms • Lỗi: 0</div>
+                </div>
+
+                <div class="host-card">
+                    <div class="host-card-title">Tài khoản & Phiên hoạt động</div>
+                    <div class="host-metric-val" id="metricUsers">--</div>
+                    <div class="host-metric-sub" id="metricSessions">Phiên đang chạy: -- • 24h: --</div>
+                </div>
+
+                <div class="host-card">
+                    <div class="host-card-title">Mô hình AI & Thiết bị Suy luận</div>
+                    <div class="host-metric-val" id="metricAiModels">-- Cây trồng</div>
+                    <div class="host-metric-sub" id="metricAiDevice">Thiết bị: --</div>
+                </div>
+
+                <div class="host-card">
+                    <div class="host-card-title">Gói Dịch vụ & Đăng ký VIP</div>
+                    <div class="host-metric-val" id="metricVipSubs">-- VIP</div>
+                    <div class="host-metric-sub" id="metricTotalSubs">Tổng gói đăng ký: --</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: USER MANAGEMENT -->
+        <section id="tab-users" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Quản lý Tài khoản & Phân quyền Người dùng</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Tìm kiếm theo UID/Email, khóa/mở khóa tài khoản, chỉ định loại tài khoản duy nhất và cấp quyền VIP.</span>
+                </div>
+            </div>
+
+            <div class="input-group-row">
+                <input type="text" id="userSearchInput" class="host-input" style="min-width:300px;" placeholder="Tìm theo ID, Email hoặc Tên người dùng...">
+                <select id="userTypeFilter" class="host-input">
+                    <option value="">Tất cả loại tài khoản</option>
+                    <option value="farmer">Nông Hộ Cá Thể (farmer)</option>
+                    <option value="cooperative">Hợp Tác Xã (cooperative)</option>
+                    <option value="expert">Chuyên Gia BVTV (expert)</option>
+                    <option value="enterprise">Doanh Nghiệp Nông Nghiệp (enterprise)</option>
+                </select>
+                <select id="userStatusFilter" class="host-input">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="1">Đang hoạt động</option>
+                    <option value="0">Đã tạm khóa</option>
+                </select>
+                <button class="btn-host-action" onclick="loadUsersData()">
+                    🔍 Tìm kiếm
+                </button>
+            </div>
+
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>UID</th>
+                            <th>Họ và Tên / Email</th>
+                            <th>Loại Tài Khoản (Đơn nhất)</th>
+                            <th>Trạng Thái</th>
+                            <th>Gói Dịch Vụ</th>
+                            <th>Ngày Tạo</th>
+                            <th style="text-align:right;">Hành Động Quản Trị</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="7" style="text-align:center; padding:24px;">Đang tải danh sách người dùng...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 3: VOUCHER MANAGEMENT -->
+        <section id="tab-vouchers" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Quản lý Mã Voucher Truy cập & Giảm giá</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Tạo mã kích hoạt gói dịch vụ, giới hạn số lần đổi, theo dõi lịch sử và thu hồi mã.</span>
+                </div>
+                <button class="btn-host-action" onclick="openCreateVoucherModal()">
+                    + Phát hành Voucher Mới
+                </button>
+            </div>
+
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Voucher</th>
+                            <th>Gói Kích Hoạt</th>
+                            <th>Lượt Đổi / Tối Đa</th>
+                            <th>Hiệu Lực</th>
+                            <th>Ghi Chú</th>
+                            <th>Trạng Thái</th>
+                            <th style="text-align:right;">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vouchersTableBody">
+                        <tr><td colspan="7" style="text-align:center; padding:24px;">Đang tải danh sách voucher...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 4: API & SYSTEM CONTROLS -->
+        <section id="tab-api" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Cấu hình API & Toggles Hệ thống</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Điều chỉnh thông số rate limits, bảo trì hệ thống và bật/tắt các dịch vụ phụ trợ.</span>
+                </div>
+                <button class="btn-ghost-sm" onclick="loadApiControls()">
+                    🔄 Tải lại
+                </button>
+            </div>
+
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>Khóa Cấu Hình (Key)</th>
+                            <th>Giá Trị Hiện Tại</th>
+                            <th>Mô Tả Chức Năng</th>
+                            <th>Cập Nhật Lần Cuối</th>
+                            <th style="text-align:right;">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apiConfigTableBody">
+                        <tr><td colspan="5" style="text-align:center; padding:24px;">Đang tải cấu hình API...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 5: AUDIT LOGS -->
+        <section id="tab-audit" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Nhật ký Quản trị Máy chủ Bất biến (Audit Trail)</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Lưu trữ lịch sử mọi thao tác nhạy cảm của Quản trị viên máy chủ cùng lý do và địa chỉ IP.</span>
+                </div>
+                <button class="btn-ghost-sm" onclick="loadAuditLogs()">
+                    🔄 Làm mới nhật ký
+                </button>
+            </div>
+
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Thời Gian (UTC)</th>
+                            <th>Quản Trị Viên</th>
+                            <th>Hành Động</th>
+                            <th>Mục Tiêu</th>
+                            <th>Lý Do / Chi Tiết</th>
+                            <th>Kết Quả</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                        <tr><td colspan="8" style="text-align:center; padding:24px;">Đang tải nhật ký kiểm toán...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 6: MODERATION & VIOLATION MANAGEMENT -->
+        <section id="tab-moderation" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Hàng Đợi Kiểm Duyệt & Xử Lý Vi Phạm (Violation Review Queue)</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Hệ thống quét tự động phát hiện vi phạm tiềm ẩn. Quyết định kỷ luật, tạm khóa hoặc cấm tài khoản bắt buộc phải được Quản trị viên máy chủ phê duyệt (AI không tự ý cấm vĩnh viễn).</span>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-ghost-sm" onclick="loadModerationData()">🔄 Làm mới hàng đợi</button>
+                    <button class="btn-host-action" onclick="switchModSubTab('appeals')" id="btnToggleAppeals">📥 Xem Đơn Khiếu Nại (<span id="modAppealsCountBadge">0</span>)</button>
+                </div>
+            </div>
+
+            <!-- Moderation KPI Grid -->
+            <div class="host-grid-4">
+                <div class="host-card">
+                    <div class="host-card-title">
+                        <span>Chờ Xem Xét (Pending)</span>
+                        <span id="kpiPendingBadge" class="host-pill host-pill-warn">0 ca</span>
+                    </div>
+                    <div class="host-metric-val" id="metricModPending">0</div>
+                    <div class="host-metric-sub">Hồ sơ vi phạm cần Host duyệt</div>
+                </div>
+
+                <div class="host-card">
+                    <div class="host-card-title">
+                        <span>Mức Độ Cao / Khẩn Cấp</span>
+                        <span id="kpiCriticalBadge" class="host-pill host-pill-danger">Ưu tiên xử lý</span>
+                    </div>
+                    <div class="host-metric-val" id="metricModCritical" style="color:#f87171;">0</div>
+                    <div class="host-metric-sub">Tệp độc hại, lừa đảo, giả mạo BQT</div>
+                </div>
+
+                <div class="host-card">
+                    <div class="host-card-title">
+                        <span>Đã Xử Lý / Cảnh Báo</span>
+                        <span class="host-pill host-pill-active">Đã giải quyết</span>
+                    </div>
+                    <div class="host-metric-val" id="metricModReviewed">0</div>
+                    <div class="host-metric-sub" id="metricModDismissedSub">Bỏ qua / Báo sai: 0</div>
+                </div>
+
+                <div class="host-card">
+                    <div class="host-card-title">
+                        <span>Tạm Khóa & Cấm Vĩnh Viễn</span>
+                        <span class="host-pill host-pill-danger">Thi hành kỷ luật</span>
+                    </div>
+                    <div class="host-metric-val" id="metricModBanned" style="color:#fca5a5;">0</div>
+                    <div class="host-metric-sub" id="metricModSuspendedSub">Đang tạm khóa: 0 • Cấm: 0</div>
+                </div>
+            </div>
+
+            <!-- Subtab: Cases View -->
+            <div id="modCasesContainer">
+                <div class="input-group-row">
+                    <input type="text" id="modSearchInput" class="host-input" style="min-width:260px;" placeholder="Tìm Case ID, UID, Email người dùng...">
+                    <select id="modStatusFilter" class="host-input">
+                        <option value="">Tất cả trạng thái hồ sơ</option>
+                        <option value="pending" selected>Chờ xử lý (Pending)</option>
+                        <option value="warned">Đã cảnh cáo (Warned)</option>
+                        <option value="restricted">Đã giới hạn tính năng (Restricted)</option>
+                        <option value="suspended">Đã tạm khóa (Suspended)</option>
+                        <option value="banned">Đã cấm vĩnh viễn (Banned)</option>
+                        <option value="dismissed">Đã bỏ qua (Dismissed)</option>
+                        <option value="false_positive">Báo sai (False Positive)</option>
+                    </select>
+                    <select id="modSeverityFilter" class="host-input">
+                        <option value="">Tất cả mức độ</option>
+                        <option value="critical">Khẩn cấp (Critical)</option>
+                        <option value="high">Cao (High)</option>
+                        <option value="medium">Trung bình (Medium)</option>
+                        <option value="low">Thấp (Low)</option>
+                    </select>
+                    <select id="modCategoryFilter" class="host-input">
+                        <option value="">Tất cả danh mục vi phạm</option>
+                        <option value="scam_impersonation">Lừa đảo / Giả mạo BQT</option>
+                        <option value="unsafe_upload">Tệp tải lên độc hại / Không an toàn</option>
+                        <option value="spam">Spam & Quảng cáo cờ bạc</option>
+                        <option value="harassment_abuse">Quấy rối & Ngôn từ thù địch</option>
+                        <option value="non_agricultural">Nội dung ngoài nông nghiệp</option>
+                        <option value="api_abuse">Lạm dụng API / Voucher abuse</option>
+                    </select>
+                    <button class="btn-host-action" onclick="loadModerationCases()">🔍 Lọc hồ sơ</button>
+                </div>
+
+                <div class="host-table-wrap">
+                    <table class="host-table">
+                        <thead>
+                            <tr>
+                                <th>Mã Hồ Sơ (Case ID)</th>
+                                <th>Người Dùng (UID / Email)</th>
+                                <th>Danh Mục Vi Phạm</th>
+                                <th>Mức Độ</th>
+                                <th>Tóm Tắt Bằng Chứng</th>
+                                <th>Trạng Thái</th>
+                                <th>Thời Gian</th>
+                                <th style="text-align:right;">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modCasesTableBody">
+                            <tr><td colspan="8" style="text-align:center; padding:24px;">Đang tải danh sách kiểm duyệt...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Subtab: Appeals View (Hidden by default) -->
+            <div id="modAppealsContainer" style="display:none;">
+                <div class="section-header" style="margin-top:20px;">
+                    <div>
+                        <h3 class="section-title">Danh Sách Đơn Khiếu Nại Từ Người Dùng</h3>
+                        <span style="font-size:13px; color:var(--host-muted);">Xem xét giải trình của người dùng bị giới hạn, tạm ngưng hoặc cấm tài khoản.</span>
+                    </div>
+                    <button class="btn-ghost-sm" onclick="switchModSubTab('cases')">← Quay lại Danh sách Vi phạm</button>
+                </div>
+
+                <div class="host-table-wrap">
+                    <table class="host-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Người Dùng (UID / Email)</th>
+                                <th>Mã Hồ Sơ Liên Quan</th>
+                                <th>Nội Dung Khiếu Nại</th>
+                                <th>Trạng Thái Đơn</th>
+                                <th>Phản Hồi Của Host</th>
+                                <th>Thời Gian Gửi</th>
+                                <th style="text-align:right;">Xét Duyệt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modAppealsTableBody">
+                            <tr><td colspan="8" style="text-align:center; padding:24px;">Đang tải đơn khiếu nại...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: Update User Status (Suspend/Reactivate) -->
+    <div id="modalUserStatus" class="host-modal-backdrop">
+        <div class="host-modal">
+            <h3 class="host-modal-title" id="statusModalTitle">Cập nhật Trạng thái Tài khoản</h3>
+            <p class="host-modal-sub" id="statusModalSub">Thao tác này sẽ cập nhật trạng thái hoạt động của người dùng.</p>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Lý do quản trị (Bắt buộc để lưu vết kiểm toán):</label>
+                <textarea id="statusReasonInput" class="host-input" style="width:100%; box-sizing:border-box; height:80px;" placeholder="Ví dụ: Tài khoản vi phạm điều khoản dịch vụ hoặc yêu cầu hỗ trợ..."></textarea>
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalUserStatus')">Hủy bỏ</button>
+                <button class="btn-host-action" id="btnConfirmStatus">Xác nhận Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Change Account Type -->
+    <div id="modalAccountType" class="host-modal-backdrop">
+        <div class="host-modal">
+            <h3 class="host-modal-title">Chỉ định Loại Tài Khoản Duy Nhất</h3>
+            <p class="host-modal-sub">Mỗi tài khoản chỉ sở hữu đúng một loại tài khoản đang kích hoạt. Quyền VIP/Subscription hiện tại sẽ được bảo lưu.</p>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Chọn loại tài khoản mới:</label>
+                <select id="newAccountTypeSelect" class="host-input" style="width:100%;">
+                    <option value="farmer">Nông Hộ Cá Thể (farmer)</option>
+                    <option value="cooperative">Hợp Tác Xã (cooperative)</option>
+                    <option value="expert">Chuyên Gia BVTV (expert)</option>
+                    <option value="enterprise">Doanh Nghiệp Nông Nghiệp (enterprise)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Lý do thay đổi (Bắt buộc kiểm toán):</label>
+                <input type="text" id="accountTypeReasonInput" class="host-input" style="width:100%; box-sizing:border-box;" placeholder="Ví dụ: Chuyển đổi mô hình canh tác sang hợp tác xã...">
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalAccountType')">Hủy bỏ</button>
+                <button class="btn-host-action" id="btnConfirmAccountType">Cập Nhật Loại Tài Khoản</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Update VIP / Subscription -->
+    <div id="modalVip" class="host-modal-backdrop">
+        <div class="host-modal">
+            <h3 class="host-modal-title">Cấp / Hủy Quyền Gói VIP</h3>
+            <p class="host-modal-sub">Ghi nhận quyền ưu tiên và hạn ngạch chẩn đoán cho người dùng.</p>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Hành động:</label>
+                <select id="vipActionSelect" class="host-input" style="width:100%;" onchange="toggleVipFields()">
+                    <option value="grant">Cấp quyền VIP (Grant)</option>
+                    <option value="revoke">Hủy quyền VIP (Revoke về gói Miễn phí)</option>
+                </select>
+            </div>
+
+            <div id="vipGrantFields">
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Gói dịch vụ:</label>
+                    <select id="vipPlanSelect" class="host-input" style="width:100%;">
+                        <option value="vip_pro">VIP Chuyên Nghiệp (vip_pro)</option>
+                        <option value="farmer_basic">Nông Hộ Cơ Bản (farmer_basic)</option>
+                        <option value="cooperative_pilot">Pilot Hợp Tác Xã (cooperative_pilot)</option>
+                        <option value="enterprise_annual">Doanh Nghiệp Thường Niên (enterprise_annual)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Thời hạn (ngày):</label>
+                    <input type="number" id="vipDurationInput" class="host-input" style="width:100%; box-sizing:border-box;" value="30" min="1" max="3650">
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Lý do thực hiện (Bắt buộc kiểm toán):</label>
+                <input type="text" id="vipReasonInput" class="host-input" style="width:100%; box-sizing:border-box;" placeholder="Ví dụ: Tặng gói dùng thử chương trình thí điểm HTX...">
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalVip')">Hủy bỏ</button>
+                <button class="btn-host-action" id="btnConfirmVip">Xác Nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Create Voucher -->
+    <div id="modalCreateVoucher" class="host-modal-backdrop">
+        <div class="host-modal">
+            <h3 class="host-modal-title">Phát hành Mã Voucher Mới</h3>
+            <p class="host-modal-sub">Mã thô sẽ được trả về MỘT LẦN DUY NHẤT sau khi tạo thành công để bảo mật.</p>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Gói áp dụng:</label>
+                <select id="voucherPlanSelect" class="host-input" style="width:100%;">
+                    <option value="vip_pro">VIP Chuyên Nghiệp (vip_pro)</option>
+                    <option value="farmer_basic">Nông Hộ Cơ Bản (farmer_basic)</option>
+                    <option value="cooperative_pilot">Pilot Hợp Tác Xã (cooperative_pilot)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Số lượt kích hoạt tối đa:</label>
+                <input type="number" id="voucherMaxUsesInput" class="host-input" style="width:100%; box-sizing:border-box;" value="1" min="1" max="1000">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Hiệu lực voucher (ngày):</label>
+                <input type="number" id="voucherDaysInput" class="host-input" style="width:100%; box-sizing:border-box;" value="30" min="1" max="365">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Ghi chú quản trị:</label>
+                <input type="text" id="voucherNoteInput" class="host-input" style="width:100%; box-sizing:border-box;" placeholder="Ví dụ: Voucher hội thảo nông nghiệp ĐBSCL...">
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalCreateVoucher')">Hủy bỏ</button>
+                <button class="btn-host-action" onclick="submitCreateVoucher()">Tạo Voucher</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Show One-Time Raw Voucher Code -->
+    <div id="modalVoucherCreated" class="host-modal-backdrop">
+        <div class="host-modal">
+            <h3 class="host-modal-title" style="color:var(--host-accent);">🎉 Voucher Đã Tạo Thành Công</h3>
+            <p class="host-modal-sub">Vui lòng sao chép mã ngay. Hệ thống chỉ lưu băm Bcrypt và sẽ không bao giờ hiển thị lại mã thô này:</p>
+            
+            <div style="background:#09120b; border:1px dashed var(--host-accent); padding:16px; border-radius:8px; text-align:center; margin-bottom:20px;">
+                <span id="createdVoucherCode" style="font-size:22px; font-weight:800; font-family:monospace; color:#10b981; letter-spacing:1px;"></span>
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-action" onclick="closeModal('modalVoucherCreated'); loadVouchersData();">Đã Lưu & Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Update API Config -->
+    <div id="modalUpdateApiConfig" class="host-modal-backdrop">
+        <div class="host-modal">
+            <h3 class="host-modal-title" id="apiConfigModalTitle">Cập nhật Cấu hình API</h3>
+            <p class="host-modal-sub" id="apiConfigModalSub"></p>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Giá trị mới:</label>
+                <input type="text" id="apiConfigValueInput" class="host-input" style="width:100%; box-sizing:border-box;">
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Lý do thay đổi (Bắt buộc kiểm toán):</label>
+                <input type="text" id="apiConfigReasonInput" class="host-input" style="width:100%; box-sizing:border-box;" placeholder="Ví dụ: Nâng giới hạn tải cho chiến dịch ra mắt...">
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalUpdateApiConfig')">Hủy bỏ</button>
+                <button class="btn-host-action" id="btnConfirmApiConfig">Lưu Cấu Hình</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Moderation Action (Review Case) -->
+    <div id="modalModerationAction" class="host-modal-backdrop">
+        <div class="host-modal" style="max-width: 650px;">
+            <h3 class="host-modal-title" id="modActionModalTitle">Xét duyệt Hồ sơ Vi phạm</h3>
+            <p class="host-modal-sub" id="modActionModalSub">Xem xét bằng chứng và chỉ định biện pháp xử lý kỷ luật.</p>
+            
+            <!-- Evidence Card -->
+            <div style="background: #09120b; border: 1px solid var(--host-border); border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                    <div><span style="color: var(--host-muted);">Mã hồ sơ:</span> <strong id="modEvidenceCaseId" style="color: #6ee7b7; font-family: monospace;"></strong></div>
+                    <div><span style="color: var(--host-muted);">Người dùng:</span> <span id="modEvidenceUser" style="color: #fff; font-weight: 600;"></span></div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <span id="modEvidenceCategoryPill" class="host-pill host-pill-warn">--</span>
+                    <span id="modEvidenceSeverityPill" class="host-pill host-pill-danger">--</span>
+                    <span id="modEvidencePastViolations" class="host-pill" style="background: #1e293b; color: #94a3b8;">Vi phạm trước đó: 0</span>
+                </div>
+                <div style="font-size: 12.5px; color: #94a3b8; margin-bottom: 4px;">Nguồn phát hiện: <code id="modEvidenceSource" style="color:#cbd5e1;"></code></div>
+                <div style="font-size: 12.5px; color: #94a3b8; margin-bottom: 8px;">Tham chiếu: <span id="modEvidenceRef" style="color:#cbd5e1; font-family:monospace;"></span></div>
+                <div style="background: #040905; border-radius: 6px; padding: 10px; font-size: 12px; color: #e2e8f0; font-family: monospace; white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto;" id="modEvidenceSummary">
+                </div>
+            </div>
+
+            <!-- Action Select -->
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">Quyết định xử lý của Host:</label>
+                <select id="modActionSelect" class="host-input" style="width: 100%;" onchange="onModActionChange()">
+                    <option value="dismiss">Bỏ qua hồ sơ (Dismiss - Không phạt)</option>
+                    <option value="false_positive">Báo sai (False Positive - Hệ thống bắt nhầm)</option>
+                    <option value="warn">Cảnh cáo người dùng (Issue Warning)</option>
+                    <option value="restrict">Giới hạn tính năng (Feature Restriction)</option>
+                    <option value="suspend">Tạm ngưng tài khoản (Temporary Suspension)</option>
+                    <option value="ban">Cấm vĩnh viễn (Permanent Ban)</option>
+                    <option value="restore">Khôi phục trạng thái bình thường (Restore Clean)</option>
+                </select>
+            </div>
+
+            <!-- Feature restrictions input (visible when restrict is selected) -->
+            <div id="modRestrictionsField" style="display: none; margin-bottom: 14px;">
+                <label style="display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px;">Chọn tính năng muốn hạn chế:</label>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <label style="font-size: 13px; color: #e2e8f0; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" id="chkRestrictUpload" value="upload_restricted" checked> Chặn tải ảnh chẩn đoán
+                    </label>
+                    <label style="font-size: 13px; color: #e2e8f0; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" id="chkRestrictFeedback" value="feedback_restricted"> Chặn gửi phản hồi
+                    </label>
+                </div>
+            </div>
+
+            <!-- Reason input -->
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">Lý do quản trị & Ghi chú (Lưu vào nhật ký kiểm toán):</label>
+                <textarea id="modReasonInput" class="host-input" style="width: 100%; box-sizing: border-box; height: 70px;" placeholder="Ghi rõ căn cứ xử lý vi phạm..."></textarea>
+            </div>
+
+            <!-- Confirmation Checkbox for Ban / Suspend -->
+            <div id="modConfirmGroup" style="display: none; margin-bottom: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 10px;">
+                <label style="font-size: 12.5px; color: #fca5a5; display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="chkModConfirmBan" style="margin-top: 3px;">
+                    <span><strong>Xác nhận bắt buộc:</strong> Tôi xác nhận với thẩm quyền Host Administrator về việc thi hành chế tài kỷ luật tài khoản này. Hệ thống sẽ lập tức vô hiệu hóa các phiên đăng nhập của người dùng.</span>
+                </label>
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalModerationAction')">Đóng</button>
+                <button class="btn-host-action" id="btnSubmitModAction" onclick="submitModerationAction()">Thực Thi Quyết Định</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Review Appeal -->
+    <div id="modalReviewAppeal" class="host-modal-backdrop">
+        <div class="host-modal" style="max-width: 600px;">
+            <h3 class="host-modal-title">Xét duyệt Đơn Khiếu Nại</h3>
+            <p class="host-modal-sub">Giải quyết yêu cầu khiếu nại của người dùng đối với các chế tài kỷ luật.</p>
+            
+            <div style="background: #09120b; border: 1px solid var(--host-border); border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                    <div><span style="color: var(--host-muted);">Mã đơn:</span> <strong id="appealIdDisplay" style="color: #6ee7b7; font-family: monospace;"></strong></div>
+                    <div><span style="color: var(--host-muted);">Người gửi:</span> <span id="appealUserDisplay" style="color: #fff; font-weight: 600;"></span></div>
+                </div>
+                <div style="font-size: 12.5px; color: var(--host-muted); margin-bottom: 8px;">Mã hồ sơ liên quan: <span id="appealCaseIdDisplay" style="font-family: monospace; color:#cbd5e1;"></span></div>
+                <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 4px;">Nội dung giải trình từ người dùng:</div>
+                <div style="background: #040905; border-radius: 6px; padding: 10px; font-size: 13px; color: #e2e8f0; white-space: pre-wrap;" id="appealReasonDisplay">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">Kết quả xét duyệt của Host:</label>
+                <select id="appealDecisionSelect" class="host-input" style="width: 100%;">
+                    <option value="approved">Chấp thuận khiếu nại (Gỡ bỏ hạn chế / Khôi phục tài khoản sạch)</option>
+                    <option value="rejected">Bác bỏ khiếu nại (Giữ nguyên chế tài)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">Phản hồi gửi người dùng:</label>
+                <textarea id="appealHostResponseInput" class="host-input" style="width: 100%; box-sizing: border-box; height: 75px;" placeholder="Ghi rõ lý do chấp thuận hoặc bác bỏ giải trình..."></textarea>
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalReviewAppeal')">Đóng</button>
+                <button class="btn-host-action" onclick="submitReviewAppeal()">Xác Nhận Quyết Định</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notice -->
+    <div id="hostToast" class="host-toast"></div>
+
+    <script>
+        let currentHostUser = null;
+        let selectedUserId = null;
+        let selectedUserObj = null;
+        let selectedConfigKey = null;
+
+        function showToast(msg, isSuccess = true) {
+            const toast = document.getElementById('hostToast');
+            toast.textContent = msg;
+            toast.className = 'host-toast ' + (isSuccess ? 'success' : 'error');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        // Tab Switching
+        document.querySelectorAll('.host-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.host-tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                const targetId = btn.getAttribute('data-tab');
+                document.getElementById(targetId).classList.add('active');
+
+                // Trigger tab load
+                if (targetId === 'tab-overview') loadOverviewData();
+                else if (targetId === 'tab-users') loadUsersData();
+                else if (targetId === 'tab-vouchers') loadVouchersData();
+                else if (targetId === 'tab-api') loadApiControls();
+                else if (targetId === 'tab-audit') loadAuditLogs();
+                else if (targetId === 'tab-moderation') loadModerationData();
+            });
+        });
+
+        // Auth Check
+        async function checkHostAuth() {
+            try {
+                const token = localStorage.getItem('gari_host_token') || localStorage.getItem('gari_token');
+                const headers = { 'Accept': 'application/json' };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
+                const res = await fetch('/api/host/me', { headers, credentials: 'include' });
+                if (!res.ok) {
+                    window.location.href = '/frontend2/host-login.html';
+                    return;
+                }
+                const data = await res.json();
+                if (!data.success || !data.user || !data.user.is_host_admin) {
+                    window.location.href = '/frontend2/host-login.html';
+                    return;
+                }
+                currentHostUser = data.user;
+                document.getElementById('hostAdminEmail').textContent = currentHostUser.email;
+                loadOverviewData();
+            } catch (err) {
+                window.location.href = '/frontend2/host-login.html';
+            }
+        }
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('gari_host_token') || localStorage.getItem('gari_token');
+            const h = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+            if (token) h['Authorization'] = 'Bearer ' + token;
+            return h;
+        }
+
+        // 1. Overview Telemetry
+        async function loadOverviewData() {
+            try {
+                const res = await fetch('/api/host/overview', { headers: getAuthHeaders(), credentials: 'include' });
+                if (!res.ok) return;
+                const d = await res.json();
+                if (!d.success) return;
+
+                const t = d.telemetry;
+                const api = d.api_metrics;
+                const users = d.users_summary;
+                const ai = d.ai_models_summary;
+                const biz = d.business_summary;
+
+                // Hardware
+                document.getElementById('metricCpu').textContent = `${t.cpu_percent}%`;
+                document.getElementById('cpuBar').style.width = `${Math.min(t.cpu_percent, 100)}%`;
+                document.getElementById('cpuPlatform').textContent = `OS: ${t.os_platform} (Py ${t.python_version})`;
+
+                document.getElementById('metricRam').textContent = `${t.ram.used_gb} / ${t.ram.total_gb} GB`;
+                document.getElementById('ramBar').style.width = `${t.ram.percent}%`;
+                document.getElementById('ramPercent').textContent = `Đã dùng ${t.ram.percent}% • Còn trống ${t.ram.available_gb} GB`;
+
+                document.getElementById('metricDisk').textContent = `${t.disk.used_gb} / ${t.disk.total_gb} GB`;
+                document.getElementById('diskBar').style.width = `${t.disk.percent}%`;
+                document.getElementById('diskFree').textContent = `Còn trống ${t.disk.free_gb} GB (${100 - t.disk.percent}%)`;
+
+                const days = Math.floor(t.uptime_seconds / 86400);
+                const hours = Math.floor((t.uptime_seconds % 86400) / 3600);
+                const mins = Math.floor((t.uptime_seconds % 3600) / 60);
+                document.getElementById('metricUptime').textContent = `${days}d ${hours}h ${mins}m`;
+                document.getElementById('bootTimeSub').textContent = `Khởi động lúc: ${t.server_start_time}`;
+                document.getElementById('uptimeSub').textContent = `Thời gian chạy: ${days}d ${hours}h ${mins}m • ${users.active_sessions} phiên hoạt động`;
+
+                // API & AI
+                document.getElementById('metricApiReq').textContent = `${api.total_requests.toLocaleString()} yêu cầu`;
+                document.getElementById('metricApiSub').textContent = `Độ trễ trung bình: ${api.avg_latency_ms}ms • Lỗi: ${api.total_errors}`;
+
+                document.getElementById('metricUsers').textContent = `${users.total_registered_users} tài khoản`;
+                document.getElementById('metricSessions').textContent = `Phiên mở: ${users.active_sessions} • Đang hoạt động 24h: ${users.active_users}`;
+
+                document.getElementById('metricAiModels').textContent = `${ai.total_crop_models} Cây trồng`;
+                document.getElementById('metricAiDevice').textContent = `Thiết bị: ${ai.inference_device} (${ai.torch_version})`;
+
+                document.getElementById('metricVipSubs').textContent = `${biz.active_vip_subscriptions} VIP Đang hoạt động`;
+                document.getElementById('metricTotalSubs').textContent = `Tổng gói: ${biz.total_subscriptions} • Sự kiện kiểm toán: ${biz.host_audit_events_count}`;
+
+            } catch (err) {
+                console.error('Lỗi khi nạp overview telemetry:', err);
+            }
+        }
+
+        // 2. User Management
+        async function loadUsersData() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px;">Đang tìm kiếm...</td></tr>';
+
+            const search = document.getElementById('userSearchInput').value.trim();
+            const account_type = document.getElementById('userTypeFilter').value;
+            const is_active = document.getElementById('userStatusFilter').value;
+
+            let url = `/api/host/users?limit=50&offset=0`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (account_type) url += `&account_type=${encodeURIComponent(account_type)}`;
+            if (is_active !== '') url += `&is_active=${encodeURIComponent(is_active)}`;
+
+            try {
+                const res = await fetch(url, { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.users || d.users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--host-muted);">Không tìm thấy người dùng phù hợp.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = d.users.map(u => {
+                    const typeLabel = {
+                        'farmer': 'Nông Hộ Cá Thể',
+                        'cooperative': 'Hợp Tác Xã',
+                        'expert': 'Chuyên Gia BVTV',
+                        'enterprise': 'Doanh Nghiệp'
+                    }[u.account_type] || u.account_type || 'Chưa thiết lập';
+
+                    const planLabel = u.plan_id ? `${u.plan_id.toUpperCase()} (${u.subscription_status || 'active'})` : 'Gói Miễn Phí';
+                    const isSelf = currentHostUser && u.id === currentHostUser.id;
+
+                    return `
+                        <tr>
+                            <td><span style="font-family:monospace; color:#a7f3d0;">#${u.id}</span></td>
+                            <td>
+                                <div style="font-weight:600; color:#fff;">${u.full_name}</div>
+                                <div style="font-size:12px; color:var(--host-muted);">${u.email}</div>
+                                ${u.is_host_admin ? '<span class="host-pill host-pill-active" style="margin-top:2px; display:inline-block;">HOST ADMIN</span>' : ''}
+                            </td>
+                            <td>
+                                <span class="host-pill host-pill-active" style="background:#1b2e21; color:#34d399;">
+                                    ${typeLabel}
+                                </span>
+                            </td>
+                            <td>
+                                ${u.is_active ? 
+                                    '<span class="host-pill host-pill-active">Hoạt động</span>' : 
+                                    '<span class="host-pill host-pill-danger">Đã tạm khóa</span>'}
+                            </td>
+                            <td>
+                                <span style="font-size:12.5px; color:#cbd5e1;">${planLabel}</span>
+                            </td>
+                            <td style="font-size:12px; color:var(--host-muted);">
+                                ${u.created_at ? u.created_at.slice(0, 10) : '--'}
+                            </td>
+                            <td style="text-align:right;">
+                                <div style="display:inline-flex; gap:6px;">
+                                    <button class="btn-host-sec" onclick="openAccountTypeModal(${u.id}, '${u.account_type || 'farmer'}')">
+                                        Đổi vai trò
+                                    </button>
+                                    <button class="btn-host-sec" onclick="openVipModal(${u.id}, '${u.email}')">
+                                        Gói VIP
+                                    </button>
+                                    ${!isSelf ? `
+                                        <button class="${u.is_active ? 'btn-host-danger' : 'btn-host-sec'}" onclick="openStatusModal(${u.id}, '${u.email}', ${u.is_active})">
+                                            ${u.is_active ? 'Khóa' : 'Mở khóa'}
+                                        </button>
+                                    ` : '<span style="font-size:11px; color:var(--host-muted); margin:auto 4px;">Chính bạn</span>'}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:#f87171;">Lỗi khi tải danh sách người dùng.</td></tr>';
+            }
+        }
+
+        // Modal triggers
+        function openStatusModal(userId, email, isActive) {
+            selectedUserId = userId;
+            selectedUserObj = { email, isActive };
+            const title = document.getElementById('statusModalTitle');
+            const sub = document.getElementById('statusModalSub');
+            const btn = document.getElementById('btnConfirmStatus');
+
+            if (isActive) {
+                title.textContent = `Tạm Khóa Tài Khoản #${userId}`;
+                sub.textContent = `Bạn chuẩn bị tạm khóa tài khoản ${email}. Tất cả các phiên đăng nhập của người dùng này sẽ bị hủy ngay lập tức.`;
+                btn.textContent = 'Xác Nhận Tạm Khóa';
+                btn.className = 'btn-host-danger';
+            } else {
+                title.textContent = `Mở Khóa Tài Khoản #${userId}`;
+                sub.textContent = `Bạn chuẩn bị kích hoạt lại tài khoản ${email} để người dùng có thể đăng nhập bình thường.`;
+                btn.textContent = 'Kích Hoạt Lại';
+                btn.className = 'btn-host-action';
+            }
+            document.getElementById('statusReasonInput').value = '';
+            openModal('modalUserStatus');
+        }
+
+        document.getElementById('btnConfirmStatus').addEventListener('click', async () => {
+            const reason = document.getElementById('statusReasonInput').value.trim();
+            if (reason.length < 3) {
+                alert('Vui lòng nhập lý do tối thiểu 3 ký tự để kiểm toán.');
+                return;
+            }
+
+            const newActive = !selectedUserObj.isActive;
+            try {
+                const res = await fetch(`/api/host/users/${selectedUserId}/status`, {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ is_active: newActive, reason })
+                });
+                const d = await res.json();
+                if (!res.ok) {
+                    showToast(d.detail || 'Thao tác không thành công', false);
+                    return;
+                }
+                showToast(d.message || 'Cập nhật trạng thái thành công!');
+                closeModal('modalUserStatus');
+                loadUsersData();
+            } catch (err) {
+                showToast('Lỗi mạng kết nối máy chủ', false);
+            }
+        });
+
+        function openAccountTypeModal(userId, currentType) {
+            selectedUserId = userId;
+            document.getElementById('newAccountTypeSelect').value = currentType || 'farmer';
+            document.getElementById('accountTypeReasonInput').value = '';
+            openModal('modalAccountType');
+        }
+
+        document.getElementById('btnConfirmAccountType').addEventListener('click', async () => {
+            const newType = document.getElementById('newAccountTypeSelect').value;
+            const reason = document.getElementById('accountTypeReasonInput').value.trim();
+            if (reason.length < 3) {
+                alert('Vui lòng nhập lý do tối thiểu 3 ký tự để kiểm toán.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/host/users/${selectedUserId}/account-type`, {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ account_type: newType, reason })
+                });
+                const d = await res.json();
+                if (!res.ok) {
+                    showToast(d.detail || 'Cập nhật thất bại', false);
+                    return;
+                }
+                showToast(d.message || 'Chỉ định loại tài khoản thành công!');
+                closeModal('modalAccountType');
+                loadUsersData();
+            } catch (err) {
+                showToast('Lỗi mạng khi cập nhật loại tài khoản', false);
+            }
+        });
+
+        function openVipModal(userId, email) {
+            selectedUserId = userId;
+            document.getElementById('vipActionSelect').value = 'grant';
+            document.getElementById('vipGrantFields').style.display = 'block';
+            document.getElementById('vipReasonInput').value = '';
+            openModal('modalVip');
+        }
+
+        function toggleVipFields() {
+            const act = document.getElementById('vipActionSelect').value;
+            document.getElementById('vipGrantFields').style.display = (act === 'grant') ? 'block' : 'none';
+        }
+
+        document.getElementById('btnConfirmVip').addEventListener('click', async () => {
+            const action = document.getElementById('vipActionSelect').value;
+            const plan_id = document.getElementById('vipPlanSelect').value;
+            const duration_days = parseInt(document.getElementById('vipDurationInput').value) || 30;
+            const reason = document.getElementById('vipReasonInput').value.trim();
+
+            if (reason.length < 3) {
+                alert('Vui lòng nhập lý do tối thiểu 3 ký tự để kiểm toán.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/host/users/${selectedUserId}/vip`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ action, plan_id, duration_days, reason })
+                });
+                const d = await res.json();
+                if (!res.ok) {
+                    showToast(d.detail || 'Cập nhật thất bại', false);
+                    return;
+                }
+                showToast(d.message || 'Cập nhật gói VIP thành công!');
+                closeModal('modalVip');
+                loadUsersData();
+            } catch (err) {
+                showToast('Lỗi mạng khi cập nhật VIP', false);
+            }
+        });
+
+        // 3. Vouchers
+        async function loadVouchersData() {
+            const tbody = document.getElementById('vouchersTableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px;">Đang tải danh sách voucher...</td></tr>';
+
+            try {
+                const res = await fetch('/api/host/vouchers?limit=50', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.vouchers || d.vouchers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có voucher nào được phát hành.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = d.vouchers.map(v => {
+                    const isRevoked = v.status === 'revoked';
+                    const isExpired = v.is_expired;
+                    let statusPill = '<span class="host-pill host-pill-active">Hoạt động</span>';
+                    if (isRevoked) statusPill = '<span class="host-pill host-pill-danger">Đã thu hồi</span>';
+                    else if (isExpired) statusPill = '<span class="host-pill host-pill-warn">Hết hạn</span>';
+
+                    return `
+                        <tr>
+                            <td><strong style="font-family:monospace; color:#34d399;">${v.code_preview}</strong></td>
+                            <td><span class="host-pill host-pill-active">${v.plan_id.toUpperCase()}</span></td>
+                            <td>${v.redemptions_count} / ${v.max_redemptions}</td>
+                            <td style="font-size:12.5px; color:var(--host-muted);">${v.expires_at || 'Vô thời hạn'}</td>
+                            <td style="font-size:12.5px;">${v.note || '--'}</td>
+                            <td>${statusPill}</td>
+                            <td style="text-align:right;">
+                                ${(!isRevoked && !isExpired) ? `
+                                    <button class="btn-host-danger" onclick="revokeVoucher(${v.id})">
+                                        Thu hồi
+                                    </button>
+                                ` : '<span style="color:var(--host-muted); font-size:12px;">Đã đóng</span>'}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:#f87171;">Lỗi nạp voucher.</td></tr>';
+            }
+        }
+
+        function openCreateVoucherModal() {
+            document.getElementById('voucherNoteInput').value = '';
+            openModal('modalCreateVoucher');
+        }
+
+        async function submitCreateVoucher() {
+            const plan_id = document.getElementById('voucherPlanSelect').value;
+            const max_redemptions = parseInt(document.getElementById('voucherMaxUsesInput').value) || 1;
+            const valid_days = parseInt(document.getElementById('voucherDaysInput').value) || 30;
+            const note = document.getElementById('voucherNoteInput').value.trim();
+
+            try {
+                const res = await fetch('/api/host/vouchers', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ plan_id, max_redemptions, valid_days, note })
+                });
+                const d = await res.json();
+                if (!res.ok) {
+                    showToast(d.detail || 'Không thể tạo voucher', false);
+                    return;
+                }
+                closeModal('modalCreateVoucher');
+
+                // Show raw code modal
+                const v = d.voucher;
+                document.getElementById('createdVoucherCode').textContent = v.raw_code;
+                openModal('modalVoucherCreated');
+            } catch (err) {
+                showToast('Lỗi mạng khi tạo voucher', false);
+            }
+        }
+
+        async function revokeVoucher(voucherId) {
+            const reason = prompt('Nhập lý do thu hồi voucher (Bắt buộc kiểm toán):');
+            if (!reason || reason.trim().length < 3) {
+                if (reason !== null) alert('Vui lòng nhập lý do tối thiểu 3 ký tự.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/host/vouchers/${voucherId}/revoke`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ reason: reason.trim() })
+                });
+                const d = await res.json();
+                if (!res.ok) {
+                    showToast(d.detail || 'Không thể thu hồi voucher', false);
+                    return;
+                }
+                showToast('Đã thu hồi voucher thành công!');
+                loadVouchersData();
+            } catch (err) {
+                showToast('Lỗi mạng kết nối máy chủ', false);
+            }
+        }
+
+        // 4. API Controls
+        async function loadApiControls() {
+            const tbody = document.getElementById('apiConfigTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px;">Đang tải cấu hình...</td></tr>';
+
+            try {
+                const res = await fetch('/api/host/api-controls', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.configs) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px;">Không có cấu hình nào.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = d.configs.map(c => `
+                    <tr>
+                        <td><strong style="color:#a7f3d0; font-family:monospace;">${c.key}</strong></td>
+                        <td><span class="host-pill host-pill-active" style="background:#1b2e21; font-family:monospace;">${c.value}</span></td>
+                        <td style="font-size:13px; color:#cbd5e1;">${c.description || '--'}</td>
+                        <td style="font-size:12px; color:var(--host-muted);">${c.updated_at || '--'}</td>
+                        <td style="text-align:right;">
+                            <button class="btn-host-sec" onclick="openUpdateConfigModal('${c.key}', '${c.value}', '${(c.description || '').replace(/'/g, "\\'")}')">
+                                Chỉnh sửa
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#f87171;">Lỗi tải cấu hình API.</td></tr>';
+            }
+        }
+
+        function openUpdateConfigModal(key, val, desc) {
+            selectedConfigKey = key;
+            document.getElementById('apiConfigModalTitle').textContent = `Cập nhật '${key}'`;
+            document.getElementById('apiConfigModalSub').textContent = desc || 'Chỉnh sửa giá trị tham số cấu hình hệ thống.';
+            document.getElementById('apiConfigValueInput').value = val;
+            document.getElementById('apiConfigReasonInput').value = '';
+            openModal('modalUpdateApiConfig');
+        }
+
+        document.getElementById('btnConfirmApiConfig').addEventListener('click', async () => {
+            const value = document.getElementById('apiConfigValueInput').value.trim();
+            const reason = document.getElementById('apiConfigReasonInput').value.trim();
+
+            if (reason.length < 3) {
+                alert('Vui lòng nhập lý do tối thiểu 3 ký tự để kiểm toán.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/host/api-controls', {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ key: selectedConfigKey, value, reason })
+                });
+                const d = await res.json();
+                if (!res.ok) {
+                    showToast(d.detail || 'Cập nhật thất bại', false);
+                    return;
+                }
+                showToast(d.message || 'Cập nhật cấu hình thành công!');
+                closeModal('modalUpdateApiConfig');
+                loadApiControls();
+            } catch (err) {
+                showToast('Lỗi mạng kết nối máy chủ', false);
+            }
+        });
+
+        // 5. Audit Logs
+        async function loadAuditLogs() {
+            const tbody = document.getElementById('auditTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px;">Đang tải nhật ký...</td></tr>';
+
+            try {
+                const res = await fetch('/api/host/audit-logs?limit=50', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.logs || d.logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có sự kiện kiểm toán nào.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = d.logs.map(log => {
+                    const outcomePill = log.outcome === 'success' ? 
+                        '<span class="host-pill host-pill-active">Success</span>' : 
+                        '<span class="host-pill host-pill-danger">Rejected</span>';
+
+                    return `
+                        <tr>
+                            <td><span style="font-family:monospace; color:var(--host-muted);">#${log.id}</span></td>
+                            <td style="font-size:12px; color:var(--host-muted); white-space:nowrap;">${log.created_at || '--'}</td>
+                            <td><strong style="color:#fff;">${log.host_email || '--'}</strong></td>
+                            <td><span class="host-pill host-pill-active" style="background:#13281b;">${log.action_type}</span></td>
+                            <td><span style="font-family:monospace; font-size:12px;">${log.target_resource || '--'}</span></td>
+                            <td style="font-size:12.5px; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${log.reason || log.details}">
+                                ${log.reason || log.details || '--'}
+                            </td>
+                            <td>${outcomePill}</td>
+                            <td style="font-size:12px; font-family:monospace; color:var(--host-muted);">${log.ip_address || '--'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:#f87171;">Lỗi tải nhật ký kiểm toán.</td></tr>';
+            }
+        }
+
+        // 6. Moderation Management
+        let currentSelectedCase = null;
+        let currentSelectedAppeal = null;
+        let cachedAppeals = [];
+
+        function switchModSubTab(sub) {
+            const casesContainer = document.getElementById('modCasesContainer');
+            const appealsContainer = document.getElementById('modAppealsContainer');
+            if (sub === 'appeals') {
+                casesContainer.style.display = 'none';
+                appealsContainer.style.display = 'block';
+                loadAppealsData();
+            } else {
+                appealsContainer.style.display = 'none';
+                casesContainer.style.display = 'block';
+                loadModerationCases();
+            }
+        }
+
+        async function loadModerationData() {
+            await Promise.all([
+                loadModerationStats(),
+                loadModerationCases()
+            ]);
+        }
+
+        async function loadModerationStats() {
+            try {
+                const res = await fetch('/api/host/moderation/stats', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success) return;
+                const s = d.stats;
+
+                document.getElementById('metricModPending').textContent = s.pending_cases || 0;
+                document.getElementById('kpiPendingBadge').textContent = `${s.pending_cases || 0} ca chờ`;
+                document.getElementById('metricModCritical').textContent = s.critical_cases || 0;
+                document.getElementById('metricModReviewed').textContent = s.reviewed_cases || 0;
+                document.getElementById('metricModDismissedSub').textContent = `Bỏ qua: ${s.dismissed_cases || 0} • Báo sai: ${s.false_positive_cases || 0}`;
+                document.getElementById('metricModBanned').textContent = (s.suspended_users || 0) + (s.banned_users || 0);
+                document.getElementById('metricModSuspendedSub').textContent = `Đang tạm khóa: ${s.suspended_users || 0} • Cấm: ${s.banned_users || 0}`;
+
+                const badge = document.getElementById('modAppealsCountBadge');
+                if (badge) badge.textContent = s.pending_appeals || 0;
+            } catch (err) {
+                console.error('Failed to load moderation stats:', err);
+            }
+        }
+
+        function getCategoryLabel(cat) {
+            const map = {
+                'scam_impersonation': 'Lừa đảo / Giả mạo',
+                'unsafe_upload': 'Tệp tải lên nguy hiểm',
+                'spam': 'Spam / QC Cờ bạc',
+                'harassment_abuse': 'Quấy rối / Thù địch',
+                'non_agricultural': 'Ngoài nông nghiệp',
+                'api_abuse': 'Lạm dụng API / Voucher',
+                'other': 'Khác'
+            };
+            return map[cat] || cat;
+        }
+
+        function getSeverityBadge(sev) {
+            if (sev === 'critical') return '<span class="host-pill host-pill-danger" style="background:#450a0a; color:#f87171;">Critical</span>';
+            if (sev === 'high') return '<span class="host-pill host-pill-danger">High</span>';
+            if (sev === 'medium') return '<span class="host-pill host-pill-warn">Medium</span>';
+            return '<span class="host-pill" style="background:#1e293b; color:#94a3b8;">Low</span>';
+        }
+
+        function getStatusBadge(st) {
+            if (st === 'pending') return '<span class="host-pill host-pill-warn">Chờ duyệt</span>';
+            if (st === 'warned') return '<span class="host-pill host-pill-warn" style="background:#3b2d12; color:#f59e0b;">Cảnh cáo</span>';
+            if (st === 'restricted') return '<span class="host-pill host-pill-danger" style="background:#3b1212; color:#fb923c;">Giới hạn</span>';
+            if (st === 'suspended') return '<span class="host-pill host-pill-danger" style="background:#450a0a; color:#f87171;">Tạm khóa</span>';
+            if (st === 'banned') return '<span class="host-pill host-pill-danger" style="background:#7f1d1d; color:#fecaca;">Cấm vĩnh viễn</span>';
+            if (st === 'dismissed') return '<span class="host-pill" style="background:#1e293b; color:#94a3b8;">Bỏ qua</span>';
+            if (st === 'false_positive') return '<span class="host-pill host-pill-active" style="background:#064e3b; color:#6ee7b7;">Báo sai</span>';
+            return `<span class="host-pill">${st}</span>`;
+        }
+
+        async function loadModerationCases() {
+            const tbody = document.getElementById('modCasesTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px;">Đang tải danh sách kiểm duyệt...</td></tr>';
+
+            const searchInput = document.getElementById('modSearchInput');
+            const search = searchInput ? searchInput.value.trim() : '';
+            const status = document.getElementById('modStatusFilter').value;
+            const severity = document.getElementById('modSeverityFilter').value;
+            const category = document.getElementById('modCategoryFilter').value;
+
+            let url = `/api/host/moderation/cases?limit=50`;
+            if (status) url += `&status=${encodeURIComponent(status)}`;
+            if (severity) url += `&severity=${encodeURIComponent(severity)}`;
+            if (category) url += `&category=${encodeURIComponent(category)}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+
+            try {
+                const res = await fetch(url, { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.cases || d.cases.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--host-muted);">Không tìm thấy hồ sơ kiểm duyệt nào.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = d.cases.map(c => {
+                    const safeSummary = (c.evidence_summary || '').replace(/"/g, '&quot;');
+                    return `
+                        <tr>
+                            <td><strong style="color:#6ee7b7; font-family:monospace;">${c.case_id}</strong></td>
+                            <td>
+                                <div><strong style="color:#fff;">${c.user_email || 'UID ' + c.user_id}</strong></div>
+                                <div style="font-size:11px; color:var(--host-muted);">UID: ${c.user_id}</div>
+                            </td>
+                            <td><span class="host-pill host-pill-active" style="background:#13281b;">${getCategoryLabel(c.violation_category)}</span></td>
+                            <td>${getSeverityBadge(c.severity)}</td>
+                            <td style="font-size:12px; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#cbd5e1;" title="${safeSummary}">
+                                ${safeSummary || '--'}
+                            </td>
+                            <td>${getStatusBadge(c.status)}</td>
+                            <td style="font-size:12px; color:var(--host-muted); white-space:nowrap;">${c.created_at || '--'}</td>
+                            <td style="text-align:right;">
+                                <button class="btn-ghost-sm" onclick="openModerationCaseModal('${c.case_id}')">🔎 Xét Duyệt</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:#f87171;">Lỗi tải dữ liệu kiểm duyệt.</td></tr>';
+            }
+        }
+
+        async function openModerationCaseModal(caseId) {
+            try {
+                const res = await fetch(`/api/host/moderation/cases/${caseId}`, { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.case) {
+                    showToast('Không tải được chi tiết hồ sơ', false);
+                    return;
+                }
+
+                currentSelectedCase = d.case;
+                const past = d.past_confirmed_violations || 0;
+
+                document.getElementById('modEvidenceCaseId').textContent = currentSelectedCase.case_id;
+                document.getElementById('modEvidenceUser').textContent = `${currentSelectedCase.user_email || ''} (UID: ${currentSelectedCase.user_id})`;
+                document.getElementById('modEvidenceCategoryPill').textContent = getCategoryLabel(currentSelectedCase.violation_category);
+                document.getElementById('modEvidenceSeverityPill').textContent = `Mức độ: ${currentSelectedCase.severity.toUpperCase()}`;
+                document.getElementById('modEvidencePastViolations').textContent = `Vi phạm xác nhận trước đó: ${past}`;
+                document.getElementById('modEvidenceSource').textContent = currentSelectedCase.detection_source || 'deterministic_rules';
+                document.getElementById('modEvidenceRef').textContent = currentSelectedCase.evidence_reference || '--';
+                document.getElementById('modEvidenceSummary').textContent = currentSelectedCase.evidence_summary || 'Không có bản tóm tắt';
+
+                // Reset inputs
+                document.getElementById('modActionSelect').value = 'dismiss';
+                document.getElementById('modReasonInput').value = '';
+                document.getElementById('chkModConfirmBan').checked = false;
+                onModActionChange();
+
+                openModal('modalModerationAction');
+            } catch (err) {
+                showToast('Lỗi kết nối khi tải hồ sơ', false);
+            }
+        }
+
+        function onModActionChange() {
+            const action = document.getElementById('modActionSelect').value;
+            const restrDiv = document.getElementById('modRestrictionsField');
+            const confDiv = document.getElementById('modConfirmGroup');
+
+            if (action === 'restrict') {
+                restrDiv.style.display = 'block';
+            } else {
+                restrDiv.style.display = 'none';
+            }
+
+            if (action === 'ban' || action === 'suspend') {
+                confDiv.style.display = 'block';
+            } else {
+                confDiv.style.display = 'none';
+            }
+        }
+
+        async function submitModerationAction() {
+            if (!currentSelectedCase) return;
+            const action = document.getElementById('modActionSelect').value;
+            const reason = document.getElementById('modReasonInput').value.trim();
+
+            if (!reason) {
+                showToast('Vui lòng nhập lý do quản trị để lưu vết kiểm toán', false);
+                return;
+            }
+
+            if ((action === 'ban' || action === 'suspend') && !document.getElementById('chkModConfirmBan').checked) {
+                showToast('Bắt buộc đánh dấu xác nhận trước khi thi hành Tạm khóa hoặc Cấm vĩnh viễn', false);
+                return;
+            }
+
+            let featureRestrictions = [];
+            if (action === 'restrict') {
+                if (document.getElementById('chkRestrictUpload').checked) featureRestrictions.push('upload_restricted');
+                if (document.getElementById('chkRestrictFeedback').checked) featureRestrictions.push('feedback_restricted');
+            }
+
+            const payload = {
+                action: action,
+                reason: reason,
+                feature_restrictions: featureRestrictions,
+                notes: `Host decision applied via Host Console on ${new Date().toISOString()}`
+            };
+
+            try {
+                const res = await fetch(`/api/host/moderation/cases/${currentSelectedCase.case_id}/action`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if (!res.ok || !d.success) {
+                    showToast(d.detail || d.message || 'Thao tác không thành công', false);
+                    return;
+                }
+
+                showToast(`Đã thi hành quyết định: ${action} cho hồ sơ ${currentSelectedCase.case_id}`);
+                closeModal('modalModerationAction');
+                loadModerationStats();
+                loadModerationCases();
+            } catch (err) {
+                showToast('Lỗi mạng khi lưu quyết định kiểm duyệt', false);
+            }
+        }
+
+        async function loadAppealsData() {
+            const tbody = document.getElementById('modAppealsTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px;">Đang tải danh sách khiếu nại...</td></tr>';
+
+            try {
+                const res = await fetch('/api/host/moderation/appeals?limit=50', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.appeals || d.appeals.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có đơn khiếu nại nào từ người dùng.</td></tr>';
+                    return;
+                }
+
+                cachedAppeals = d.appeals;
+                tbody.innerHTML = d.appeals.map(a => {
+                    let stBadge = '<span class="host-pill host-pill-warn">Chờ duyệt</span>';
+                    if (a.status === 'approved') stBadge = '<span class="host-pill host-pill-active">Chấp thuận</span>';
+                    else if (a.status === 'rejected') stBadge = '<span class="host-pill host-pill-danger">Bác bỏ</span>';
+
+                    const safeReason = (a.appeal_reason || '').replace(/"/g, '&quot;');
+                    return `
+                        <tr>
+                            <td><strong style="color:#6ee7b7; font-family:monospace;">#${a.id}</strong></td>
+                            <td>
+                                <div><strong style="color:#fff;">${a.user_email || 'UID ' + a.user_id}</strong></div>
+                                <div style="font-size:11px; color:var(--host-muted);">UID: ${a.user_id}</div>
+                            </td>
+                            <td><span style="font-family:monospace; font-size:12px; color:#cbd5e1;">${a.case_id || 'Chung'}</span></td>
+                            <td style="font-size:12.5px; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#e2e8f0;" title="${safeReason}">
+                                ${safeReason}
+                            </td>
+                            <td>${stBadge}</td>
+                            <td style="font-size:12px; color:#94a3b8; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                ${a.host_response || '--'}
+                            </td>
+                            <td style="font-size:12px; color:var(--host-muted); white-space:nowrap;">${a.created_at || '--'}</td>
+                            <td style="text-align:right;">
+                                <button class="btn-ghost-sm" onclick="openReviewAppealModal(${a.id})">⚖️ Xét Duyệt</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:#f87171;">Lỗi tải dữ liệu khiếu nại.</td></tr>';
+            }
+        }
+
+        function openReviewAppealModal(appealId) {
+            const a = cachedAppeals.find(item => item.id === appealId);
+            if (!a) {
+                showToast('Không tìm thấy dữ liệu đơn khiếu nại', false);
+                return;
+            }
+
+            currentSelectedAppeal = a;
+            document.getElementById('appealIdDisplay').textContent = '#' + a.id;
+            document.getElementById('appealUserDisplay').textContent = `${a.user_email || ''} (UID: ${a.user_id})`;
+            document.getElementById('appealCaseIdDisplay').textContent = a.case_id || 'Toàn bộ tài khoản';
+            document.getElementById('appealReasonDisplay').textContent = a.appeal_reason || '--';
+            document.getElementById('appealDecisionSelect').value = a.status === 'rejected' ? 'rejected' : 'approved';
+            document.getElementById('appealHostResponseInput').value = a.host_response || '';
+
+            openModal('modalReviewAppeal');
+        }
+
+        async function submitReviewAppeal() {
+            if (!currentSelectedAppeal) return;
+            const decision = document.getElementById('appealDecisionSelect').value;
+            const responseText = document.getElementById('appealHostResponseInput').value.trim();
+
+            if (!responseText) {
+                showToast('Vui lòng nhập phản hồi gửi người dùng', false);
+                return;
+            }
+
+            const payload = {
+                decision: decision,
+                host_response: responseText
+            };
+
+            try {
+                const res = await fetch(`/api/host/moderation/appeals/${currentSelectedAppeal.id}/review`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if (!res.ok || !d.success) {
+                    showToast(d.detail || d.message || 'Thao tác không thành công', false);
+                    return;
+                }
+
+                showToast(`Đã xét duyệt đơn #${currentSelectedAppeal.id}: ${decision}`);
+                closeModal('modalReviewAppeal');
+                loadAppealsData();
+                loadModerationStats();
+            } catch (err) {
+                showToast('Lỗi mạng khi lưu kết quả xét duyệt đơn khiếu nại', false);
+            }
+        }
+
+        // Logout
+        document.getElementById('btnLogout').addEventListener('click', async () => {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST', headers: getAuthHeaders(), credentials: 'include' });
+            } catch (e) {}
+            localStorage.removeItem('gari_host_token');
+            localStorage.removeItem('gari_token');
+            window.location.href = '/frontend2/host-login.html';
+        });
+
+        // Initialize
+        checkHostAuth();
+    </script>
+</body>
+</html>
