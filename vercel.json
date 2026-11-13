@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
   "public": false,
@@ -40,6 +41,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/[...path]?path=$1"
+    },
     {
       "source": "/",
       "destination": "/frontend2/index.html"

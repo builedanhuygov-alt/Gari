@@ -2853,14 +2853,20 @@
                     const btn = document.getElementById('btnSubmitLogin');
 
                     errBox.style.display = 'none';
+                    if (btn.disabled) return;
                     btn.disabled = true;
                     btn.textContent = 'Đang đăng nhập...';
 
+                    const loginAbort = new AbortController();
+                    let loginTimer = null;
                     try {
-                        const loginPromise = window.gariAuth.login(email, password);
-                        const timeoutPromise = new Promise((_, reject) => 
-                            setTimeout(() => reject(new Error('Yêu cầu đăng nhập quá thời gian chờ (15s). Vui lòng kiểm tra kết nối và thử lại.')), 15000)
-                        );
+                        const loginPromise = window.gariAuth.login(email, password, false, { signal: loginAbort.signal });
+                        const timeoutPromise = new Promise((_, reject) => {
+                            loginTimer = setTimeout(() => {
+                                loginAbort.abort();
+                                reject(new Error('Yêu cầu đăng nhập quá thời gian chờ (15s). Vui lòng kiểm tra kết nối và thử lại.'));
+                            }, 15000);
+                        });
                         await Promise.race([loginPromise, timeoutPromise]);
                         toast('Đăng nhập thành công! Đã kết nối hệ thống.', 'success');
                         const gatewayEl = document.getElementById('authOnboardingGateway');
@@ -2869,6 +2875,7 @@
                         errBox.textContent = err.message || 'Đăng nhập không thành công. Vui lòng thử lại.';
                         errBox.style.display = 'block';
                     } finally {
+                        if (loginTimer) clearTimeout(loginTimer);
                         btn.disabled = false;
                         btn.textContent = 'Đăng nhập hệ thống';
                     }

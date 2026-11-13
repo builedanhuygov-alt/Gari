@@ -1,9 +1,27 @@
-# ignore server build artifacts, large model files and local env
-server/dist/
-server/node_modules/
+# ignore non-deployed code, large files, databases, and local test artifacts
+server/
 models/
 model/
+database/
+data/
+mobile/
+deploy/
+_archive/
+logs/
+scratch/
+.venv/
+tests/
+worker/
+supabase/
+.github/
+tools/
+docs/
 *.h5
 *.sqlite
+*.db
+*.log
 .env
 *.env.*
+requirements*.txt
+pyproject.toml
+*.py

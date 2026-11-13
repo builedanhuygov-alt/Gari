@@ -29,6 +29,7 @@ class GariAuthClient {
         this.config = null;
         this._initPromise = null;
         this._registrationInFlight = false;
+        this._loginInFlight = false;
         this._fbMethods = null;
     }
 
@@ -316,12 +317,30 @@ class GariAuthClient {
      * - Rule E: If FastAPI returns 503:
      *   Show service-unavailable error; never bypass authentication.
      */
-    async login(email, password, rememberMe = false) {
+    async login(email, password, rememberMe = false, fetchOptions = {}) {
+        if (this._loginInFlight) {
+            throw new GariAuthError(
+                'ALREADY_IN_FLIGHT',
+                'Yêu cầu đăng nhập đang được xử lý. Vui lòng đợi trong giây lát.',
+                'CONCURRENT_LOGIN_BLOCKED',
+                'IN_FLIGHT'
+            );
+        }
+
         email = (email || '').trim().toLowerCase();
         if (!email || !password) {
             throw new Error('Vui lòng nhập đầy đủ email và mật khẩu.');
         }
 
+        this._loginInFlight = true;
+        try {
+            return await this._executeLogin(email, password, rememberMe, fetchOptions);
+        } finally {
+            this._loginInFlight = false;
+        }
+    }
+
+    async _executeLogin(email, password, rememberMe = false, fetchOptions = {}) {
         // 1. Firebase Authentication (when configured)
         if (this.isFirebaseReady && this.firebaseAuth && this._fbMethods) {
             try {
@@ -356,8 +375,9 @@ class GariAuthClient {
                     let isSqliteAccount = false;
                     try {
                         const lookupRes = await safeFetch('/api/auth/provider-lookup', {
+                            ...fetchOptions,
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', ...(fetchOptions.headers || {}) },
                             body: JSON.stringify({ email })
                         }, 5000);
                         if (lookupRes.status === 503 || lookupRes.status === 502 || lookupRes.status === 504) {
@@ -408,8 +428,9 @@ class GariAuthClient {
 
         // 2. Native Backend Authentication (FastAPI + SQLite password verification)
         const res = await safeFetch('/api/auth/login', {
+            ...fetchOptions,
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...(fetchOptions.headers || {}) },
             credentials: 'include',
             body: JSON.stringify({ email, password, remember_me: Boolean(rememberMe) })
         }, 10000);

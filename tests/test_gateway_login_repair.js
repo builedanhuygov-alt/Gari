@@ -301,10 +301,30 @@ async function runTests() {
     assert.strictEqual(profAfter.statusCode, 401);
     console.log('  -> PASS: Logout successfully revoked FastAPI session; 401 returned.\n');
 
+    console.log('[TEST 10] Unknown account returns 401 with generic message...');
+    const t10 = await callGateway('POST', ['auth', 'login'], {
+        email: 'unknown_account_9999@gari.vn',
+        password: 'SomePassword123!'
+    });
+    assert.strictEqual(t10.statusCode, 401);
+    assert.strictEqual(t10.body.success, false);
+    assert.strictEqual(t10.body.detail, 'Email hoặc mật khẩu không chính xác.');
+    console.log('  -> PASS: Non-existent account returns uniform generic error.\n');
+
+    console.log('[TEST 11] Oversized payload (> 10MB) rejected with 413...');
+    const hugePayload = {
+        email: 'farmer@gari.vn',
+        data: 'A'.repeat(10 * 1024 * 1024 + 100)
+    };
+    const t11 = await callGateway('POST', ['auth', 'login'], hugePayload);
+    assert.strictEqual(t11.statusCode, 413);
+    assert.strictEqual(t11.body.code, 'PAYLOAD_TOO_LARGE');
+    console.log('  -> PASS: Payload exceeding 10MB correctly rejected with 413.\n');
+
     mockServer.close();
 
     console.log('================================================================');
-    console.log('ALL 9 GATEWAY REPAIR & SECURITY AUDIT TESTS PASSED (100%)');
+    console.log('ALL 11 GATEWAY REPAIR & SECURITY AUDIT TESTS PASSED (100%)');
     console.log('STATUS: VERIFIED CLEAN, SECURE, AND NON-REGRESSIVE');
     console.log('================================================================');
 }

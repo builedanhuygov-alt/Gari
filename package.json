@@ -5,6 +5,7 @@
   "main": "server/src/index.ts",
   "scripts": {
     "start": "python model/download_models.py && node server/dist/index.js",
+    "vercel-build": "node -e \"console.log('GARI Vercel Web Build Ready')\"",
     "build": "cd server && npm run build",
     "test": "jest",
     "test:cors": "node scratch/verify_cors.mjs",
