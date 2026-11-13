@@ -110,7 +110,7 @@ function handleBackendUnavailable(pathStr, res, err = null) {
       isTimeout ? 504 : 503,
       isTimeout ? 'AI_INFERENCE_TIMEOUT' : 'AI_INFERENCE_STANDBY',
       isTimeout
-        ? 'Quá trình chẩn đoán AI nông nghiệp vượt quá thời gian chờ. Vui lòng thử lại sau.'
+        ? 'Quá trình chẩn đoán AI nông nghiệp vượt quá thời gian chờ (Gateway Timeout). Vui lòng thử lại sau.'
         : 'Hệ thống chẩn đoán AI nông nghiệp đang trong trạng thái chờ hoặc đang nâng cấp mô hình. Vui lòng thử lại sau giây lát.'
     );
   }
@@ -219,7 +219,7 @@ async function handler(req, res) {
       method: req.method,
       path: upstreamPath,
       headers,
-      timeout: isAuthOrHealthRoute ? 6000 : Number(process.env.VERCEL_BACKEND_TIMEOUT_MS || 15000),
+      timeout: isAuthOrHealthRoute ? 3500 : Number(process.env.VERCEL_BACKEND_TIMEOUT_MS || 10000),
     }, (upstreamResponse) => {
       res.statusCode = upstreamResponse.statusCode || 502;
       for (const [key, value] of Object.entries(upstreamResponse.headers)) {
