@@ -10,6 +10,21 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 INV_PATH = Path(__file__).resolve().parent / "model_inventory.json"
+LOCALIZATION_DIR = Path(__file__).resolve().parent / "localization"
+
+def _load_crop_vi() -> Dict[str, Any]:
+    try:
+        with open(LOCALIZATION_DIR / "crop_vi.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _load_disease_vi() -> Dict[str, str]:
+    try:
+        with open(LOCALIZATION_DIR / "disease_vi.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
 
 # Verified Agricultural Knowledge Base
 VERIFIED_KNOWLEDGE: Dict[str, Dict[str, Any]] = {
@@ -185,19 +200,33 @@ def _load_inventory() -> List[Dict[str, Any]]:
 def get_crop_catalog() -> List[Dict[str, Any]]:
     """Return all discovered crops with metadata, class counts, and Vietnamese labels."""
     inv = _load_inventory()
+    crop_vi_dict = _load_crop_vi()
+    disease_vi_dict = _load_disease_vi()
     crops = []
     for item in inv:
         if item.get("kind") != "disease":
             continue
         crop_id = item["crop_id"]
-        crop_name = item["crop_name"]
+        c_meta = crop_vi_dict.get(crop_id, {})
+        crop_name_vi = c_meta.get("name_vi", item.get("crop_name", crop_id))
+
+        raw_labels = item.get("labels", [])
+        raw_classes = item.get("classes", [])
+        vi_labels = []
+        for idx, l in enumerate(raw_labels):
+            cls_name = raw_classes[idx] if idx < len(raw_classes) else l
+            d_vi = disease_vi_dict.get(l) or disease_vi_dict.get(cls_name) or disease_vi_dict.get(l.lower()) or l
+            vi_labels.append(d_vi)
+
         crops.append({
             "crop_id": crop_id,
-            "crop_name": crop_name,
+            "crop_name": crop_name_vi,
+            "crop_name_en": crop_id,
             "classes_count": item.get("classes_count", 0),
-            "classes": item.get("classes", []),
-            "labels": item.get("labels", []),
-            "accuracy": item.get("accuracy", 0.92),
+            "classes": raw_classes,
+            "labels": vi_labels,
+            "labels_en": raw_labels,
+            "accuracy": item.get("accuracy"),
             "arch": item.get("arch", "convnext_small"),
             "weight_size_mb": item.get("weight_size_mb", 94.4),
         })
@@ -207,6 +236,8 @@ def get_crop_catalog() -> List[Dict[str, Any]]:
 def search_diseases(query: Optional[str] = None, crop: Optional[str] = None) -> List[Dict[str, Any]]:
     """Search diseases across crops, symptoms, scientific names, and Vietnamese descriptions."""
     inv = _load_inventory()
+    crop_vi_dict = _load_crop_vi()
+    disease_vi_dict = _load_disease_vi()
     results = []
 
     q_lower = query.lower().strip() if query else None
@@ -216,9 +247,10 @@ def search_diseases(query: Optional[str] = None, crop: Optional[str] = None) -> 
         if item.get("kind") != "disease":
             continue
         c_id = item["crop_id"]
-        c_name = item["crop_name"]
+        c_meta = crop_vi_dict.get(c_id, {})
+        c_name = c_meta.get("name_vi", item.get("crop_name", c_id))
 
-        if crop_lower and c_id.lower() != crop_lower and c_name.lower() != crop_lower:
+        if crop_lower and c_id.lower() != crop_lower and c_name.lower() != crop_lower and item.get("crop_name", "").lower() != crop_lower:
             continue
 
         classes = item.get("classes", [])
@@ -229,12 +261,24 @@ def search_diseases(query: Optional[str] = None, crop: Optional[str] = None) -> 
             lookup_key = f"{c_id}_{cls_name}"
             kb = VERIFIED_KNOWLEDGE.get(lookup_key)
 
+            dis_vi = kb.get("disease_vi") if kb else None
+            if not dis_vi:
+                raw_dis = disease_vi_dict.get(cls_name) or disease_vi_dict.get(label) or disease_vi_dict.get(cls_name.lower()) or disease_vi_dict.get(label.lower())
+                if not raw_dis:
+                    dis_vi = "Chưa có bản dịch tiếng Việt cho nhãn này."
+                elif "khỏe" in raw_dis.lower() or "healthy" in cls_name.lower():
+                    dis_vi = f"Lá {c_name.lower()} khỏe mạnh"
+                elif raw_dis.lower().startswith("bệnh "):
+                    dis_vi = f"{raw_dis} trên {c_name.lower()}"
+                else:
+                    dis_vi = f"Bệnh {raw_dis} trên {c_name.lower()}"
+
             entry: Dict[str, Any] = {
                 "crop_id": c_id,
                 "crop_name": c_name,
                 "class_id": cls_name,
                 "disease_name": label,
-                "disease_vi": kb.get("disease_vi", f"{label} ({c_name})") if kb else f"{label} ({c_name})",
+                "disease_vi": dis_vi,
                 "scientific_name": kb.get("scientific_name", "Đang cập nhật phân loại học") if kb else "Đang cập nhật phân loại học",
                 "symptoms": kb.get("symptoms", f"Triệu chứng biểu hiện trên tán lá và cuống của cây {c_name}.") if kb else f"Triệu chứng biểu hiện trên tán lá và cuống của cây {c_name}.",
                 "favorable_conditions": kb.get("favorable_conditions", "Nhiệt độ ẩm độ thuận lợi cho mầm bệnh phát tán.") if kb else "Nhiệt độ ẩm độ thuận lợi cho mầm bệnh phát tán.",

@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import databaseService from './databaseService';
 
 // OpenAI configuration
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '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';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
 const openai = new OpenAI({
     apiKey: OPENAI_API_KEY,

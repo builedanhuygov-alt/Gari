@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập • Gari AI Lab</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -160,17 +160,13 @@
             <!-- Error / Info Notification -->
             <div id="authAlert" class="auth-alert"></div>
 
-            <!-- Dev Quick Fill Button -->
-            <div class="dev-badge-btn" id="btnDevAutofill" title="Điền nhanh tài khoản kiểm thử chính">
-                <span>⚡ Tài khoản thử nghiệm (Kỹ sư Đan Huỳnh)</span>
-                <span style="font-size:11px; opacity:0.8;">Tự động điền</span>
-            </div>
+
 
             <!-- Login Form -->
             <form id="loginForm" style="display:flex; flex-direction:column; gap:16px;">
                 <div class="form-group" style="margin:0;">
                     <label class="form-label" for="loginEmail">Email đăng nhập *</label>
-                    <input type="email" id="loginEmail" class="input" placeholder="danhuynh@gari.vn" required autocomplete="email" />
+                    <input type="email" id="loginEmail" class="input" placeholder="email@example.com" required autocomplete="email" />
                 </div>
 
                 <div class="form-group" style="margin:0;">
@@ -206,29 +202,40 @@
         </div>
     </div>
 
-    <script>
-        // Check if already authenticated
+    <script type="module">
+        import '/frontend2/firebase-client.js';
+
+        // Pre-initialize Auth Client and check existing session
         (async function checkExistingAuth() {
+            try {
+                if (window.gariAuth) {
+                    await window.gariAuth.init();
+                    if (window.gariAuth.currentUser) {
+                        const nextUrl = new URLSearchParams(window.location.search).get('redirect') || '/frontend2/index.html';
+                        window.location.href = nextUrl;
+                        return;
+                    }
+                }
+            } catch (_) {}
+
             const token = localStorage.getItem('gari_token');
             if (token) {
                 try {
                     const res = await fetch('/api/auth/me', {
-                        headers: { 'Authorization': 'Bearer ' + token }
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        credentials: 'include'
                     });
                     if (res.ok) {
                         const nextUrl = new URLSearchParams(window.location.search).get('redirect') || '/frontend2/index.html';
                         window.location.href = nextUrl;
                     }
-                } catch(e) {}
+                } catch (_) {}
             }
         })();
 
-        // Dev autofill helper
-        document.getElementById('btnDevAutofill').onclick = () => {
-            document.getElementById('loginEmail').value = 'danhuynh@gari.vn';
-            document.getElementById('loginPassword').value = 'Password123!';
-            showAlert('Đã điền tài khoản Kỹ sư Đan Huỳnh.', 'success');
-        };
+        // Dev autofill disabled in production
+        const devBtn = document.getElementById('btnDevAutofill');
+        if (devBtn) devBtn.style.display = 'none';
 
         // Password visibility toggle
         const pwdInput = document.getElementById('loginPassword');
@@ -250,48 +257,53 @@
             alert.style.display = 'flex';
         }
 
-        // Handle Login Submission
+        // Handle Login Submission with State Safety & Duplicate Prevention
+        let isSubmitting = false;
+
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
+            if (isSubmitting) return;
+
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             const rememberMe = document.getElementById('rememberMe').checked;
             const btnSubmit = document.getElementById('btnSubmit');
 
+            if (!email || !password) {
+                showAlert('Vui lòng nhập đầy đủ email và mật khẩu.', 'error');
+                return;
+            }
+
+            isSubmitting = true;
             btnSubmit.disabled = true;
             btnSubmit.textContent = 'Đang xác thực...';
 
+            let loginSucceeded = false;
             try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, remember_me: rememberMe })
-                });
-
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    if (data.token) {
-                        localStorage.setItem('gari_token', data.token);
-                    }
-                    if (data.user) {
-                        localStorage.setItem('gari_user', JSON.stringify(data.user));
-                    }
+                if (window.gariAuth) {
+                    await window.gariAuth.init();
+                }
+                const result = await window.gariAuth.login(email, password, rememberMe);
+                if (result && result.success) {
+                    loginSucceeded = true;
                     showAlert('Đăng nhập thành công! Đang chuyển hướng...', 'success');
                     
                     const nextUrl = new URLSearchParams(window.location.search).get('redirect') || '/frontend2/index.html';
                     setTimeout(() => {
                         window.location.href = nextUrl;
-                    }, 400);
-                } else {
-                    showAlert(data.detail || data.message || 'Email hoặc mật khẩu không chính xác.', 'error');
+                    }, 350);
+                    return;
+                }
+                showAlert('Email hoặc mật khẩu không chính xác.', 'error');
+            } catch (err) {
+                const message = err.userMessage || err.message || 'Không thể kết nối với máy chủ. Vui lòng thử lại sau.';
+                showAlert(message, 'error');
+            } finally {
+                if (!loginSucceeded) {
                     btnSubmit.disabled = false;
                     btnSubmit.textContent = 'Đăng nhập vào hệ thống';
+                    isSubmitting = false;
                 }
-            } catch (err) {
-                showAlert('Không thể kết nối với máy chủ. Vui lòng kiểm tra mạng hoặc thử lại sau.', 'error');
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = 'Đăng nhập vào hệ thống';
             }
         };
     </script>

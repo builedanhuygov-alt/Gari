@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng giá & Gói dịch vụ • Gari AgriTech</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -60,7 +60,7 @@
                     </div>
 
                     <!-- Usage and Period Details Grid -->
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; font-size:12.5px;">
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; font-size:12.5px; margin-bottom:16px;">
                         <div style="background:var(--surface); padding:10px 14px; border-radius:8px; border:1px solid var(--border);">
                             <div style="color:var(--text-muted); font-size:11.5px; margin-bottom:4px;">Hạn ngạch phân loại</div>
                             <div style="font-size:16px; font-weight:700; color:var(--primary);" id="subUsageStats">-- / --</div>
@@ -68,13 +68,27 @@
                         </div>
                         <div style="background:var(--surface); padding:10px 14px; border-radius:8px; border:1px solid var(--border);">
                             <div style="color:var(--text-muted); font-size:11.5px; margin-bottom:4px;">Kỳ hiện tại</div>
-                            <div style="font-size:13px; font-weight:600; color:var(--text-main);" id="subPeriodDates">Theo ngày (24 giờ)</div>
+                            <div style="font-size:13px; font-weight:600; color:var(--text-main);" id="subPeriodDates">Theo tháng</div>
                             <div style="color:var(--text-muted); font-size:11px;" id="subResetTime">Làm mới tự động</div>
                         </div>
                         <div style="background:var(--surface); padding:10px 14px; border-radius:8px; border:1px solid var(--border);">
                             <div style="color:var(--text-muted); font-size:11.5px; margin-bottom:4px;">Phương thức thanh toán</div>
-                            <div style="font-size:13px; font-weight:600; color:var(--text-main);" id="subPaymentMethod">Thủ công / Pilot Beta</div>
-                            <div style="color:var(--text-muted); font-size:11px;">Cổng online: Chưa cấu hình</div>
+                            <div style="font-size:13px; font-weight:600; color:var(--text-main);" id="subPaymentMethod">Thủ công / VietQR</div>
+                            <div style="color:var(--text-muted); font-size:11px;" id="subProviderStatusText">Cổng VietQR / PayOS</div>
+                        </div>
+                    </div>
+
+                    <!-- Module 11: Real-time Multi-Dimensional Entitlement & Usage Dashboard -->
+                    <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <span style="font-size:12px; font-weight:700; color:var(--text-main); text-transform:uppercase; letter-spacing:0.5px;">
+                                📊 Chi tiết sử dụng & Hạn mức tài nguyên (Module 11)
+                            </span>
+                            <span id="upgradeRecommendationBadge" class="pill pill-info" style="font-size:11px; display:none;"></span>
+                        </div>
+                        <div id="entitlementsUsageGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:12px;">
+                            <!-- Injected dynamically by JS -->
+                            <div style="font-size:12px; color:var(--text-muted);">Đang tải số liệu tài nguyên...</div>
                         </div>
                     </div>
                 </div>
@@ -173,8 +187,36 @@
                             </ul>
                         </div>
                         <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
-                            <button type="button" class="btn btn-primary" style="width:100%; justify-content:center;" onclick="window.handleStartCheckout('personal')">
+                            <button type="button" class="btn btn-primary" style="width:100%; justify-content:center;" onclick="window.handleStartCheckout('pro')">
                                 Đăng ký 129.000 đ/tháng
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="window.scrollToVoucher()">
+                                Nhập mã Voucher miễn phí
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Plan: Ultra (Đỉnh Cao - 249,000 VND) -->
+                    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between; border:2px solid #8b5cf6; border-radius:12px; padding:20px; position:relative; box-shadow:0 8px 24px rgba(139,92,246,0.12);">
+                        <div style="position:absolute; top:-12px; right:16px;">
+                            <span class="pill" style="background:#8b5cf6; color:#fff; font-weight:700;">Gói Đỉnh Cao</span>
+                        </div>
+                        <div>
+                            <span class="pill pill-neutral" style="margin-bottom:12px; border-color:#8b5cf6; color:#8b5cf6;">Đỉnh Cao (Ultra)</span>
+                            <h3 style="font-size:20px; font-weight:800; color:#8b5cf6; margin-bottom:6px;">249.000 đ <span style="font-size:12px; font-weight:500; color:var(--text-muted);">/ tháng</span></h3>
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Dành cho chủ trang trại quy mô lớn, kỹ sư tư vấn độc lập.</p>
+                            
+                            <ul style="padding-left:18px; margin:0; font-size:12px; color:var(--text-secondary); line-height:1.7;">
+                                <li><strong>500 lượt chẩn đoán & 500 câu hỏi AI</strong> / tháng</li>
+                                <li><strong>Quản lý 10 trang trại & 50 phân lô</strong></li>
+                                <li><strong>10 phiên tư vấn chuyên gia BVTV</strong></li>
+                                <li><strong>Không gian 3D & Báo cáo nâng cao</strong></li>
+                                <li>Dung lượng lưu trữ <strong>2.048 MB (2 GB)</strong></li>
+                            </ul>
+                        </div>
+                        <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                            <button type="button" class="btn btn-primary" style="width:100%; justify-content:center; background:#8b5cf6; border-color:#8b5cf6;" onclick="window.handleStartCheckout('ultra')">
+                                Đăng ký 249.000 đ/tháng
                             </button>
                             <button type="button" class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="window.scrollToVoucher()">
                                 Nhập mã Voucher miễn phí
@@ -272,7 +314,7 @@
     <div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, toast } from '/static/frontend2/app.js';
+        import { setupSaaSShell, toast } from '/static/frontend2/app.js?v=20261104_stable';
 
         let currentSubData = null;
 
@@ -281,14 +323,23 @@
             if (!token) return;
 
             try {
-                const res = await fetch('/api/billing/subscription', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) return;
-                const data = await res.json();
-                if (!data.success) return;
-                currentSubData = data;
-                renderSubscriptionCard(data);
+                const [resSub, resUsage] = await Promise.all([
+                    fetch('/api/billing/subscription', { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch('/api/subscriptions/usage', { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+                if (resSub.ok) {
+                    const data = await resSub.json();
+                    if (data.success) {
+                        currentSubData = data;
+                        renderSubscriptionCard(data);
+                    }
+                }
+                if (resUsage.ok) {
+                    const usageData = await resUsage.json();
+                    if (usageData.success) {
+                        renderMultiMetricUsage(usageData);
+                    }
+                }
             } catch (err) {
                 console.error("Failed to load subscription data", err);
             }
@@ -364,6 +415,49 @@
                 methodText = sub.is_paid ? 'Đã thanh toán (Thủ công)' : (sub.commercial_intent === 'pilot_active' ? 'Pilot thử nghiệm (Chưa thu phí)' : 'Đăng ký trả phí');
             }
             document.getElementById('subPaymentMethod').textContent = methodText;
+        }
+
+        function renderMultiMetricUsage(data) {
+            const grid = document.getElementById('entitlementsUsageGrid');
+            if (!grid) return;
+            const usage = data.usage || {};
+            const guidance = data.upgrade_guidance || {};
+
+            const badge = document.getElementById('upgradeRecommendationBadge');
+            if (badge && guidance.needs_upgrade) {
+                badge.textContent = `Khuyến nghị: ${guidance.suggested_plan_name}`;
+                badge.style.display = 'inline-block';
+            }
+
+            let html = '';
+            for (const [key, item] of Object.entries(usage)) {
+                const isUnl = item.is_unlimited;
+                const pct = Math.min(100, item.percentage || 0);
+                const barColor = pct >= 90 ? '#ef4444' : (pct >= 70 ? '#f59e0b' : '#10b981');
+                
+                html += `
+                    <div style="background:var(--surface-muted); padding:10px 12px; border-radius:8px; border:1px solid var(--border);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-weight:700; font-size:12px; color:var(--text-main);">${item.label}</span>
+                            <span style="font-size:11px; font-weight:600; color:${barColor};">
+                                ${isUnl ? 'Không giới hạn' : `${item.used} / ${item.limit} ${item.unit}`}
+                            </span>
+                        </div>
+                        ${!isUnl ? `
+                            <div style="width:100%; height:6px; background:var(--border); border-radius:3px; overflow:hidden; margin:6px 0;">
+                                <div style="width:${pct}%; height:100%; background:${barColor}; transition:width 0.3s;"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted);">
+                                <span>Đã dùng: ${pct}%</span>
+                                <span>Còn: ${item.remaining} ${item.unit}</span>
+                            </div>
+                        ` : `
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Đã sử dụng ${item.used} ${item.unit}</div>
+                        `}
+                    </div>
+                `;
+            }
+            grid.innerHTML = html;
         }
 
         window.scrollToVoucher = function() {

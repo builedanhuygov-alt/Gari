@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bác Sĩ Cây Trồng AI • Gari AI Lab</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <title>GARI Leaf Intelligence • Chẩn đoán & Trợ lý Sức khỏe Lá</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -13,6 +13,491 @@
         } catch(e) {
             document.documentElement.dataset.theme = 'light';
         }
+    
+        // =========================================================================
+        // SPRINT 6: GARI PLANT HEALTH ASSISTANT (INTEGRATED AI DISEASE EXPLAINER)
+        // =========================================================================
+        let secondaryFiles = [];
+        let currentAssistantDiagnosis = null;
+        let assistantConversationHistory = [];
+        let isDeepDiveMode = false;
+        let isAssistantConfigured = false;
+
+        function initSecondaryImageHandlers() {
+            const btnAddSec = document.getElementById('btnAddSecondaryImg');
+            const secInput = document.getElementById('secondaryFileInput');
+            if (!btnAddSec || !secInput) return;
+
+            btnAddSec.onclick = () => secInput.click();
+            secInput.onchange = () => {
+                if (secInput.files && secInput.files.length > 0) {
+                    for (let i = 0; i < secInput.files.length; i++) {
+                        if (secondaryFiles.length >= 4) {
+                            toast('Tối đa 4 ảnh góc bổ sung cho một lượt khám.');
+                            break;
+                        }
+                        secondaryFiles.push(secInput.files[i]);
+                    }
+                    secInput.value = '';
+                    renderSecondaryThumbnails();
+                }
+            };
+        }
+
+        function renderSecondaryThumbnails() {
+            const list = document.getElementById('secondaryImagesList');
+            if (!list) return;
+            if (secondaryFiles.length === 0) {
+                list.innerHTML = '<span style="font-size:11.5px; color:var(--text-muted); font-style:italic;" id="secImgEmptyHint">Chưa có ảnh phụ</span>';
+                return;
+            }
+            list.innerHTML = '';
+            secondaryFiles.forEach((file, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'multi-img-thumb';
+                const url = URL.createObjectURL(file);
+                thumb.innerHTML = `
+                    <img src="${url}" alt="Ảnh phụ ${idx + 1}" />
+                    <button type="button" class="btn-del-thumb" title="Xóa ảnh này">✕</button>
+                `;
+                thumb.querySelector('.btn-del-thumb').onclick = (e) => {
+                    e.stopPropagation();
+                    secondaryFiles.splice(idx, 1);
+                    renderSecondaryThumbnails();
+                };
+                list.appendChild(thumb);
+            });
+        }
+
+        function initPlantHealthAssistantEvents() {
+            const btnSend = document.getElementById('btnSendAssistantMessage');
+            const input = document.getElementById('assistantChatInput');
+            const btnDeep = document.getElementById('btnToggleDeepDive');
+            const btnReset = document.getElementById('btnResetAssistantChat');
+
+            if (btnSend && input) {
+                btnSend.onclick = () => {
+                    const text = input.value.trim();
+                    if (!text) return;
+                    input.value = '';
+                    sendAssistantMessage(text);
+                };
+
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        btnSend.click();
+                    }
+                };
+            }
+
+            if (btnDeep) {
+                btnDeep.onclick = () => toggleDeepDive();
+            }
+
+            if (btnReset) {
+                btnReset.onclick = () => resetAssistantChat();
+            }
+
+            // Quick prompts buttons
+            document.querySelectorAll('.quick-prompt-pill').forEach(btn => {
+                btn.onclick = () => {
+                    const prompt = btn.getAttribute('data-prompt');
+                    if (prompt) {
+                        sendAssistantMessage(prompt);
+                    }
+                };
+            });
+        }
+
+        function toggleDeepDive() {
+            isDeepDiveMode = !isDeepDiveMode;
+            const textEl = document.getElementById('deepDiveStatusText');
+            const btnDeep = document.getElementById('btnToggleDeepDive');
+            if (textEl && btnDeep) {
+                if (isDeepDiveMode) {
+                    textEl.textContent = 'Bật';
+                    textEl.style.color = 'var(--primary)';
+                    btnDeep.style.borderColor = 'var(--primary)';
+                    btnDeep.style.background = 'rgba(16,185,129,0.08)';
+                    toast('Đã kích hoạt chế độ giải thích bệnh học chuyên sâu.');
+                } else {
+                    textEl.textContent = 'Tắt';
+                    textEl.style.color = 'var(--text-muted)';
+                    btnDeep.style.borderColor = 'var(--border)';
+                    btnDeep.style.background = 'transparent';
+                }
+            }
+        }
+
+        function resetAssistantChat() {
+            assistantConversationHistory = [];
+            const container = document.getElementById('assistantChatMessages');
+            if (container) container.innerHTML = '';
+            if (currentAssistantDiagnosis) {
+                renderInitialAssistantGreeting(currentAssistantDiagnosis);
+                toast('Đã làm mới phiên hội thoại với Trợ lý AI.');
+            }
+        }
+
+        async function initPlantHealthAssistant(data) {
+            currentAssistantDiagnosis = data;
+            assistantConversationHistory = [];
+            const card = document.getElementById('assistantChatCard');
+            const unconfNotice = document.getElementById('assistantUnconfiguredNotice');
+            const badge = document.getElementById('assistantStatusBadge');
+            const input = document.getElementById('assistantChatInput');
+            const btnSend = document.getElementById('btnSendAssistantMessage');
+
+            if (!card) return;
+            card.style.display = 'block';
+
+            // Check public status
+            try {
+                const res = await fetch('/api/assistant/status');
+                if (res.ok) {
+                    const statusData = await res.json();
+                    isAssistantConfigured = boolHelper(statusData.is_configured);
+                    if (!isAssistantConfigured) {
+                        if (unconfNotice) unconfNotice.style.display = 'block';
+                        if (badge) {
+                            badge.className = 'pill pill-warning';
+                            badge.textContent = 'Chưa cấu hình API';
+                        }
+                        if (input) {
+                            input.disabled = true;
+                            input.placeholder = 'Trợ lý AI chuyên gia chưa được cấu hình. Vui lòng quay lại sau.';
+                        }
+                        if (btnSend) btnSend.disabled = true;
+                        renderUnconfiguredAssistantState();
+                        return;
+                    } else {
+                        if (unconfNotice) unconfNotice.style.display = 'none';
+                        if (badge) {
+                            badge.className = 'pill pill-success';
+                            badge.textContent = 'Sẵn sàng';
+                        }
+                        if (input) {
+                            input.disabled = false;
+                            input.placeholder = 'Hỏi thêm Trợ lý AI về vết bệnh này...';
+                        }
+                        if (btnSend) btnSend.disabled = false;
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not check assistant status:', e);
+            }
+
+            // Load existing conversation history from server if available
+            const diagId = data.diagnosis_id || data.id;
+            let loadedHistory = [];
+            if (diagId) {
+                try {
+                    const token = localStorage.getItem('gari_token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                    const hRes = await fetch(`/api/assistant/history/${diagId}`, { headers, credentials: 'include' });
+                    if (hRes.ok) {
+                        const hData = await hRes.json();
+                        loadedHistory = hData.history || [];
+                    }
+                } catch (e) {
+                    console.debug('History fetch skipped:', e);
+                }
+            }
+
+            const messagesContainer = document.getElementById('assistantChatMessages');
+            if (messagesContainer) messagesContainer.innerHTML = '';
+
+            if (loadedHistory.length > 0) {
+                loadedHistory.forEach(turn => {
+                    appendChatBubble('user', turn.user_message);
+                    appendChatBubble('assistant', turn.bot_response, turn.actions);
+                    assistantConversationHistory.push({ role: 'user', content: turn.user_message });
+                    assistantConversationHistory.push({ role: 'assistant', content: turn.bot_response });
+                });
+            } else {
+                renderInitialAssistantGreeting(data);
+            }
+        }
+
+        function boolHelper(val) {
+            return val === true || val === 'true' || val === 1 || val === '1';
+        }
+
+        function renderUnconfiguredAssistantState() {
+            const container = document.getElementById('assistantChatMessages');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="chat-bubble-bot" style="border-left:3px solid var(--warning);">
+                    <p><strong>Trợ lý AI chuyên gia chưa được cấu hình. Vui lòng quay lại sau.</strong></p>
+                    <p style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                        Tính năng giải thích bệnh học tự động qua mô hình ngôn ngữ lớn đang tạm ngừng trên máy chủ. Bạn vẫn có thể sử dụng đầy đủ kết quả chẩn đoán thị giác máy tính và khuyến nghị nông học sẵn có ở bảng bên trên.
+                    </p>
+                </div>
+            `;
+        }
+
+        function renderInitialAssistantGreeting(data) {
+            const container = document.getElementById('assistantChatMessages');
+            if (!container) return;
+
+            const crop = data.crop_name_vi || data.crop_name || data.crop || 'Cây trồng';
+            const disease = data.disease_name_vi || data.prediction || 'Mầm bệnh';
+            const conf = data.disease_score != null ? (data.disease_score * 100).toFixed(1) : (data.confidence != null ? (data.confidence * 100).toFixed(1) : '95.0');
+            const isHealthy = (data.class_id && data.class_id.toLowerCase().includes('healthy')) || data.severity === 'HEALTHY' || data.is_healthy;
+            const rCount = (data.regions || []).length;
+
+            let greeting = '';
+            if (isHealthy) {
+                greeting = `
+                    <p>Chào bạn, tôi là <strong>GARI Plant Health Assistant</strong>. 🍃</p>
+                    <p>Mô hình thị giác máy tính xác định mẫu lá <strong>${crop}</strong> này <strong>khỏe mạnh</strong> (độ tin cậy: ${conf}%). Không phát hiện vết bệnh hay đốm hoại tử khu trú.</p>
+                    <p>Bạn có thể bấm vào các gợi ý bên dưới hoặc đặt câu hỏi để tôi hướng dẫn cách chăm sóc phòng ngừa sinh học!</p>
+                `;
+            } else {
+                greeting = `
+                    <p>Chào bạn, tôi là <strong>GARI Plant Health Assistant</strong>. Tôi đã sẵn sàng phân tích chuyên sâu hồ sơ chẩn đoán này cùng bạn.</p>
+                    <p>📌 <strong>Tổng hợp nhận diện:</strong></p>
+                    <ul>
+                        <li>Cây trồng: <strong>${crop}</strong></li>
+                        <li>Bệnh nghi ngờ: <strong>${disease}</strong> (Độ tương đồng mô hình: <strong>${conf}%</strong>)</li>
+                        <li>Tiêu điểm chú ý Grad-CAM: Phát hiện <strong>${rCount} vùng nghi vấn tổn thương</strong> trên phiến lá.</li>
+                    </ul>
+                    <p>Bạn cần tôi giải thích thêm về dấu hiệu đốm bệnh, mầm bệnh dễ nhầm lẫn hay các bước kiểm tra ngoài vườn trước tiên?</p>
+                `;
+            }
+
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble-bot';
+            bubble.innerHTML = greeting;
+            container.appendChild(bubble);
+        }
+
+        async function sendAssistantMessage(userText) {
+            if (!currentAssistantDiagnosis) {
+                toast('Vui lòng thực hiện kiểm tra lá trước khi hỏi Trợ lý AI.');
+                return;
+            }
+            if (!isAssistantConfigured) {
+                toast('Trợ lý AI chuyên gia chưa được cấu hình. Vui lòng quay lại sau.');
+                return;
+            }
+
+            const diagId = currentAssistantDiagnosis.diagnosis_id || currentAssistantDiagnosis.id;
+            const container = document.getElementById('assistantChatMessages');
+            const input = document.getElementById('assistantChatInput');
+            const btnSend = document.getElementById('btnSendAssistantMessage');
+
+            // 1. Render User message
+            appendChatBubble('user', userText);
+
+            // 2. Render typing indicator
+            const typingBubble = document.createElement('div');
+            typingBubble.className = 'chat-bubble-bot';
+            typingBubble.id = 'assistantTypingIndicator';
+            typingBubble.innerHTML = `
+                <div style="display:flex; align-items:center; gap:8px; color:var(--text-secondary); font-size:12.5px;">
+                    <span class="status-dot"></span> Đang phân tích dữ liệu bệnh học & thực địa...
+                </div>
+            `;
+            container.appendChild(typingBubble);
+            container.scrollTop = container.scrollHeight;
+
+            if (input) input.disabled = true;
+            if (btnSend) btnSend.disabled = true;
+
+            // 3. Prepare payload
+            const fieldCtx = {
+                growth_stage: document.getElementById('fieldGrowthStage')?.value || '',
+                user_symptoms: document.getElementById('fieldSymptoms')?.value || '',
+                field_conditions: document.getElementById('fieldConditions')?.value || '',
+                notes: document.getElementById('diagNotes')?.value || ''
+            };
+
+            const payload = {
+                diagnosis_id: Number(diagId),
+                message: userText,
+                conversation_history: assistantConversationHistory,
+                field_context: fieldCtx,
+                deep_dive: isDeepDiveMode
+            };
+
+            try {
+                const token = localStorage.getItem('gari_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const res = await fetch('/api/assistant/chat', {
+                    method: 'POST',
+                    headers: headers,
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                typingBubble.remove();
+
+                if (!res.ok || !data.success) {
+                    const errMsg = data.reply || data.detail || 'Không thể nhận phản hồi từ Trợ lý AI.';
+                    appendChatBubble('assistant', errMsg);
+                    toast(errMsg);
+                    return;
+                }
+
+                // Append assistant reply and actions
+                appendChatBubble('assistant', data.reply, data.actions);
+
+                // Update conversation history
+                assistantConversationHistory.push({ role: 'user', content: userText });
+                assistantConversationHistory.push({ role: 'assistant', content: data.reply });
+
+            } catch (err) {
+                typingBubble.remove();
+                appendChatBubble('assistant', 'Lỗi kết nối đến máy chủ Trợ lý AI. Vui lòng thử lại sau.');
+                console.error('Assistant error:', err);
+            } finally {
+                if (input) {
+                    input.disabled = false;
+                    input.focus();
+                }
+                if (btnSend) btnSend.disabled = false;
+            }
+        }
+
+        function appendChatBubble(role, text, actions = null) {
+            const container = document.getElementById('assistantChatMessages');
+            if (!container) return;
+
+            const bubble = document.createElement('div');
+            if (role === 'user') {
+                bubble.className = 'chat-bubble-user';
+                bubble.textContent = text;
+            } else {
+                bubble.className = 'chat-bubble-bot';
+                bubble.innerHTML = formatAssistantMarkdown(text);
+
+                // Render Action proposal cards if present
+                if (actions && Array.isArray(actions) && actions.length > 0) {
+                    actions.forEach((act, actIdx) => {
+                        const actCard = document.createElement('div');
+                        actCard.className = 'action-proposal-card';
+                        actCard.innerHTML = `
+                            <div class="action-proposal-header">
+                                <span class="action-proposal-title">
+                                    <span>📅 Đề xuất công việc theo dõi</span>
+                                </span>
+                                <span class="pill pill-info" style="font-size:10px; text-transform:uppercase;">${act.priority || 'Trung bình'}</span>
+                            </div>
+                            <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-top:2px;">
+                                ${act.title}
+                            </div>
+                            <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">
+                                ${act.description || 'Thực hiện theo dõi và kiểm tra vết bệnh ngoài đồng ruộng.'}
+                            </div>
+                            <div class="action-proposal-meta">
+                                <span>Hạn thực hiện: <strong>${act.due_date || 'Sau 48h'}</strong></span>
+                                <span>Phân loại: <strong>${act.task_type || 'Kiểm tra'}</strong></span>
+                            </div>
+                            <div style="margin-top:4px;">
+                                <button type="button" class="btn btn-primary btn-sm btn-confirm-assistant-action" id="btnConfirmAct_${Date.now()}_${actIdx}" style="width:100%; font-size:12px; font-weight:700;">
+                                    ✓ Xác nhận & Thêm vào Lịch canh tác
+                                </button>
+                            </div>
+                        `;
+                        const btnConfirm = actCard.querySelector('.btn-confirm-assistant-action');
+                        btnConfirm.onclick = () => confirmAssistantAction(act, btnConfirm);
+                        bubble.appendChild(actCard);
+                    });
+                }
+            }
+
+            container.appendChild(bubble);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function confirmAssistantAction(actionDraft, btnEl) {
+            if (!currentAssistantDiagnosis) return;
+            const diagId = currentAssistantDiagnosis.diagnosis_id || currentAssistantDiagnosis.id;
+            btnEl.disabled = true;
+            btnEl.textContent = 'Đang lưu vào Lịch canh tác...';
+
+            try {
+                const token = localStorage.getItem('gari_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const res = await fetch('/api/assistant/action/confirm', {
+                    method: 'POST',
+                    headers: headers,
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        diagnosis_id: Number(diagId),
+                        action_draft: actionDraft
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.detail || 'Không thể tạo công việc.');
+                }
+
+                btnEl.textContent = '✓ Đã thêm vào Lịch canh tác';
+                btnEl.style.background = '#10b981';
+                btnEl.style.borderColor = '#10b981';
+                toast('Đã thêm công việc vào Lịch canh tác thông minh thành công!');
+
+            } catch (err) {
+                btnEl.disabled = false;
+                btnEl.textContent = 'Thử lại việc lưu';
+                toast(err.message || 'Lỗi khi lưu công việc.');
+            }
+        }
+
+        function formatAssistantMarkdown(md) {
+            if (!md) return '';
+            let s = md
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Bold **text**
+            s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Italic *text*
+            s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+            // Paragraphs & lines
+            const lines = s.split('\n');
+            let html = '';
+            let inList = false;
+
+            for (let line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                    if (!inList) {
+                        html += '<ul>';
+                        inList = true;
+                    }
+                    html += `<li>${trimmed.substring(2)}</li>`;
+                } else if (/^\d+\.\s/.test(trimmed)) {
+                    if (!inList) {
+                        html += '<ol>';
+                        inList = true;
+                    }
+                    html += `<li>${trimmed.replace(/^\d+\.\s/, '')}</li>`;
+                } else {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    if (trimmed.length > 0) {
+                        html += `<p>${trimmed}</p>`;
+                    }
+                }
+            }
+            if (inList) html += '</ul>';
+            return html;
+        }
+
     </script>
     <style>
         /* Modern Agricultural AI Doctor Theme */
@@ -111,6 +596,22 @@
         .progress-stage-item.completed {
             color: var(--text-main);
         }
+        .progress-stage-item.failed {
+            color: var(--danger, #ef4444);
+            font-weight: 600;
+        }
+        .progress-stage-item.unavailable {
+            color: var(--warning, #f59e0b);
+            font-weight: 600;
+        }
+        .progress-stage-item.timeout {
+            color: #8b5cf6;
+            font-weight: 600;
+        }
+        .progress-stage-item.skipped {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
         .stage-icon {
             width: 22px;
             height: 22px;
@@ -135,6 +636,26 @@
             background: var(--primary);
             border-color: var(--primary);
             color: #fff;
+        }
+        .progress-stage-item.failed .stage-icon {
+            background: var(--danger, #ef4444);
+            border-color: var(--danger, #ef4444);
+            color: #fff;
+        }
+        .progress-stage-item.unavailable .stage-icon {
+            background: var(--warning, #f59e0b);
+            border-color: var(--warning, #f59e0b);
+            color: #fff;
+        }
+        .progress-stage-item.timeout .stage-icon {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+            color: #fff;
+        }
+        .progress-stage-item.skipped .stage-icon {
+            background: var(--surface-muted);
+            border-color: var(--border);
+            color: var(--text-muted);
         }
         @keyframes pulse-ring {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
@@ -469,6 +990,348 @@
             padding-left: 20px;
             margin: 6px 0 0 0;
         }
+
+        /* Context & Scope Unified Searchable Selector */
+        .context-selector-wrap {
+            position: relative;
+            width: 100%;
+        }
+        .context-picker-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .context-picker-trigger:hover, .context-picker-trigger:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+            outline: none;
+        }
+        .context-picker-trigger.open {
+            border-color: var(--primary);
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+        .context-trigger-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+        .context-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .context-text-group {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            text-align: left;
+        }
+        .context-primary-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .context-secondary-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .context-trigger-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .context-quota-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+        .context-dropdown-panel {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            overflow: hidden;
+            animation: fadeInDown 0.15s ease-out;
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .context-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-muted);
+        }
+        .context-search-bar input {
+            border: none;
+            background: transparent;
+            font-size: 12.5px;
+            color: var(--text-main);
+            width: 100%;
+            outline: none;
+        }
+        .context-options-scroll {
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+        .context-group {
+            margin-bottom: 4px;
+        }
+        .context-group:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+        }
+        .context-group-header {
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 6px 12px 4px 12px;
+            text-transform: uppercase;
+        }
+        .context-header-action {
+            font-size: 11px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .context-header-action:hover {
+            text-decoration: underline;
+        }
+        .context-option-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .context-option-item:hover {
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .context-option-item.active {
+            background: rgba(16, 185, 129, 0.14);
+        }
+        .opt-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+        }
+        .opt-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .opt-details {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .opt-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .opt-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .opt-pill {
+            font-size: 10.5px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: var(--surface-muted);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .opt-pill.quota {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+            border-color: rgba(16, 185, 129, 0.2);
+            font-weight: 700;
+        }
+        .context-empty-hint {
+            padding: 8px 12px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+    
+        /* GARI Leaf Intelligence & Assistant Chatbot Styles */
+        .field-observation-accordion summary {
+            list-style: none;
+            user-select: none;
+        }
+        .field-observation-accordion summary::-webkit-details-marker {
+            display: none;
+        }
+        .quick-prompt-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .quick-prompt-pill:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(16, 185, 129, 0.08);
+            transform: translateY(-1px);
+        }
+        .chat-bubble-user {
+            align-self: flex-end;
+            background: var(--primary);
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 14px 14px 2px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 82%;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+            word-break: break-word;
+        }
+        .chat-bubble-bot {
+            align-self: flex-start;
+            background: var(--surface-muted);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 12px 16px;
+            border-radius: 14px 14px 14px 2px;
+            font-size: 13px;
+            line-height: 1.6;
+            max-width: 90%;
+            word-break: break-word;
+        }
+        .chat-bubble-bot p {
+            margin: 0 0 8px 0;
+        }
+        .chat-bubble-bot p:last-child {
+            margin-bottom: 0;
+        }
+        .chat-bubble-bot ul, .chat-bubble-bot ol {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+        .chat-bubble-bot li {
+            margin-bottom: 4px;
+        }
+        .chat-bubble-bot strong {
+            color: var(--text-main);
+        }
+        .action-proposal-card {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1.5px solid rgba(16, 185, 129, 0.35);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .action-proposal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .action-proposal-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-proposal-meta {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 10px;
+        }
+        .multi-img-thumb {
+            position: relative;
+            width: 58px;
+            height: 58px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            overflow: hidden;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .multi-img-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .multi-img-thumb .btn-del-thumb {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: none;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
     </style>
 </head>
 <body>
@@ -481,23 +1344,207 @@
 
             <main class="content-body">
                 <!-- Hero Header (Repositioned as Trợ Lý Sức Khỏe Cây Trồng) -->
-                <div class="doctor-hero">
-                    <div>
-                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                            <span class="doctor-badge">🌱 Trợ lý sức khỏe cây trồng • Gari AgriTech</span>
-                            <span class="pill pill-success">44 Mô hình AI Cục bộ</span>
+                
+                <!-- ========================================================================= -->
+                <!-- 1. AUTHENTICATED USER HEADER (Visible when user is signed in)             -->
+                <!-- ========================================================================= -->
+                <div id="authenticatedUserHeader" style="display:none; margin-bottom:20px; padding:18px 22px; background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius-lg); box-shadow:0 2px 12px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                        <div style="display:flex; align-items:center; gap:14px;">
+                            <div id="userAvatarBubble" style="width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg, #10b981, #059669); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; border:2px solid rgba(255,255,255,0.8); box-shadow:0 2px 8px rgba(16,185,129,0.3); flex-shrink:0;">
+                                G
+                            </div>
+                            <div>
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <h3 id="userDisplayName" style="margin:0; font-size:16px; font-weight:800; color:var(--text-main);">Nông dân Gari</h3>
+                                    <span id="userPlanBadge" class="pill pill-success" style="font-size:11px; padding:2px 8px;">Cá nhân Free</span>
+                                    <span id="userRoleBadge" class="pill pill-outline" style="font-size:11px; padding:2px 6px;">Nông hộ</span>
+                                </div>
+                                <div id="userEmailText" style="font-size:12px; color:var(--text-secondary); margin-top:2px;">nongdan@gari.vn</div>
+                            </div>
                         </div>
-                        <h1 class="page-head-title" style="margin:0;">Gari — Trợ Lý Sức Khỏe Cây Trồng</h1>
-                        <p class="page-head-sub" style="margin:4px 0 0 0;">Chụp hoặc tải ảnh lá để nhận phân loại sơ bộ, hiểu rõ mức độ chắc chắn, theo dõi lịch sử vườn và biết khi nào cần tham vấn chuyên gia.</p>
-                    </div>
-                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                        <button type="button" class="btn btn-secondary btn-sm" id="btnQuickGuide">📸 Hướng dẫn chụp ảnh</button>
-                        <button type="button" class="btn btn-ghost btn-sm" id="btnTierInfo">👑 Gói Free & VIP</button>
+
+                        <!-- Context Switcher & Action Controls -->
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <!-- Active Context Dropdown -->
+                            <div style="display:flex; align-items:center; gap:6px; background:var(--surface-muted); padding:6px 12px; border-radius:10px; border:1px solid var(--border);">
+                                <span style="font-size:12px; color:var(--text-secondary); font-weight:600;">Ngữ cảnh:</span>
+                                <select id="userActiveContextSelect" style="background:transparent; border:none; font-size:12.5px; font-weight:700; color:var(--primary); cursor:pointer; outline:none; max-width:220px;">
+                                    <option value="personal">🍃 Cá nhân: Sổ tay riêng</option>
+                                </select>
+                            </div>
+
+                            <!-- Pro Upgrade Button (Visible for Free tier) -->
+                            <button type="button" id="btnHeaderUpgradePro" class="btn btn-warning btn-sm" style="display:none; font-weight:700; background:#f59e0b; color:#fff; border:none;">
+                                ⭐ Nâng cấp Pro
+                            </button>
+
+                            <!-- Create Organization Button -->
+                            <button type="button" id="btnHeaderCreateOrg" class="btn btn-secondary btn-sm" style="font-weight:600;">
+                                🏢 Tạo HTX / Doanh nghiệp
+                            </button>
+
+                            <!-- Quick Guide Button -->
+                            <button type="button" class="btn btn-ghost btn-sm" id="btnQuickGuide">📸 Hướng dẫn chụp</button>
+
+                            <!-- Logout Button -->
+                            <button type="button" id="btnHeaderLogout" class="btn btn-ghost btn-sm" style="color:var(--text-muted); font-size:12px;" title="Đăng xuất tài khoản">
+                                🚪 Đăng xuất
+                            </button>
+                        </div>
                     </div>
                 </div>
 
+                <!-- ========================================================================= -->
+                <!-- 2. UNAUTHENTICATED ONBOARDING GATEWAY (Visible when not logged in)        -->
+                <!-- ========================================================================= -->
+                <div id="authOnboardingGateway" style="margin-bottom:24px; padding:24px; background:linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.04) 100%); border:1.5px solid rgba(16,185,129,0.25); border-radius:var(--radius-lg);">
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:24px; align-items:start;">
+                        <!-- Left Value Proposition Column -->
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                <span class="doctor-badge">GARI AGRITECH AI LAB</span>
+                                <span class="pill pill-success">Bác Sĩ Cây Trồng Thông Minh</span>
+                            </div>
+                            <h2 style="font-size:24px; font-weight:800; color:var(--text-main); margin:0 0 10px 0; line-height:1.3;">
+                                Hệ thống AI nông nghiệp phát hiện dịch hại cây trồng chính xác
+                            </h2>
+                            <p style="font-size:13.5px; color:var(--text-secondary); line-height:1.6; margin:0 0 16px 0;">
+                                Nền tảng thị giác máy tính nông nghiệp chuẩn xác cho nông hộ, hợp tác xã và doanh nghiệp. Tự động kiểm tra chất lượng ảnh lá (LeafGate), nhận diện cây và phân tích bệnh học chuyên sâu.
+                            </p>
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                                <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-main);">
+                                    <span style="color:var(--primary); font-size:15px; font-weight:800;">✓</span> <strong>7 Cây trồng chủ lực:</strong> Cà phê, Hồ tiêu, Lúa, Sầu riêng, Cà chua, Ớt, Ngô.
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-main);">
+                                    <span style="color:var(--primary); font-size:15px; font-weight:800;">✓</span> <strong>Thị giác máy tính Grad-CAM:</strong> Khoanh vùng đốm bệnh và mức độ chắc chắn trực quan.
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-main);">
+                                    <span style="color:var(--primary); font-size:15px; font-weight:800;">✓</span> <strong>Sổ tay nông trại & B2B RBAC:</strong> Quản lý dữ liệu phân quyền theo nông hộ hoặc Hợp tác xã.
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnGatewayQuickGuide">📸 Hướng dẫn chụp ảnh</button>
+                                <button type="button" class="btn btn-ghost btn-sm" id="btnGatewayTierInfo">👑 Quyền lợi gói cước</button>
+                            </div>
+                        </div>
+
+                        <!-- Right Auth Form Card -->
+                        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.06);">
+                            <!-- Auth Form Tabs -->
+                            <div style="display:flex; border-bottom:1.5px solid var(--border); margin-bottom:16px;">
+                                <button type="button" id="tabAuthLogin" class="auth-tab-btn active" style="flex:1; padding:8px 0; font-size:13px; font-weight:700; border:none; background:transparent; color:var(--primary); border-bottom:2px solid var(--primary); cursor:pointer;">
+                                    Đăng nhập
+                                </button>
+                                <button type="button" id="tabAuthRegister" class="auth-tab-btn" style="flex:1; padding:8px 0; font-size:13px; font-weight:600; border:none; background:transparent; color:var(--text-secondary); border-bottom:2px solid transparent; cursor:pointer;">
+                                    Đăng ký tài khoản
+                                </button>
+                                <button type="button" id="tabAuthReset" class="auth-tab-btn" style="flex:1; padding:8px 0; font-size:13px; font-weight:600; border:none; background:transparent; color:var(--text-secondary); border-bottom:2px solid transparent; cursor:pointer;">
+                                    Quên mật khẩu
+                                </button>
+                            </div>
+
+                            <!-- Tab 1: Login Form -->
+                            <form id="formAuthLogin" onsubmit="return false;" style="display:flex; flex-direction:column; gap:12px;">
+                                <div>
+                                    <label class="form-label" style="font-size:12px;">Email tài khoản</label>
+                                    <input type="email" id="loginEmail" class="input" placeholder="nongdan@example.com" required style="font-size:13px; padding:8px 12px;" />
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size:12px;">Mật khẩu</label>
+                                    <input type="password" id="loginPassword" class="input" placeholder="••••••••" required style="font-size:13px; padding:8px 12px;" />
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px;">
+                                    <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer; color:var(--text-secondary);">
+                                        <input type="checkbox" id="loginRemember" checked /> Ghi nhớ đăng nhập
+                                    </label>
+                                    <a href="javascript:void(0)" id="linkForgotPass" style="color:var(--primary); text-decoration:none;">Quên mật khẩu?</a>
+                                </div>
+                                <div id="loginErrorMsg" style="display:none; color:var(--danger); font-size:12px; background:rgba(239,68,68,0.1); padding:8px; border-radius:6px; line-height:1.4;"></div>
+                                <button type="submit" id="btnSubmitLogin" class="btn btn-primary" style="width:100%; font-weight:700;">
+                                    Đăng nhập hệ thống
+                                </button>
+                            </form>
+
+                            <!-- Tab 2: Register Form -->
+                            <form id="formAuthRegister" onsubmit="return false;" style="display:none; flex-direction:column; gap:10px;">
+                                <div>
+                                    <label class="form-label" style="font-size:12px;">Họ và tên</label>
+                                    <input type="text" id="regName" class="input" placeholder="Nguyễn Văn A" required style="font-size:13px; padding:8px 12px;" />
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size:12px;">Email liên hệ</label>
+                                    <input type="email" id="regEmail" class="input" placeholder="nongdan@example.com" required style="font-size:13px; padding:8px 12px;" />
+                                </div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                    <div>
+                                        <label class="form-label" style="font-size:12px;">Mật khẩu</label>
+                                        <input type="password" id="regPassword" class="input" placeholder="••••••••" required style="font-size:13px; padding:8px 12px;" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label" style="font-size:12px;">Số điện thoại</label>
+                                        <input type="tel" id="regPhone" class="input" placeholder="0912..." style="font-size:13px; padding:8px 12px;" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size:12px;">Tỉnh / Thành phố canh tác</label>
+                                    <select id="regProvince" class="select" style="font-size:13px; padding:8px 12px;">
+                                        <option value="Lâm Đồng">Lâm Đồng</option>
+                                        <option value="Đắk Lắk">Đắk Lắk</option>
+                                        <option value="Gia Lai">Gia Lai</option>
+                                        <option value="Đồng Tháp">Đồng Tháp</option>
+                                        <option value="An Giang">An Giang</option>
+                                        <option value="Cần Thơ">Cần Thơ</option>
+                                        <option value="Sơn La">Sơn La</option>
+                                        <option value="Khác">Tỉnh thành khác</option>
+                                    </select>
+                                </div>
+                                <div id="regErrorMsg" style="display:none; color:var(--danger); font-size:12px; background:rgba(239,68,68,0.1); padding:8px; border-radius:6px; line-height:1.4;"></div>
+                                <button type="submit" id="btnSubmitRegister" class="btn btn-primary" style="width:100%; font-weight:700;">
+                                    Tạo tài khoản Nông hộ (Miễn phí)
+                                </button>
+                            </form>
+
+                            <!-- Tab 3: Password Reset Form -->
+                            <form id="formAuthReset" onsubmit="return false;" style="display:none; flex-direction:column; gap:12px;">
+                                <p style="font-size:12px; color:var(--text-secondary); margin:0;">
+                                    Nhập email đã đăng ký. Hệ thống sẽ gửi thư xác thực để đặt lại mật khẩu an toàn.
+                                </p>
+                                <div>
+                                    <label class="form-label" style="font-size:12px;">Email đăng ký</label>
+                                    <input type="email" id="resetEmail" class="input" placeholder="nongdan@example.com" required style="font-size:13px; padding:8px 12px;" />
+                                </div>
+                                <div id="resetStatusMsg" style="display:none; font-size:12px; padding:8px; border-radius:6px; line-height:1.4;"></div>
+                                <button type="submit" id="btnSubmitReset" class="btn btn-secondary" style="width:100%; font-weight:700;">
+                                    Gửi yêu cầu đặt lại mật khẩu
+                                </button>
+                            </form>
+
+                            <div style="margin-top:12px; font-size:11px; text-align:center; color:var(--text-muted);">
+                                Bảo mật theo Nghị định 13/2023/NĐ-CP • Xác thực bảo mật Firebase & Gari Auth
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================================= -->
+                <!-- 3. DIAGNOSIS LOCK BANNER (Visible when unauthenticated)                   -->
+                <!-- ========================================================================= -->
+                <div id="diagnosisLockedBanner" style="display:block; margin-bottom:18px; padding:14px 18px; background:rgba(245,158,11,0.08); border:1.5px solid rgba(245,158,11,0.3); border-radius:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:22px;">🔒</span>
+                        <div>
+                            <div style="font-weight:700; color:#d97706; font-size:13.5px;">Khu vực chẩn đoán đang ở chế độ xem trước (Chưa đăng nhập)</div>
+                            <div style="font-size:12px; color:var(--text-secondary);">Vui lòng đăng nhập hoặc tạo tài khoản ở biểu mẫu phía trên để mở khóa công cụ chẩn đoán AI và lưu trữ lịch sử nông trại.</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnPromptLogin" style="font-weight:700;">
+                        Đăng nhập ngay
+                    </button>
+                </div>
+
                 <!-- TRUST & SAFETY & PRIVACY BANNER (Priority D) -->
-                <div class="card" style="margin-bottom:18px; padding:14px 18px; border-left:4px solid var(--primary); background:var(--surface); border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div class="card" style="margin-bottom:18px; padding:14px 18px; border-left:4px solid var(--primary); background:var(--surface); border-radius:10px; box-shadow:none;">
                     <div style="display:flex; align-items:flex-start; gap:12px;">
                         <div style="font-size:20px; line-height:1; margin-top:2px;">🛡️</div>
                         <div style="font-size:13px; line-height:1.6; color:var(--text-secondary);">
@@ -615,30 +1662,47 @@
                                 <img id="previewImg" src="" alt="Xem trước mẫu lá" />
                                 <button type="button" class="btn-remove-preview" id="btnRemoveImg" title="Xóa ảnh">✕</button>
                             </div>
+
+                            <!-- Multi-image thumbnails strip for underside & additional leaves -->
+                            <div id="multiImageStrip" style="margin-top:12px; display:none; padding:10px 12px; background:var(--surface-muted); border-radius:var(--radius-sm); border:1px solid var(--border-light);">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <span style="font-size:12px; font-weight:700; color:var(--text-main);">📸 Ảnh góc bổ sung (Mặt dưới / Toàn tán):</span>
+                                    <button type="button" class="btn btn-ghost btn-sm" id="btnAddSecondaryImg" style="font-size:11px; padding:2px 8px; border:1px solid var(--border);">+ Thêm ảnh</button>
+                                </div>
+                                <div id="secondaryImagesList" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; align-items:center;">
+                                    <span style="font-size:11.5px; color:var(--text-muted); font-style:italic;" id="secImgEmptyHint">Chưa có ảnh phụ</span>
+                                </div>
+                                <input type="file" id="secondaryFileInput" accept="image/*" multiple style="display:none;" />
+                            </div>
                         </div>
 
                         <!-- Real Progress Pipeline (Shows actual processing stages) -->
                         <div class="progress-pipeline" id="progressPipeline">
                             <div style="font-size:12.5px; font-weight:700; color:var(--text-main); margin-bottom:4px;">Tiến trình xử lý thời gian thực:</div>
+                            <div id="pipelineStatusMessage" role="status" aria-live="polite" style="font-size:12px; color:var(--text-secondary); margin:-2px 0 6px;"></div>
                             <div class="progress-stage-item" id="stage1">
                                 <div class="stage-icon">1</div>
-                                <span>Đang kiểm tra chất lượng ảnh (độ mờ, ánh sáng, vật thể)...</span>
+                                <span>Kiểm tra chất lượng ảnh & tính hợp lệ của lá cây...</span>
                             </div>
                             <div class="progress-stage-item" id="stage2">
                                 <div class="stage-icon">2</div>
-                                <span>Đang nhận diện tự động loại cây trồng...</span>
+                                <span>Nhận diện loài cây trồng (Model tổng hợp ViT)...</span>
                             </div>
                             <div class="progress-stage-item" id="stage3">
                                 <div class="stage-icon">3</div>
-                                <span>Đang phân tích dấu hiệu mầm bệnh trên lá...</span>
+                                <span>Phân tích dấu hiệu bệnh học (ConvNeXt)...</span>
                             </div>
                             <div class="progress-stage-item" id="stage4">
                                 <div class="stage-icon">4</div>
-                                <span>Đang khoanh vùng tổn thương trực quan (Grad-CAM & Pathology)...</span>
+                                <span>Khoanh vùng tổn thương trực quan (Grad-CAM & Pathology)...</span>
                             </div>
                             <div class="progress-stage-item" id="stage5">
                                 <div class="stage-icon">5</div>
-                                <span>Đang tổng hợp kết quả kiểm tra lá...</span>
+                                <span>Tổng hợp kết quả & lập khuyến nghị điều trị...</span>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+                                <button type="button" id="btnCancelDiagnosis" class="btn btn-secondary btn-sm" style="display:none;">✕ Hủy yêu cầu</button>
+                                <button type="button" id="btnRetryDiagnosis" class="btn btn-primary btn-sm" style="display:none;">↻ Thử lại ngay</button>
                             </div>
                         </div>
 
@@ -667,13 +1731,6 @@
                                 <div class="form-hint" id="modeExplanation" style="margin-top:8px; font-size:11.5px; color:var(--text-secondary); line-height:1.45;">
                                     Chế độ chuẩn: Kiểm định lá cây -> Nhận diện cây bằng mô hình <strong>Model tong (ViT)</strong> -> Tự động chuyển đến mô hình bệnh học tương ứng.
                                 </div>
-                                <!-- Pro Dev Authorization Toggle -->
-                                <div id="proDevConfigRow" style="display:none; margin-top:10px; padding:8px 12px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-md); font-size:11.5px; display:flex; align-items:center; justify-content:space-between;">
-                                    <span>🔑 Quyền truy cập Pro (Local Dev Auth):</span>
-                                    <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600;">
-                                        <input type="checkbox" id="chkDevProAuth" checked />
-                                        <span style="color:#d97706;">Bật quyền Pro (Dev Mode)</span>
-                                    </label>
                                 </div>
                             </div>
 
@@ -686,7 +1743,7 @@
                                     <option value="rice">Lúa (Rice) — Có mô hình bệnh</option>
                                     <option value="durian">Sầu riêng (Durian) — Mô hình bệnh chưa sẵn sàng</option>
                                     <option value="tomato">Cà chua (Tomato) — Có mô hình bệnh</option>
-                                    <option value="chili">Ớt (Chili) — Mô hình bệnh chưa sẵn sàng</option>
+                                    <option value="chili">Ớt (Chili / Pepper Bell) — Có mô hình bệnh (Model tong)</option>
                                     <option value="maize">Ngô (Maize) — Có mô hình bệnh</option>
                                 </select>
                                 <div class="form-hint" id="cropHint">Kiểm định lá cây -> Chạy trực tiếp mô hình bệnh học chuyên biệt cho cây đã chọn.</div>
@@ -702,18 +1759,102 @@
                                 </div>
                             </div>
 
-                            <div class="form-group" id="orgSelectGroup">
-                                <label class="form-label" for="orgSelect">Hồ sơ Tổ chức / Hợp tác xã (B2B)</label>
-                                <select class="select" id="orgSelect">
-                                    <option value="">-- Cá nhân (Dùng Quota cá nhân) --</option>
-                                </select>
-                            </div>
+                            <!-- Redesigned Searchable Diagnosis Context Selector -->
+                            <div class="form-group context-selector-wrap" id="contextSelectorContainer">
+                                <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Phạm vi & Nông trại chẩn đoán</span>
+                                    <span id="selectedContextBadge" class="context-badge-pill" style="font-size:11px; padding:2px 8px; border-radius:12px; background:rgba(16,185,129,0.12); color:#10b981; font-weight:700;">🍃 Cá nhân</span>
+                                </label>
 
-                            <div class="form-group">
-                                <label class="form-label" for="farmSelect">Gán vào nông trại / Vùng canh tác</label>
-                                <select class="select" id="farmSelect">
-                                    <option value="">-- Chưa gán nông trại cụ thể --</option>
-                                </select>
+                                <!-- Trigger Button -->
+                                <div id="contextPickerTrigger" class="context-picker-trigger" tabindex="0" onclick="toggleContextDropdown()">
+                                    <div class="context-trigger-left">
+                                        <div class="context-icon-box" id="triggerContextIcon">🍃</div>
+                                        <div class="context-text-group">
+                                            <div class="context-primary-title" id="triggerContextTitle">Khám tự do (Tài khoản cá nhân)</div>
+                                            <div class="context-secondary-sub" id="triggerContextSub">Sử dụng hạn ngạch chẩn đoán cá nhân</div>
+                                        </div>
+                                    </div>
+                                    <div class="context-trigger-right">
+                                        <span id="triggerQuotaBadge" class="context-quota-pill" style="display:none;"></span>
+                                        <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden Inputs for 100% Backward Compatibility with Prediction Submissions -->
+                                <input type="hidden" id="selectedContextType" value="personal">
+                                <input type="hidden" id="farmSelect" value="">
+                                <input type="hidden" id="orgSelect" value="">
+
+                                <!-- Floating Searchable Dropdown Panel -->
+                                <div id="contextDropdownPanel" class="context-dropdown-panel" style="display:none;">
+                                    <!-- Search Box -->
+                                    <div class="context-search-bar">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                        <input type="text" id="contextSearchInput" placeholder="Tìm kiếm nông trại, hợp tác xã..." autocomplete="off" oninput="filterContextOptions(this.value)">
+                                        <button type="button" id="btnClearContextSearch" onclick="clearContextSearch()" style="display:none; background:none; border:none; color:#94a3b8; font-size:16px; cursor:pointer;">&times;</button>
+                                    </div>
+
+                                    <!-- Scrollable Options List -->
+                                    <div class="context-options-scroll" id="contextOptionsList">
+                                        <!-- Loading State -->
+                                        <div id="contextLoadingState" class="context-empty-hint" style="text-align:center; padding:16px;">
+                                            Đang tải dữ liệu nông trại & hợp tác xã...
+                                        </div>
+
+                                        <!-- Error State -->
+                                        <div id="contextErrorState" class="context-empty-hint" style="display:none; text-align:center; padding:16px; color:#f87171;">
+                                            Không thể tải danh sách. <a href="javascript:void(0)" onclick="loadDiagnosisContexts()" style="color:#10b981; font-weight:600;">Thử lại</a>
+                                        </div>
+
+                                        <!-- Grouped Sections -->
+                                        <div id="contextSectionsWrapper" style="display:none;">
+                                            <!-- Group 1: Personal -->
+                                            <div class="context-group">
+                                                <div class="context-group-header">🌾 TÀI KHOẢN CÁ NHÂN</div>
+                                                <div class="context-option-item active" data-type="personal" data-id="" id="optPersonalItem" onclick="selectContextOption('personal', '', 'Khám tự do (Tài khoản cá nhân)', 'Sử dụng hạn ngạch cá nhân', '🍃', '')">
+                                                    <div class="opt-main">
+                                                        <span class="opt-icon">🍃</span>
+                                                        <div class="opt-details">
+                                                            <div class="opt-name" id="optPersonalName">Khám tự do (Tài khoản cá nhân)</div>
+                                                            <div class="opt-sub" id="optPersonalSub">Hạn ngạch tiêu chuẩn</div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="opt-pill" id="optPersonalQuotaPill">Cá nhân</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Group 2: Farms -->
+                                            <div class="context-group">
+                                                <div class="context-group-header" style="display:flex; justify-content:space-between; align-items:center;">
+                                                    <span>🏡 NÔNG TRẠI CỦA TÔI</span>
+                                                    <a href="/frontend2/farms.html" target="_blank" class="context-header-action" onclick="event.stopPropagation()">+ Thêm nông trại</a>
+                                                </div>
+                                                <div id="contextFarmsList"></div>
+                                                <div id="contextFarmsEmpty" class="context-empty-hint" style="display:none;">
+                                                    Chưa có nông trại nào. <a href="/frontend2/farms.html" target="_blank" style="color:#10b981; font-weight:600;">Tạo nông trại đầu tiên &rarr;</a>
+                                                </div>
+                                            </div>
+
+                                            <!-- Group 3: Cooperatives & Organizations -->
+                                            <div class="context-group">
+                                                <div class="context-group-header" style="display:flex; justify-content:space-between; align-items:center;">
+                                                    <span>🏢 HỢP TÁC XÃ & DOANH NGHIỆP</span>
+                                                    <a href="/frontend2/organization.html" target="_blank" class="context-header-action" onclick="event.stopPropagation()">+ Gia nhập HTX</a>
+                                                </div>
+                                                <div id="contextOrgsList"></div>
+                                                <div id="contextOrgsEmpty" class="context-empty-hint" style="display:none;">
+                                                    Bạn chưa tham gia hợp tác xã hoặc doanh nghiệp nào.
+                                                </div>
+                                            </div>
+
+                                            <!-- Search Empty Notice -->
+                                            <div id="contextNoResults" class="context-empty-hint" style="display:none; text-align:center; padding:16px;">
+                                                Không tìm thấy nông trại hoặc tổ chức phù hợp.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group" id="plotSelectGroup" style="display:none;">
@@ -722,6 +1863,35 @@
                                     <option value="">-- Chọn thửa ruộng/vườn --</option>
                                 </select>
                             </div>
+
+                            <!-- SECTION C: KHAI BÁO THỰC ĐỊA BỔ SUNG (ACCORDION / COMPACT) -->
+                            <details class="field-observation-accordion" id="fieldObservationDetails" style="background:var(--surface-muted); border:1px solid var(--border); border-radius:var(--radius-md); padding:10px 14px; margin-bottom:14px;">
+                                <summary style="font-size:12.5px; font-weight:700; color:var(--text-main); cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+                                    <span>🌿 Thông tin thực địa bổ sung</span>
+                                    <span class="pill pill-info" style="font-size:10px; padding:1px 6px;">Tăng độ chuẩn xác</span>
+                                </summary>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label class="form-label" style="font-size:11.5px; font-weight:600;">Giai đoạn sinh trưởng</label>
+                                        <select class="select" id="fieldGrowthStage" style="font-size:12px; padding:6px 10px;">
+                                            <option value="">-- Chưa xác định --</option>
+                                            <option value="Cây con / Ươm mầm">Cây con / Ươm mầm</option>
+                                            <option value="Phát triển thân lá / Đẻ nhánh">Phát triển thân lá / Đẻ nhánh</option>
+                                            <option value="Ra hoa / Đậu quả">Ra hoa / Đậu quả</option>
+                                            <option value="Nuôi củ / Nuôi quả chín">Nuôi củ / Nuôi quả chín</option>
+                                            <option value="Thu hoạch / Phục hồi sau thu hoạch">Thu hoạch / Phục hồi sau thu hoạch</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <label class="form-label" style="font-size:11.5px; font-weight:600;">Triệu chứng nổi bật</label>
+                                        <input type="text" class="input" id="fieldSymptoms" placeholder="VD: Đốm cháy lá có quầng vàng..." style="font-size:12px; padding:6px 10px;" />
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-top:10px; margin-bottom:0;">
+                                    <label class="form-label" style="font-size:11.5px; font-weight:600;">Thời tiết & Chăm sóc gần đây</label>
+                                    <input type="text" class="input" id="fieldConditions" placeholder="VD: Mưa liên tục 3 ngày, vừa bón đạm cao..." style="font-size:12px; padding:6px 10px;" />
+                                </div>
+                            </details>
 
                             <div class="form-group">
                                 <label class="form-label" for="diagNotes">Ghi chú quan sát thực địa</label>
@@ -888,6 +2058,7 @@
                             <!-- VISUAL LOCALIZATION VIEWER (PART 5) -->
                             <div class="localization-viewer-card">
                                 <div class="viewer-toolbar">
+                                    <div id="localizationUnavailableNotice" role="status" style="display:none; margin-bottom:10px; padding:10px 12px; border-radius:8px; background:rgba(245,158,11,.10); color:#92400e; font-size:12.5px; line-height:1.45;"></div>
                                     <div class="viewer-tabs">
                                         <button type="button" class="viewer-tab-btn" id="tabOriginal">Ảnh gốc</button>
                                         <button type="button" class="viewer-tab-btn active" id="tabAttention">🎯 Vùng chú ý của AI (Grad-CAM)</button>
@@ -946,6 +2117,32 @@
                                     <div style="display:flex; gap:8px; align-items:center;">
                                         <span class="pill pill-info" id="repModePill">Tự động nhận diện</span>
                                         <span class="pill" id="reportSeverityPill">Mức độ</span>
+                                    </div>
+                                </div>
+
+                                <!-- MODULE 02: LOW CONFIDENCE & UNCERTAINTY WARNING CARD -->
+                                <div id="repLowConfidenceCard" style="display:none; margin-bottom:14px; padding:12px 16px; background:rgba(239,68,68,0.06); border:1.5px solid rgba(239,68,68,0.35); border-radius:var(--radius-md);">
+                                    <div style="display:flex; align-items:flex-start; gap:10px;">
+                                        <span style="font-size:22px; line-height:1;">⚠️</span>
+                                        <div style="flex:1;">
+                                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                                <div style="font-weight:700; color:var(--danger); font-size:13.5px;">
+                                                    ĐỘ TIN CẬY MÔ HÌNH THẤP — CẦN KIỂM TRA THỰC ĐỊA HOẶC CHỤP LẠI
+                                                </div>
+                                                <span class="pill pill-warning" style="font-size:10px;">Chưa xác minh</span>
+                                            </div>
+                                            <div id="repLowConfidenceText" style="font-size:12.5px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">
+                                                Mô hình AI chưa đủ tin cậy (&lt; 45%) để đưa ra kết luận chắc chắn. Kết quả mang tính tham khảo sơ bộ.
+                                            </div>
+                                            <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
+                                                <button type="button" class="btn btn-sm btn-ghost" id="btnRetakePhotoWarning" style="border:1px solid var(--border); font-size:11.5px;">
+                                                    📸 Chụp lại ảnh góc thẳng & đủ sáng
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-secondary" id="btnWarningAskExpert" style="font-size:11.5px;">
+                                                    🧑‍🌾 Gửi mẫu cho Chuyên gia thẩm định
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1041,6 +2238,11 @@
                                     <ul class="report-list" id="repCausesList"></ul>
                                 </div>
 
+                                <div class="report-section" id="repRecommendationsSection">
+                                    <span class="report-label" style="color:var(--primary); font-weight:700;">🌱 Khuyến nghị xử lý & Lập lịch canh tác tức thì:</span>
+                                    <ul class="report-list" id="repRecommendationsList"></ul>
+                                </div>
+
                                 <!-- NEXT FIELD INSPECTION STEPS (Priority A) -->
                                 <div class="report-section">
                                     <span class="report-label" style="color:var(--primary);">📋 Hướng dẫn kiểm tra tiếp theo ngoài đồng ruộng:</span>
@@ -1071,6 +2273,90 @@
                                     <span class="pill pill-success" id="repSourcePill" style="font-size:10.5px;">Nguồn đã xác minh</span>
                                     <span id="repSourceText">Cơ sở tri thức Nông học Gari AI (Ưu tiên biện pháp sinh thái, không quảng bá thuốc)</span>
                                 </div>
+
+                                <!-- MODULE 02: FOLLOW-UP ACTIONS TOOLBAR -->
+                                <div class="report-section" id="repFollowupActionsSection" style="border-top:1.5px solid var(--border); padding-top:14px; margin-top:8px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                        <span class="report-label" style="color:var(--primary); font-weight:700;">⚡ HÀNH ĐỘNG TIẾP THEO (FOLLOW-UP ACTIONS):</span>
+                                        <span style="font-size:11.5px; color:var(--text-muted);">Trực tiếp từ chẩn đoán</span>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+                                        <button type="button" class="btn btn-primary" id="btnAskAssistantFollowup" style="display:flex; align-items:center; justify-content:center; gap:8px; font-weight:600; padding:10px 14px; font-size:13px;">
+                                            💬 <span>Hỏi Trợ lý AI về kết quả</span>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" id="btnCreateTaskFollowup" style="display:flex; align-items:center; justify-content:center; gap:8px; font-weight:600; padding:10px 14px; font-size:13px;">
+                                            📋 <span>Tạo công việc vào Lịch</span>
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" id="btnRequestExpertFollowup" style="display:flex; align-items:center; justify-content:center; gap:8px; font-weight:600; padding:10px 14px; font-size:13px; border-color:rgba(59,130,246,0.4); color:var(--primary);">
+                                            🧑‍🌾 <span>Gửi Chuyên gia BVTV thẩm định</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================================================= -->
+                        <!-- SECTION E: GARI PLANT HEALTH ASSISTANT (INTEGRATED AI CHATBOT)            -->
+                        <!-- ========================================================================= -->
+                        <div class="card assistant-chat-card" id="assistantChatCard" style="display:none; margin-top:16px; border:1.5px solid rgba(16,185,129,0.3); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface); box-shadow:0 8px 30px rgba(0,0,0,0.04);">
+                            <!-- Chatbot Header -->
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.04) 100%); border-bottom:1px solid var(--border); flex-wrap:wrap; gap:10px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="width:36px; height:36px; border-radius:10px; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 8px rgba(16,185,129,0.3);">
+                                        🩺
+                                    </div>
+                                    <div>
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <span style="font-size:14.5px; font-weight:800; color:var(--text-main);">GARI Plant Health Assistant</span>
+                                            <span id="assistantStatusBadge" class="pill pill-success" style="font-size:10.5px;">Sẵn sàng</span>
+                                        </div>
+                                        <div style="font-size:11.5px; color:var(--text-secondary); margin-top:1px;">
+                                            Trợ lý AI giải thích bệnh học thực địa & Hỗ trợ lập lịch canh tác IPM
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <button type="button" class="btn btn-ghost btn-sm" id="btnToggleDeepDive" title="Bật/Tắt giải thích bệnh học chuyên sâu" style="font-size:11.5px; padding:4px 10px; border:1px solid var(--border);">
+                                        🔬 Chuyên sâu: <strong id="deepDiveStatusText" style="color:var(--text-muted); margin-left:3px;">Tắt</strong>
+                                    </button>
+                                    <button type="button" class="btn btn-ghost btn-sm" id="btnResetAssistantChat" title="Bắt đầu phân tích mới" style="font-size:11.5px; padding:4px 10px; border:1px solid var(--border);">
+                                        🔄 Phân tích mới
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Unconfigured Banner (Hidden by default, shown if API not configured) -->
+                            <div id="assistantUnconfiguredNotice" style="display:none; padding:14px 18px; background:rgba(245,158,11,0.08); border-bottom:1px solid rgba(245,158,11,0.3); color:#d97706; font-size:13px; line-height:1.5;">
+                                <div style="display:flex; align-items:flex-start; gap:10px;">
+                                    <span style="font-size:20px; line-height:1;">⚙️</span>
+                                    <div>
+                                        <strong>Trợ lý AI chuyên gia chưa được cấu hình.</strong> Vui lòng quay lại sau hoặc liên hệ ban quản trị để kích hoạt nhà cung cấp AI trong Host Console.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Conversation Feed Container -->
+                            <div id="assistantChatMessages" style="padding:18px 20px; max-height:450px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; background:var(--surface);">
+                                <!-- Messages dynamically rendered here -->
+                            </div>
+
+                            <!-- Contextual Quick Prompts Pills -->
+                            <div id="assistantQuickPrompts" style="padding:8px 18px 12px 18px; border-top:1px solid var(--border-light); background:var(--surface-muted); display:flex; gap:6px; overflow-x:auto; white-space:nowrap;">
+                                <button type="button" class="quick-prompt-pill" data-prompt="Giải thích bệnh này dễ hiểu cho nông dân giúp tôi.">💡 Giải thích dễ hiểu</button>
+                                <button type="button" class="quick-prompt-pill" data-prompt="Dấu hiệu nào trên ảnh và vùng Grad-CAM cho thấy bệnh này?">🔍 Dấu hiệu trên ảnh</button>
+                                <button type="button" class="quick-prompt-pill" data-prompt="Mầm bệnh này có thể bị nhầm lẫn với bệnh nào khác?">⚠️ Bệnh dễ nhầm lẫn</button>
+                                <button type="button" class="quick-prompt-pill" data-prompt="Tôi nên thực hiện biện pháp sinh học hoặc canh tác gì trước tiên?">🌱 Xử lý trước mắt</button>
+                                <button type="button" class="quick-prompt-pill" data-prompt="Cần theo dõi vết bệnh trong 48h tới như thế nào?">📅 Kế hoạch theo dõi 48h</button>
+                                <button type="button" class="quick-prompt-pill" data-prompt="Tôi có cần chụp thêm ảnh góc khác hoặc mặt dưới lá không?">📸 Khi nào cần chụp lại?</button>
+                            </div>
+
+                            <!-- Chat Input Area -->
+                            <div style="padding:12px 18px; border-top:1px solid var(--border); background:var(--surface); display:flex; gap:10px; align-items:center;">
+                                <input type="text" id="assistantChatInput" class="input" placeholder="Hỏi thêm Trợ lý AI về kết quả chẩn đoán này..." style="flex:1; font-size:13px; padding:10px 14px;" />
+                                <button type="button" class="btn btn-primary" id="btnSendAssistantMessage" style="font-weight:700; display:inline-flex; align-items:center; gap:6px; padding:10px 18px;">
+                                    <span>Gửi</span>
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                </button>
                             </div>
                         </div>
 
@@ -1207,33 +2493,676 @@
                         </div>
                     </div>
                 </div>
+            
+                <!-- CREATE ORGANIZATION MODAL (B2B RBAC) -->
+                <div id="modalCreateOrg" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+                    <div style="background:var(--surface); max-width:540px; width:100%; border-radius:16px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.25); border:1px solid var(--border);">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                            <div>
+                                <span class="pill pill-success" style="margin-bottom:6px;">Khởi tạo Tổ chức Nông nghiệp (B2B)</span>
+                                <h3 style="margin:4px 0 0 0; font-size:18px; font-weight:800;">Tạo Hợp Tác Xã / Doanh Nghiệp Mới</h3>
+                            </div>
+                            <button type="button" id="btnCloseCreateOrgModal" style="background:transparent; border:none; font-size:20px; cursor:pointer; color:var(--text-muted); padding:4px;">✕</button>
+                        </div>
+
+                        <form id="formCreateOrg" onsubmit="return false;" style="display:flex; flex-direction:column; gap:12px;">
+                            <div>
+                                <label class="form-label" style="font-weight:700;">Tên tổ chức / Hợp tác xã <span style="color:var(--danger);">*</span></label>
+                                <input type="text" id="newOrgName" class="input" placeholder="Ví dụ: HTX Cà Phê Hữu Cơ Cư M'gar" required />
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <div>
+                                    <label class="form-label" style="font-weight:700;">Loại hình tổ chức</label>
+                                    <select id="newOrgType" class="select">
+                                        <option value="cooperative">Hợp tác xã nông nghiệp</option>
+                                        <option value="farm">Trang trại độc lập</option>
+                                        <option value="agribusiness">Doanh nghiệp nông nghiệp</option>
+                                        <option value="dealer">Đại lý vật tư BVTV</option>
+                                        <option value="smallholder_group">Tổ nhóm nông hộ</option>
+                                        <option value="other">Loại hình khác</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-weight:700;">Tỉnh / Thành phố</label>
+                                    <select id="newOrgRegion" class="select">
+                                        <option value="Đắk Lắk">Đắk Lắk</option>
+                                        <option value="Lâm Đồng">Lâm Đồng</option>
+                                        <option value="Gia Lai">Gia Lai</option>
+                                        <option value="Đồng Tháp">Đồng Tháp</option>
+                                        <option value="An Giang">An Giang</option>
+                                        <option value="Cần Thơ">Cần Thơ</option>
+                                        <option value="Sơn La">Sơn La</option>
+                                        <option value="Toàn quốc">Tỉnh thành khác</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="form-label" style="font-weight:700;">Cây trồng chủ lực</label>
+                                <input type="text" id="newOrgCrops" class="input" placeholder="Cà phê, Tiêu, Sầu riêng..." />
+                                <div class="form-hint">Nhập các loại cây chủ đạo của thành viên HTX để tối ưu hóa gợi ý bệnh học.</div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <div>
+                                    <label class="form-label" style="font-weight:700;">Email đại diện</label>
+                                    <input type="email" id="newOrgEmail" class="input" placeholder="htx@example.com" />
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-weight:700;">Số điện thoại</label>
+                                    <input type="tel" id="newOrgPhone" class="input" placeholder="09..." />
+                                </div>
+                            </div>
+
+                            <div id="createOrgErrorMsg" style="display:none; color:var(--danger); font-size:12.5px; background:rgba(239,68,68,0.1); padding:10px; border-radius:8px; line-height:1.4;"></div>
+
+                            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                                <button type="button" class="btn btn-ghost" id="btnCancelCreateOrg">Hủy</button>
+                                <button type="submit" class="btn btn-primary" id="btnSubmitCreateOrg" style="font-weight:700;">Khởi tạo tổ chức</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- PRO UPGRADE & VIETQR PAYMENT MODAL -->
+                <div id="modalProUpgrade" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+                    <div style="background:var(--surface); max-width:620px; width:100%; border-radius:18px; padding:24px; box-shadow:0 24px 48px rgba(0,0,0,0.3); border:1.5px solid rgba(245,158,11,0.3);">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                            <div>
+                                <span class="pill pill-warning" style="margin-bottom:6px;">⭐ Gói Chuyên Nghiệp (Pro Subscription)</span>
+                                <h3 style="margin:4px 0 0 0; font-size:20px; font-weight:800; color:var(--text-main);">Nâng Cấp Gói Gari Pro</h3>
+                            </div>
+                            <button type="button" id="btnCloseProModal" style="background:transparent; border:none; font-size:22px; cursor:pointer; color:var(--text-muted); padding:4px;">✕</button>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;">
+                            <div style="padding:16px; border:1.5px solid #f59e0b; border-radius:12px; background:linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(217,119,6,0.02) 100%);">
+                                <div style="font-weight:700; color:#d97706; font-size:14px;">Gói Cá Nhân Pro (VIP)</div>
+                                <div style="font-size:24px; font-weight:900; color:#d97706; margin:8px 0 4px 0;">129.000 đ <span style="font-size:13px; font-weight:500; color:var(--text-secondary);">/ tháng</span></div>
+                                <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:10px;">Hoặc 1.290.000 đ / năm (Tiết kiệm 2 tháng)</div>
+                                <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--text-main);">
+                                    <div>✓ <strong>150 lượt phân tích AI</strong> / ngày</div>
+                                    <div>✓ <strong>Mở khóa Model tong 2:</strong> ViT GBIF 14,829 loài</div>
+                                    <div>✓ <strong>Mở khóa Model 4:</strong> Pathology DINOv2</div>
+                                    <div>✓ <strong>Quyền khởi tạo Hợp tác xã / Trang trại</strong></div>
+                                    <div>✓ Xuất báo cáo mùa vụ Excel & PDF</div>
+                                    <div>✓ Ưu tiên hỗ trợ nông học 24/7</div>
+                                </div>
+                            </div>
+
+                            <!-- VietQR Bank Transfer Details -->
+                            <div style="padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--surface-muted); display:flex; flex-direction:column; justify-content:space-between;">
+                                <div>
+                                    <div style="font-weight:700; color:var(--text-main); font-size:13px; margin-bottom:6px;">Chuyển khoản kích hoạt nhanh (VietQR)</div>
+                                    <div style="font-size:11.5px; color:var(--text-secondary); line-height:1.5;">
+                                        Quét mã QR hoặc chuyển khoản ngân hàng theo cú pháp bên dưới để hệ thống đối soát tự động:
+                                    </div>
+                                    <div style="margin-top:10px; background:var(--surface); padding:10px; border-radius:8px; border:1px solid var(--border); font-size:12px; display:flex; flex-direction:column; gap:4px;">
+                                        <div><strong>Ngân hàng:</strong> MBBank (Quân Đội)</div>
+                                        <div><strong>Số TK:</strong> <code>0988668866</code></div>
+                                        <div><strong>Chủ TK:</strong> GARI AGRI VIETNAM</div>
+                                        <div><strong>Số tiền:</strong> <code>129.000 VND</code></div>
+                                        <div><strong>Nội dung CK:</strong> <code id="proQrTransferContent">GARI PRO USER</code></div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:12px;">
+                                    <button type="button" id="btnConfirmProPayment" class="btn btn-warning" style="width:100%; font-weight:700; font-size:13px; background:#f59e0b; color:#fff; border:none;">
+                                        ✓ Tôi đã chuyển khoản xong
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background:rgba(16,185,129,0.08); padding:10px 14px; border-radius:8px; font-size:11.5px; color:var(--primary); border:1px solid rgba(16,185,129,0.25);">
+                            💡 <strong>Cam kết:</strong> Nâng cấp Pro kích hoạt quyền lợi tức thì. Nếu cần hỗ trợ kích hoạt khẩn cấp, vui lòng liên hệ hotline Gari AI Lab: <code>contact@gari.vn</code>.
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
 
-    <div id="globalToast" class="toast-notice"></div>
+        <!-- Expert Consultation Modal (Module 07) -->
+    <div id="modalExpertReview" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+        <div class="modal-card card" style="max-width:540px; width:100%; max-height:90vh; overflow-y:auto; background:var(--surface, #1e293b); border:1px solid var(--border, #334155); border-radius:14px; box-shadow:0 20px 40px rgba(0,0,0,0.4); padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--border, #334155); padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:24px;">👨‍🔬</span>
+                    <div>
+                        <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--text-main, #f8fafc);">Gửi Chuyên Gia Nông Học Thẩm Định</h3>
+                        <p style="margin:2px 0 0; font-size:12px; color:var(--text-secondary, #94a3b8);">Chuyên gia bảo vệ thực vật sẽ xem xét ảnh và tư vấn phác đồ điều trị</p>
+                    </div>
+                </div>
+                <button type="button" id="btnCloseExpertModal" style="background:transparent; border:none; color:var(--text-secondary, #94a3b8); font-size:20px; cursor:pointer; padding:4px 8px;">✕</button>
+            </div>
+
+            <div id="expertModalAlert" style="display:none; padding:12px; border-radius:8px; margin-bottom:14px; font-size:13px;"></div>
+
+            <div style="background:var(--surface-muted, rgba(255,255,255,0.04)); padding:12px 14px; border-radius:8px; border:1px solid var(--border, #334155); margin-bottom:16px;">
+                <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary, #94a3b8); font-weight:700; margin-bottom:4px;">Hồ sơ chẩn đoán hiện tại:</div>
+                <div id="expertModalCropDisease" style="font-size:13px; font-weight:600; color:var(--primary, #10b981);">Đang tải dữ liệu chẩn đoán...</div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; color:var(--text-main, #f8fafc);">Mô tả biểu hiện thực tế ngoài đồng *</label>
+                <textarea id="expertModalSymptoms" rows="3" class="textarea" style="width:100%; border-radius:8px; padding:10px; font-size:13px; background:var(--bg-main, #0f172a); color:var(--text-main, #f8fafc); border:1px solid var(--border, #334155);" placeholder="Ví dụ: Vết bệnh xuất hiện 3 ngày nay sau đợt mưa to, lan nhanh trên các lá non phía trên, chưa phun thuốc gì..."></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; color:var(--text-main, #f8fafc);">Mức độ khẩn cấp</label>
+                <select id="expertModalUrgency" class="select" style="width:100%; border-radius:8px; padding:8px 10px; font-size:13px; background:var(--bg-main, #0f172a); color:var(--text-main, #f8fafc); border:1px solid var(--border, #334155);">
+                    <option value="medium" selected>Bình thường (Phản hồi trong 12–24h)</option>
+                    <option value="high">Cao (Cây có nguy cơ lây lan nhanh, cần phản hồi trong 4–6h)</option>
+                    <option value="urgent">Khẩn cấp (Cháy lá / héo rũ hàng loạt diện rộng)</option>
+                    <option value="low">Thấp (Tham khảo tư vấn định kỳ)</option>
+                </select>
+            </div>
+
+            <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.25); border-radius:8px; padding:12px; margin-bottom:18px;">
+                <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:12.5px; color:var(--text-main, #f8fafc);">
+                    <input type="checkbox" id="expertConsentFarmData" checked style="margin-top:3px; accent-color:#10b981;" />
+                    <span>
+                        <strong>Chia sẻ dữ liệu nông trại:</strong> Cho phép chuyên gia tiếp cận tên trang trại và số điện thoại liên hệ để tư vấn trực tiếp.
+                        <span style="display:block; font-size:11px; color:var(--text-secondary, #94a3b8); margin-top:2px;">(Nếu bỏ chọn, GARI sẽ tự động ẩn bảo mật toàn bộ thông tin nông trại và số điện thoại theo chuẩn Module 07 Data Privacy)</span>
+                    </span>
+                </label>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" id="btnCancelExpertModal" class="btn btn-secondary" style="padding:8px 16px; font-size:13px;">Hủy bỏ</button>
+                <button type="button" id="btnSubmitExpertCase" class="btn btn-primary" style="padding:8px 18px; font-weight:600; font-size:13px; background:#10b981; color:#fff; border:none; border-radius:8px;">🚀 Gửi hồ sơ thẩm định</button>
+            </div>
+        </div>
+    </div>
+
+<div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, fetchJSON, bindDropzone, toast } from '/static/frontend2/app.js';
+        import { setupSaaSShell, fetchJSON, bindDropzone, toast } from '/static/frontend2/app.js?v=20261104_stable';
+        import '/frontend2/firebase-client.js';
+        import { formatCropName, formatDiseaseName } from '/static/frontend2/localization.js';
 
         let selectedFile = null;
         let currentResultData = null;
         let currentDiagnosisMode = 'auto'; // 'auto' (Mode A) or 'manual' (Mode B)
         let zoomLevel = 1.0;
         let currentViewMode = 'attention'; // 'original', 'attention', 'overlay', 'split'
+        let activeUser = null;
+        let activeOrgId = null;
 
         function init() {
-            setupSaaSShell('predict', 'Trợ Lý Sức Khỏe Cây Trồng');
+            const urlParams = new URLSearchParams(window.location.search);
+            initAuthUI();
+            if (window.gariAuth) {
+                window.gariAuth.onAuthStateChanged(syncAuthState);
+                window.gariAuth.init();
+            }
+            setupSaaSShell('predict', 'GARI Leaf Intelligence');
+            document.title = 'GARI Leaf Intelligence • Chẩn đoán & Trợ lý Sức khỏe Lá';
+            const headlineEl = document.querySelector('.doctor-headline');
+            if (headlineEl) headlineEl.textContent = 'GARI Leaf Intelligence';
+            const h1El = document.querySelector('h1.page-head-title') || document.querySelector('h1');
+            if (h1El) h1El.textContent = 'GARI Leaf Intelligence';
             initDiagnosis();
             initViewerEvents();
             initTierModal();
+
+        // Expert review modal handlers
+        (function setupExpertModal() {
+            const modal = document.getElementById('modalExpertReview');
+            const btnClose = document.getElementById('btnCloseExpertModal');
+            const btnCancel = document.getElementById('btnCancelExpertModal');
+            const btnSubmit = document.getElementById('btnSubmitExpertCase');
+            const alertEl = document.getElementById('expertModalAlert');
+            const symptomsInput = document.getElementById('expertModalSymptoms');
+
+            const closeModal = () => {
+                if (modal) modal.style.display = 'none';
+            };
+            if (btnClose) btnClose.onclick = closeModal;
+            if (btnCancel) btnCancel.onclick = closeModal;
+            if (modal) {
+                modal.onclick = (e) => {
+                    if (e.target === modal) closeModal();
+                };
+            }
+
+            if (btnSubmit) {
+                btnSubmit.onclick = async () => {
+                    const desc = (symptomsInput ? symptomsInput.value.trim() : '') || 'Cần thẩm định thực địa';
+                    btnSubmit.disabled = true;
+                    btnSubmit.textContent = 'Đang gửi hồ sơ...';
+                    if (alertEl) alertEl.style.display = 'none';
+
+                    try {
+                        const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+                        const headers = { 'Content-Type': 'application/json' };
+                        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                        const farmVal = document.getElementById('farmSelect') ? document.getElementById('farmSelect').value : null;
+                        const plotVal = document.getElementById('plotSelect') ? document.getElementById('plotSelect').value : null;
+                        const cropVal = document.getElementById('cropSelect') ? document.getElementById('cropSelect').value : null;
+
+                        const consentEl = document.getElementById('expertConsentFarmData');
+                        const urgencyEl = document.getElementById('expertModalUrgency');
+                        const payload = {
+                            crop_id: cropVal || 'unknown',
+                            symptoms_description: desc,
+                            predicted_disease: document.getElementById('repDisease') ? document.getElementById('repDisease').textContent : 'Chưa xác định',
+                            confidence: parseFloat(document.getElementById('repConfidence') ? document.getElementById('repConfidence').textContent : '0') / 100,
+                            diagnosis_id: window.currentDiagnosisId || null,
+                            farm_id: farmVal ? parseInt(farmVal) : null,
+                            plot_id: plotVal ? parseInt(plotVal) : null,
+                            urgency: urgencyEl ? urgencyEl.value : 'medium',
+                            consent_share_farm_data: consentEl ? (consentEl.checked ? 1 : 0) : 1
+                        };
+
+                        const res = await fetch('/api/expert/cases', {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(payload)
+                        });
+                        const resJson = await res.json();
+                        if (res.ok && resJson.success) {
+                            if (alertEl) {
+                                alertEl.style.display = 'block';
+                                alertEl.style.background = 'rgba(16,185,129,0.1)';
+                                alertEl.style.border = '1px solid rgba(16,185,129,0.3)';
+                                alertEl.style.color = 'var(--primary)';
+                                alertEl.innerHTML = `<strong>Thành công!</strong> Hồ sơ #${resJson.case?.id || ''} đã được chuyển tới chuyên gia BVTV.`;
+                            }
+                            setTimeout(closeModal, 1800);
+                        } else {
+                            throw new Error(resJson.detail || 'Không thể gửi hồ sơ thẩm định.');
+                        }
+                    } catch (e) {
+                        if (alertEl) {
+                            alertEl.style.display = 'block';
+                            alertEl.style.background = 'rgba(239,68,68,0.1)';
+                            alertEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                            alertEl.style.color = 'var(--danger)';
+                            alertEl.textContent = e.message;
+                        }
+                    } finally {
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = '🚀 Gửi hồ sơ thẩm định';
+                    }
+                };
+            }
+        })();
             loadRecentPlantRecords();
+            initPlantHealthAssistantEvents();
+            initSecondaryImageHandlers();
         }
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
             init();
+        }
+
+        
+        // =========================================================================
+        // GARI AI LAB — UNIFIED AUTH & RBAC STATE MACHINE (Sprint 6 Overhaul)
+        // =========================================================================
+        function initAuthUI() {
+            // Tab switching for Login / Register / Reset
+            const tabLogin = document.getElementById('tabAuthLogin');
+            const tabReg = document.getElementById('tabAuthRegister');
+            const tabReset = document.getElementById('tabAuthReset');
+            const formLogin = document.getElementById('formAuthLogin');
+            const formReg = document.getElementById('formAuthRegister');
+            const formReset = document.getElementById('formAuthReset');
+
+            function setAuthTab(activeTab, activeForm) {
+                [tabLogin, tabReg, tabReset].forEach(t => {
+                    if (!t) return;
+                    t.classList.remove('active');
+                    t.style.fontWeight = '600';
+                    t.style.color = 'var(--text-secondary)';
+                    t.style.borderBottomColor = 'transparent';
+                });
+                [formLogin, formReg, formReset].forEach(f => {
+                    if (f) f.style.display = 'none';
+                });
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                    activeTab.style.fontWeight = '700';
+                    activeTab.style.color = 'var(--primary)';
+                    activeTab.style.borderBottomColor = 'var(--primary)';
+                }
+                if (activeForm) activeForm.style.display = 'flex';
+            }
+
+            if (tabLogin) tabLogin.onclick = () => setAuthTab(tabLogin, formLogin);
+            if (tabReg) tabReg.onclick = () => setAuthTab(tabReg, formReg);
+            if (tabReset) tabReset.onclick = () => setAuthTab(tabReset, formReset);
+
+            const linkForgotPass = document.getElementById('linkForgotPass');
+            if (linkForgotPass) linkForgotPass.onclick = () => setAuthTab(tabReset, formReset);
+
+            // Form Submissions
+            if (formLogin) {
+                formLogin.onsubmit = async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('loginEmail').value.trim();
+                    const password = document.getElementById('loginPassword').value;
+                    const errBox = document.getElementById('loginErrorMsg');
+                    const btn = document.getElementById('btnSubmitLogin');
+
+                    errBox.style.display = 'none';
+                    btn.disabled = true;
+                    btn.textContent = 'Đang đăng nhập...';
+
+                    try {
+                        const loginPromise = window.gariAuth.login(email, password);
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Yêu cầu đăng nhập quá thời gian chờ (15s). Vui lòng kiểm tra kết nối và thử lại.')), 15000)
+                        );
+                        await Promise.race([loginPromise, timeoutPromise]);
+                        toast('Đăng nhập thành công! Đã kết nối hệ thống.', 'success');
+                        const gatewayEl = document.getElementById('authOnboardingGateway');
+                        if (gatewayEl) gatewayEl.style.display = 'none';
+                    } catch (err) {
+                        errBox.textContent = err.message || 'Đăng nhập không thành công. Vui lòng thử lại.';
+                        errBox.style.display = 'block';
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'Đăng nhập hệ thống';
+                    }
+                };
+            }
+
+            if (formReg) {
+                formReg.onsubmit = async (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('regName').value.trim();
+                    const email = document.getElementById('regEmail').value.trim();
+                    const password = document.getElementById('regPassword').value;
+                    const phone = document.getElementById('regPhone').value.trim();
+                    const province = document.getElementById('regProvince').value;
+                    const errBox = document.getElementById('regErrorMsg');
+                    const btn = document.getElementById('btnSubmitRegister');
+
+                    errBox.style.display = 'none';
+                    btn.disabled = true;
+                    btn.textContent = 'Đang khởi tạo tài khoản...';
+
+                    try {
+                        const registerPromise = window.gariAuth.register(name, email, password, phone, province);
+                        // Bounded timeout safety guard so button can never remain permanently stuck
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Yêu cầu tạo tài khoản quá thời gian chờ (15s). Vui lòng thử lại.')), 15000)
+                        );
+                        await Promise.race([registerPromise, timeoutPromise]);
+                        toast('Tạo tài khoản thành công! Chào mừng bạn đến với Gari.', 'success');
+                        const gatewayEl = document.getElementById('authOnboardingGateway');
+                        if (gatewayEl) gatewayEl.style.display = 'none';
+                    } catch (err) {
+                        errBox.textContent = err.message || 'Đăng ký tài khoản không thành công. Vui lòng thử lại.';
+                        errBox.style.display = 'block';
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'Tạo tài khoản Nông hộ (Miễn phí)';
+                    }
+                };
+            }
+
+            if (formReset) {
+                formReset.onsubmit = async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('resetEmail').value.trim();
+                    const msgBox = document.getElementById('resetStatusMsg');
+                    const btn = document.getElementById('btnSubmitReset');
+
+                    btn.disabled = true;
+                    try {
+                        const res = await window.gariAuth.resetPassword(email);
+                        msgBox.style.display = 'block';
+                        msgBox.style.background = 'rgba(16,185,129,0.1)';
+                        msgBox.style.color = '#10b981';
+                        msgBox.textContent = res.message || 'Yêu cầu đã gửi thành công.';
+                    } catch (err) {
+                        msgBox.style.display = 'block';
+                        msgBox.style.background = 'rgba(239,68,68,0.1)';
+                        msgBox.style.color = '#ef4444';
+                        msgBox.textContent = err.message || 'Lỗi khi gửi yêu cầu đặt lại mật khẩu.';
+                    } finally {
+                        btn.disabled = false;
+                    }
+                };
+            }
+
+            // Header Action Buttons
+            const btnLogout = document.getElementById('btnHeaderLogout');
+            if (btnLogout) {
+                btnLogout.onclick = async () => {
+                    await window.gariAuth.logout();
+                    toast('Đã đăng xuất khỏi phiên làm việc an toàn.', 'info');
+                };
+            }
+
+            const btnPromptLogin = document.getElementById('btnPromptLogin');
+            if (btnPromptLogin) {
+                btnPromptLogin.onclick = () => {
+                    document.getElementById('loginEmail')?.focus();
+                    document.getElementById('authOnboardingGateway')?.scrollIntoView({ behavior: 'smooth' });
+                };
+            }
+
+            // Context Switcher Listener
+            const ctxSelect = document.getElementById('userActiveContextSelect');
+            if (ctxSelect) {
+                ctxSelect.onchange = () => {
+                    const val = ctxSelect.value;
+                    const badge = document.getElementById('selectedContextBadge');
+                    if (val === 'personal') {
+                        activeOrgId = null;
+                        if (badge) {
+                            badge.textContent = '🍃 Cá nhân';
+                            badge.style.background = 'rgba(16,185,129,0.12)';
+                            badge.style.color = '#10b981';
+                        }
+                    } else if (val.startsWith('org_')) {
+                        activeOrgId = parseInt(val.replace('org_', ''), 10);
+                        if (badge) {
+                            const optText = ctxSelect.options[ctxSelect.selectedIndex].textContent;
+                            badge.textContent = optText.split('(')[0].trim();
+                            badge.style.background = 'rgba(59,130,246,0.12)';
+                            badge.style.color = '#2563eb';
+                        }
+                    }
+                    loadQuotaStatus();
+                    loadDiagnosisContexts();
+                };
+            }
+
+            initModals();
+        }
+
+        function syncAuthState(user) {
+            activeUser = user;
+            const headerEl = document.getElementById('authenticatedUserHeader');
+            const gatewayEl = document.getElementById('authOnboardingGateway');
+            const lockedBanner = document.getElementById('diagnosisLockedBanner');
+
+            if (user) {
+                if (headerEl) headerEl.style.display = 'block';
+                if (gatewayEl) gatewayEl.style.display = 'none';
+                if (lockedBanner) lockedBanner.style.display = 'none';
+
+                const name = (user.profile && (user.profile.full_name || user.profile.name)) || (user.identity && user.identity.display_name) || 'Nông dân Gari';
+                const email = (user.identity && user.identity.email) || '';
+                const plan = user.subscription || {};
+
+                const nameEl = document.getElementById('userDisplayName');
+                if (nameEl) nameEl.textContent = name;
+                const emailEl = document.getElementById('userEmailText');
+                if (emailEl) emailEl.textContent = email;
+                const avatarEl = document.getElementById('userAvatarBubble');
+                if (avatarEl) avatarEl.textContent = (name || 'G')[0].toUpperCase();
+
+                const roleEl = document.getElementById('userRoleBadge');
+                if (roleEl) {
+                    if (user.system_role && user.system_role.is_admin) {
+                        roleEl.textContent = 'Quản trị viên';
+                        roleEl.className = 'pill pill-danger';
+                    } else {
+                        roleEl.textContent = user.profile.account_type || 'Nông hộ';
+                        roleEl.className = 'pill pill-outline';
+                    }
+                }
+
+                const planEl = document.getElementById('userPlanBadge');
+                const btnUpgrade = document.getElementById('btnHeaderUpgradePro');
+                if (planEl) {
+                    planEl.textContent = plan.plan_name || 'Cá nhân Free';
+                    planEl.className = plan.is_vip ? 'pill pill-warning' : 'pill pill-success';
+                }
+                if (btnUpgrade) {
+                    btnUpgrade.style.display = plan.is_vip ? 'none' : 'inline-flex';
+                }
+
+                // Transfer content code for QR transfer
+                const qrCodeEl = document.getElementById('proQrTransferContent');
+                if (qrCodeEl && user.profile && user.profile.id) {
+                    qrCodeEl.textContent = `GARI PRO ${user.profile.id}`;
+                }
+
+                // Populate active context switcher
+                const ctxSelect = document.getElementById('userActiveContextSelect');
+                if (ctxSelect) {
+                    ctxSelect.innerHTML = '<option value="personal">🍃 Cá nhân: Sổ tay riêng</option>';
+                    if (user.organizations && user.organizations.length > 0) {
+                        user.organizations.forEach(org => {
+                            const opt = document.createElement('option');
+                            opt.value = `org_${org.org_id}`;
+                            opt.textContent = `🏢 ${org.org_name} (${org.role})`;
+                            if (activeOrgId === org.org_id) opt.selected = true;
+                            ctxSelect.appendChild(opt);
+                        });
+                    }
+                }
+            } else {
+                if (headerEl) headerEl.style.display = 'none';
+                if (gatewayEl) gatewayEl.style.display = 'block';
+                if (lockedBanner) lockedBanner.style.display = 'flex';
+                activeOrgId = null;
+            }
+
+            loadQuotaStatus();
+            loadDiagnosisContexts();
+        }
+
+        function initModals() {
+            // Organization creation modal
+            const modalCreateOrg = document.getElementById('modalCreateOrg');
+            const btnHeaderCreateOrg = document.getElementById('btnHeaderCreateOrg');
+            const btnCloseCreateOrgModal = document.getElementById('btnCloseCreateOrgModal');
+            const btnCancelCreateOrg = document.getElementById('btnCancelCreateOrg');
+
+            if (btnHeaderCreateOrg) {
+                btnHeaderCreateOrg.onclick = () => {
+                    if (!activeUser) {
+                        toast('Vui lòng đăng nhập trước khi khởi tạo tổ chức.', 'warning');
+                        document.getElementById('authOnboardingGateway')?.scrollIntoView({ behavior: 'smooth' });
+                        return;
+                    }
+                    const canCreate = activeUser.subscription && activeUser.subscription.can_create_organization;
+                    if (!canCreate) {
+                        window.openProUpgradeModal('Tạo Hợp tác xã hoặc Doanh nghiệp yêu cầu tài khoản nâng cấp gói Pro hoặc Doanh nghiệp. Vui lòng nâng cấp gói để tiếp tục.');
+                        return;
+                    }
+                    if (modalCreateOrg) modalCreateOrg.style.display = 'flex';
+                };
+            }
+
+            const closeCreateOrg = () => {
+                if (modalCreateOrg) modalCreateOrg.style.display = 'none';
+                const err = document.getElementById('createOrgErrorMsg');
+                if (err) err.style.display = 'none';
+            };
+            if (btnCloseCreateOrgModal) btnCloseCreateOrgModal.onclick = closeCreateOrg;
+            if (btnCancelCreateOrg) btnCancelCreateOrg.onclick = closeCreateOrg;
+
+            const formCreateOrg = document.getElementById('formCreateOrg');
+            if (formCreateOrg) {
+                formCreateOrg.onsubmit = async (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('newOrgName').value.trim();
+                    const org_type = document.getElementById('newOrgType').value;
+                    const region = document.getElementById('newOrgRegion').value;
+                    const primary_crops = document.getElementById('newOrgCrops').value.trim();
+                    const contact_email = document.getElementById('newOrgEmail').value.trim();
+                    const contact_phone = document.getElementById('newOrgPhone').value.trim();
+                    const errBox = document.getElementById('createOrgErrorMsg');
+                    const btnSubmit = document.getElementById('btnSubmitCreateOrg');
+
+                    errBox.style.display = 'none';
+                    btnSubmit.disabled = true;
+                    btnSubmit.textContent = 'Đang khởi tạo...';
+
+                    try {
+                        const res = await fetch('/api/organizations', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...window.gariAuth.getAuthHeaders()
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                name,
+                                organization_type: org_type,
+                                region,
+                                primary_crops: primary_crops ? primary_crops.split(",").map(s => s.trim()).filter(Boolean) : ["coffee", "pepper"],
+                                contact_email,
+                                contact_phone
+                            })
+                        });
+                        const data = await res.json();
+                        if (!res.ok || !data.success) {
+                            throw new Error(data.detail || data.message || 'Khởi tạo tổ chức thất bại.');
+                        }
+                        toast('Khởi tạo tổ chức thành công! Chúc mừng bạn.', 'success');
+                        closeCreateOrg();
+                        formCreateOrg.reset();
+                        await window.gariAuth.checkCurrentSession();
+                    } catch (err) {
+                        errBox.textContent = err.message || 'Lỗi khi khởi tạo tổ chức.';
+                        errBox.style.display = 'block';
+                    } finally {
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = 'Khởi tạo tổ chức';
+                    }
+                };
+            }
+
+            // Pro Upgrade Modal
+            const modalProUpgrade = document.getElementById('modalProUpgrade');
+            const btnCloseProModal = document.getElementById('btnCloseProModal');
+            const btnHeaderUpgradePro = document.getElementById('btnHeaderUpgradePro');
+            const btnGatewayTierInfo = document.getElementById('btnGatewayTierInfo');
+            const btnConfirmProPayment = document.getElementById('btnConfirmProPayment');
+
+            window.openProUpgradeModal = (reason) => {
+                if (modalProUpgrade) {
+                    modalProUpgrade.style.display = 'flex';
+                    if (reason) toast(reason, 'info');
+                }
+            };
+
+            if (btnHeaderUpgradePro) btnHeaderUpgradePro.onclick = () => window.openProUpgradeModal();
+            if (btnGatewayTierInfo) btnGatewayTierInfo.onclick = () => window.openProUpgradeModal();
+            if (btnCloseProModal) btnCloseProModal.onclick = () => { modalProUpgrade.style.display = 'none'; };
+
+            if (btnConfirmProPayment) {
+                btnConfirmProPayment.onclick = () => {
+                    toast('Cảm ơn bạn! Yêu cầu đối soát chuyển khoản đã được ghi nhận. Hệ thống sẽ kích hoạt trong ít phút.', 'success');
+                    if (modalProUpgrade) modalProUpgrade.style.display = 'none';
+                };
+            }
         }
 
         async function initDiagnosis() {
@@ -1258,8 +3187,7 @@
             const btnModePro = document.getElementById('btnModePro');
             const manualCropGroup = document.getElementById('manualCropGroup');
             const modeExplanation = document.getElementById('modeExplanation');
-            const proDevConfigRow = document.getElementById('proDevConfigRow');
-
+            
             function resetModeButtons() {
                 [btnModeAuto, btnModeManual, btnModePro].forEach(b => {
                     if (!b) return;
@@ -1268,8 +3196,7 @@
                     b.style.background = 'var(--surface)';
                     b.style.color = 'var(--text-secondary)';
                 });
-                if (proDevConfigRow) proDevConfigRow.style.display = 'none';
-            }
+                            }
 
             btnModeAuto.onclick = () => {
                 currentDiagnosisMode = 'auto_standard';
@@ -1297,6 +3224,11 @@
 
             if (btnModePro) {
                 btnModePro.onclick = () => {
+                    const isVip = (activeUser && activeUser.subscription && activeUser.subscription.is_vip) || (currentQuotaData && currentQuotaData.is_vip);
+                    if (!isVip) {
+                        window.openProUpgradeModal('Tính năng Tự động Pro (Model ViT GBIF 14,829 loài) yêu cầu tài khoản nâng cấp gói Pro. Vui lòng nâng cấp gói để mở khóa.');
+                        return;
+                    }
                     currentDiagnosisMode = 'auto_pro';
                     resetModeButtons();
                     btnModePro.classList.add('active');
@@ -1305,7 +3237,6 @@
                     btnModePro.style.color = '#d97706';
 
                     manualCropGroup.style.display = 'none';
-                    if (proDevConfigRow) proDevConfigRow.style.display = 'flex';
                     modeExplanation.innerHTML = 'Chế độ Pro: Kiểm định lá cây -> Nhận diện loài thực vật bằng mô hình Pro <strong>Model tong 2 (ViT GBIF 14,829 loài)</strong> -> Tự động chuyển đến mô hình bệnh học tương ứng.';
                 };
             }
@@ -1318,6 +3249,8 @@
                         document.getElementById('previewImg').src = e.target.result;
                         document.getElementById('previewContainer').style.display = 'block';
                         document.getElementById('dropZone').style.display = 'none';
+                        const secStrip = document.getElementById('multiImageStrip');
+                        if (secStrip) secStrip.style.display = 'block';
                     };
                     reader.readAsDataURL(selectedFile);
                 }
@@ -1328,6 +3261,10 @@
                 document.getElementById('fileInput').value = '';
                 document.getElementById('previewContainer').style.display = 'none';
                 document.getElementById('dropZone').style.display = 'flex';
+                const secStrip = document.getElementById('multiImageStrip');
+                if (secStrip) secStrip.style.display = 'none';
+                secondaryFiles = [];
+                renderSecondaryThumbnails();
                 hideAllResults();
                 document.getElementById('emptyStateResult').style.display = 'block';
             };
@@ -1351,16 +3288,24 @@
 
             document.getElementById('btnPredict').onclick = () => runInference();
 
-            // Load supported crops, farms, organizations and usage quota
-            await Promise.all([loadSupportedCrops(), loadFarms(), loadUserOrganizationsForPredict(), loadQuotaStatus()]);
+            // Load supported crops, diagnosis contexts and usage quota
+            await Promise.all([loadSupportedCrops(), loadDiagnosisContexts(), loadQuotaStatus()]);
         }
 
         let currentQuotaData = null;
 
         async function loadQuotaStatus() {
             try {
-                const token = localStorage.getItem('gari_token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                if (!activeUser) {
+                    toast('Vui lòng đăng nhập để sử dụng công cụ chẩn đoán AI.', 'warning');
+                    document.getElementById('authOnboardingGateway')?.scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('loginEmail')?.focus();
+                    return;
+                }
+                const headers = window.gariAuth ? window.gariAuth.getAuthHeaders() : {};
+                if (activeOrgId) {
+                    fd.append('org_id', activeOrgId);
+                }
                 const res = await fetch('/api/user/quota', { headers, credentials: 'include' });
                 if (!res.ok) return;
                 const data = await res.json();
@@ -1454,99 +3399,375 @@
             }
         }
 
-        async function loadFarms() {
-            try {
-                const data = await fetchJSON('/api/farms');
-                const farms = data.farms || [];
-                const select = document.getElementById('farmSelect');
-                farms.forEach(f => {
-                    const opt = document.createElement('option');
-                    opt.value = f.id;
-                    opt.textContent = `${f.name} (${f.province || 'Nông trại'})`;
-                    select.appendChild(opt);
-                });
+        let diagnosisContextsData = {
+            personal: null,
+            farms: [],
+            organizations: []
+        };
 
-                // Sprint 4: Dynamic plot loading when farm is selected
-                select.addEventListener('change', async () => {
-                    const fId = select.value;
-                    const plotGroup = document.getElementById('plotSelectGroup');
-                    const plotSel = document.getElementById('plotSelect');
-                    if (!fId) {
-                        if (plotGroup) plotGroup.style.display = 'none';
-                        if (plotSel) plotSel.innerHTML = '<option value="">-- Chọn thửa ruộng/vườn --</option>';
-                        return;
-                    }
-                    try {
-                        const token = localStorage.getItem('gari_token');
-                        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                        const resp = await fetch(`/api/farms/${fId}/plots`, { credentials: 'include', headers });
-                        if (resp.ok) {
-                            const resData = await resp.json();
-                            const plots = resData.plots || [];
-                            if (plots.length > 0) {
-                                plotSel.innerHTML = '<option value="">-- Chọn thửa ruộng/vườn --</option>' +
-                                    plots.map(p => `<option value="${p.id}">${p.plot_name} (${p.crop_name || 'Cây trồng'}${p.region ? ' - ' + p.region : ''})</option>`).join('');
-                                plotGroup.style.display = 'block';
-                            } else {
-                                plotSel.innerHTML = '<option value="">(Nông trại chưa có thửa/vườn)</option>';
-                                plotGroup.style.display = 'block';
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('Could not load plots for farm:', e);
-                    }
-                });
-            } catch {}
-        }
-
-        async function loadUserOrganizationsForPredict() {
-            try {
-                const token = localStorage.getItem('gari_token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const res = await fetch('/api/organizations', { headers, credentials: 'include' });
-                if (!res.ok) return;
-                const data = await res.json();
-                const orgs = data.organizations || [];
-                const sel = document.getElementById('orgSelect');
-                if (!sel || orgs.length === 0) return;
-                orgs.forEach(o => {
-                    const opt = document.createElement('option');
-                    opt.value = o.id;
-                    opt.textContent = `${o.name} (${o.plan_details.name_vi} - còn ${o.remaining_quota} lượt)`;
-                    sel.appendChild(opt);
-                });
-            } catch {}
-        }
-
-        function setStage(stageNum) {
-            for (let i = 1; i <= 5; i++) {
-                const el = document.getElementById(`stage${i}`);
-                if (!el) continue;
-                if (i < stageNum) {
-                    el.className = 'progress-stage-item completed';
-                } else if (i === stageNum) {
-                    el.className = 'progress-stage-item active';
-                } else {
-                    el.className = 'progress-stage-item';
+        function toggleContextDropdown() {
+            const panel = document.getElementById('contextDropdownPanel');
+            const trigger = document.getElementById('contextPickerTrigger');
+            if (!panel) return;
+            const isOpen = panel.style.display === 'block';
+            if (isOpen) {
+                closeContextDropdown();
+            } else {
+                panel.style.display = 'block';
+                if (trigger) trigger.classList.add('open');
+                const search = document.getElementById('contextSearchInput');
+                if (search) {
+                    search.focus();
                 }
             }
         }
 
+        function closeContextDropdown() {
+            const panel = document.getElementById('contextDropdownPanel');
+            const trigger = document.getElementById('contextPickerTrigger');
+            if (panel) panel.style.display = 'none';
+            if (trigger) trigger.classList.remove('open');
+        }
+
+        // Close on click outside
+        document.addEventListener('click', (e) => {
+            const wrap = document.getElementById('contextSelectorContainer');
+            if (wrap && !wrap.contains(e.target)) {
+                closeContextDropdown();
+            }
+        });
+
+        async function loadDiagnosisContexts() {
+            const loadingState = document.getElementById('contextLoadingState');
+            const errorState = document.getElementById('contextErrorState');
+            const wrapper = document.getElementById('contextSectionsWrapper');
+
+            if (loadingState) loadingState.style.display = 'block';
+            if (errorState) errorState.style.display = 'none';
+            if (wrapper) wrapper.style.display = 'none';
+
+            try {
+                if (!activeUser) {
+                    toast('Vui lòng đăng nhập để sử dụng công cụ chẩn đoán AI.', 'warning');
+                    document.getElementById('authOnboardingGateway')?.scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('loginEmail')?.focus();
+                    return;
+                }
+                const headers = window.gariAuth ? window.gariAuth.getAuthHeaders() : {};
+                if (activeOrgId) {
+                    fd.append('org_id', activeOrgId);
+                }
+                const res = await fetch('/api/user/diagnosis-contexts', { headers, credentials: 'include' });
+                if (!res.ok) throw new Error('API failed');
+                const data = await res.json();
+                diagnosisContextsData = data;
+
+                // 1. Personal Section
+                const pers = data.personal || {};
+                const optPersonalName = document.getElementById('optPersonalName');
+                const optPersonalSub = document.getElementById('optPersonalSub');
+                const optPersonalQuotaPill = document.getElementById('optPersonalQuotaPill');
+
+                if (optPersonalName) optPersonalName.textContent = `Khám tự do (${pers.name || 'Cá nhân'})`;
+                if (optPersonalSub) optPersonalSub.textContent = pers.tier_name || 'Gói Nông Hộ Tiêu Chuẩn';
+                if (optPersonalQuotaPill) optPersonalQuotaPill.textContent = pers.is_vip ? 'VIP Không giới hạn' : (pers.quota_display || 'Cá nhân');
+
+                // 2. Farms Section
+                const farmsList = document.getElementById('contextFarmsList');
+                const farmsEmpty = document.getElementById('contextFarmsEmpty');
+                farmsList.innerHTML = '';
+                const farms = data.farms || [];
+
+                if (farms.length === 0) {
+                    if (farmsEmpty) farmsEmpty.style.display = 'block';
+                } else {
+                    if (farmsEmpty) farmsEmpty.style.display = 'none';
+                    farms.forEach(f => {
+                        const item = document.createElement('div');
+                        item.className = 'context-option-item';
+                        item.setAttribute('data-type', 'farm');
+                        item.setAttribute('data-id', f.id);
+                        item.setAttribute('data-search', `${f.name} ${f.province} ${f.primary_crop}`.toLowerCase());
+                        item.innerHTML = `
+                            <div class="opt-main">
+                                <span class="opt-icon">🏡</span>
+                                <div class="opt-details">
+                                    <div class="opt-name">${f.name}</div>
+                                    <div class="opt-sub">${f.province} • ${f.primary_crop} (${f.area_hectare} ha)</div>
+                                </div>
+                            </div>
+                            <span class="opt-pill">Nông trại</span>
+                        `;
+                        item.onclick = () => selectContextOption('farm', f.id, f.name, `${f.province} • ${f.primary_crop}`, '🏡', '');
+                        farmsList.appendChild(item);
+                    });
+                }
+
+                // 3. Organizations Section
+                const orgsList = document.getElementById('contextOrgsList');
+                const orgsEmpty = document.getElementById('contextOrgsEmpty');
+                orgsList.innerHTML = '';
+                const orgs = data.organizations || [];
+
+                if (orgs.length === 0) {
+                    if (orgsEmpty) orgsEmpty.style.display = 'block';
+                } else {
+                    if (orgsEmpty) orgsEmpty.style.display = 'none';
+                    orgs.forEach(o => {
+                        const item = document.createElement('div');
+                        item.className = 'context-option-item';
+                        item.setAttribute('data-type', 'organization');
+                        item.setAttribute('data-id', o.id);
+                        item.setAttribute('data-search', `${o.name} ${o.user_role_display} ${o.plan_name}`.toLowerCase());
+                        item.innerHTML = `
+                            <div class="opt-main">
+                                <span class="opt-icon">🏢</span>
+                                <div class="opt-details">
+                                    <div class="opt-name">${o.name}</div>
+                                    <div class="opt-sub">${o.user_role_display} • ${o.plan_name}</div>
+                                </div>
+                            </div>
+                            <span class="opt-pill quota">${o.quota_display}</span>
+                        `;
+                        item.onclick = () => selectContextOption('organization', o.id, o.name, `${o.user_role_display} • ${o.plan_name}`, '🏢', o.quota_display);
+                        orgsList.appendChild(item);
+                    });
+                }
+
+                if (loadingState) loadingState.style.display = 'none';
+                if (wrapper) wrapper.style.display = 'block';
+
+            } catch (err) {
+                console.warn('Failed to load diagnosis contexts:', err);
+                if (loadingState) loadingState.style.display = 'none';
+                if (errorState) errorState.style.display = 'block';
+            }
+        }
+
+        async function selectContextOption(type, id, title, sub, icon, quotaText = '') {
+            document.getElementById('selectedContextType').value = type;
+            const farmInput = document.getElementById('farmSelect');
+            const orgInput = document.getElementById('orgSelect');
+            const plotGroup = document.getElementById('plotSelectGroup');
+            const plotSel = document.getElementById('plotSelect');
+
+            document.getElementById('triggerContextIcon').textContent = icon;
+            document.getElementById('triggerContextTitle').textContent = title;
+            document.getElementById('triggerContextSub').textContent = sub;
+
+            const quotaBadge = document.getElementById('triggerQuotaBadge');
+            const scopeBadge = document.getElementById('selectedContextBadge');
+
+            if (quotaText) {
+                quotaBadge.textContent = quotaText;
+                quotaBadge.style.display = 'inline-block';
+            } else {
+                quotaBadge.style.display = 'none';
+            }
+
+            // Update active highlight in list
+            document.querySelectorAll('.context-option-item').forEach(el => {
+                if (el.getAttribute('data-type') === type && el.getAttribute('data-id') === String(id)) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+
+            if (type === 'personal') {
+                farmInput.value = '';
+                orgInput.value = '';
+                scopeBadge.textContent = '🍃 Cá nhân';
+                scopeBadge.style.background = 'rgba(16,185,129,0.12)';
+                scopeBadge.style.color = '#10b981';
+                if (plotGroup) plotGroup.style.display = 'none';
+                if (plotSel) plotSel.innerHTML = '<option value="">-- Chọn thửa ruộng/vườn --</option>';
+            } else if (type === 'farm') {
+                farmInput.value = id;
+                orgInput.value = '';
+                scopeBadge.textContent = '🏡 Nông trại';
+                scopeBadge.style.background = 'rgba(59,130,246,0.12)';
+                scopeBadge.style.color = '#3b82f6';
+                
+                // Dynamically fetch plots for selected farm
+                try {
+                    const token = localStorage.getItem('gari_token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                    const resp = await fetch(`/api/farms/${id}/plots`, { credentials: 'include', headers });
+                    if (resp.ok) {
+                        const resData = await resp.json();
+                        const plots = resData.plots || [];
+                        if (plots.length > 0) {
+                            plotSel.innerHTML = '<option value="">-- Chọn thửa ruộng/vườn --</option>' +
+                                plots.map(p => `<option value="${p.id}">${p.plot_name} (${p.crop_name || 'Cây trồng'}${p.region ? ' - ' + p.region : ''})</option>`).join('');
+                            plotGroup.style.display = 'block';
+                        } else {
+                            plotSel.innerHTML = '<option value="">(Nông trại chưa có thửa/vườn)</option>';
+                            plotGroup.style.display = 'block';
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not load plots for farm:', e);
+                }
+            } else if (type === 'organization') {
+                orgInput.value = id;
+                farmInput.value = '';
+                scopeBadge.textContent = '🏢 Hợp tác xã';
+                scopeBadge.style.background = 'rgba(245,158,11,0.12)';
+                scopeBadge.style.color = '#d97706';
+                if (plotGroup) plotGroup.style.display = 'none';
+                if (plotSel) plotSel.innerHTML = '<option value="">-- Chọn thửa ruộng/vườn --</option>';
+            }
+
+            closeContextDropdown();
+        }
+
+        function filterContextOptions(query) {
+            const q = (query || '').trim().toLowerCase();
+            const clearBtn = document.getElementById('btnClearContextSearch');
+            if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+            let visibleCount = 0;
+            const items = document.querySelectorAll('#contextOptionsList .context-option-item');
+            items.forEach(item => {
+                const searchData = item.getAttribute('data-search') || item.textContent.toLowerCase();
+                if (!q || searchData.includes(q)) {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            const noResults = document.getElementById('contextNoResults');
+            if (noResults) {
+                noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        }
+
+        function clearContextSearch() {
+            const inp = document.getElementById('contextSearchInput');
+            if (inp) {
+                inp.value = '';
+                filterContextOptions('');
+                inp.focus();
+            }
+        }
+
+        // Expose functions to window because this script is type="module"
+        window.toggleContextDropdown = toggleContextDropdown;
+        window.closeContextDropdown = closeContextDropdown;
+        window.selectContextOption = selectContextOption;
+        window.filterContextOptions = filterContextOptions;
+        window.clearContextSearch = clearContextSearch;
+        window.loadDiagnosisContexts = loadDiagnosisContexts;
+
+        const STAGE_DEFAULT_LABELS = {
+            1: 'Kiểm tra chất lượng ảnh & tính hợp lệ của lá cây...',
+            2: 'Nhận diện loài cây trồng (Model tổng hợp ViT)...',
+            3: 'Phân tích dấu hiệu bệnh học (ConvNeXt)...',
+            4: 'Khoanh vùng tổn thương trực quan (Grad-CAM & Pathology)...',
+            5: 'Tổng hợp kết quả & lập khuyến nghị điều trị...'
+        };
+
+        function setStageState(stageNum, state, customLabel = null) {
+            const el = document.getElementById(`stage${stageNum}`);
+            if (!el) return;
+            const icon = el.querySelector('.stage-icon');
+            const span = el.querySelector('span');
+
+            el.className = `progress-stage-item ${state}`;
+            if (customLabel && span) {
+                span.textContent = customLabel;
+            } else if (!customLabel && span && STAGE_DEFAULT_LABELS[stageNum]) {
+                span.textContent = STAGE_DEFAULT_LABELS[stageNum];
+            }
+
+            if (icon) {
+                if (state === 'completed') icon.innerHTML = '✓';
+                else if (state === 'failed') icon.innerHTML = '✕';
+                else if (state === 'unavailable') icon.innerHTML = '!';
+                else if (state === 'timeout') icon.innerHTML = '⏱';
+                else if (state === 'skipped') icon.innerHTML = '—';
+                else icon.innerHTML = stageNum;
+            }
+        }
+
+        const diagnosisRequest = {
+            status: 'idle', // 'idle' | 'pending' | 'processing' | 'completed' | 'unavailable' | 'failed' | 'timeout' | 'cancelled'
+            requestId: 0,
+            controller: null,
+            timeoutId: null,
+            stageTimers: [],
+            timeoutTriggered: false
+        };
+
+        function clearStageTimers() {
+            if (diagnosisRequest.stageTimers && diagnosisRequest.stageTimers.length > 0) {
+                diagnosisRequest.stageTimers.forEach(id => window.clearTimeout(id));
+                diagnosisRequest.stageTimers = [];
+            }
+        }
+
+        function setDiagnosisState(status, message = '') {
+            diagnosisRequest.status = status;
+            const statusEl = document.getElementById('pipelineStatusMessage');
+            if (statusEl) statusEl.textContent = message;
+
+            const cancelButton = document.getElementById('btnCancelDiagnosis');
+            if (cancelButton) cancelButton.style.display = status === 'processing' ? 'inline-flex' : 'none';
+
+            const retryButton = document.getElementById('btnRetryDiagnosis');
+            if (retryButton) retryButton.style.display = (status === 'failed' || status === 'timeout') ? 'inline-flex' : 'none';
+        }
+
+        function resetPipelineStages() {
+            clearStageTimers();
+            for (let i = 1; i <= 5; i++) {
+                setStageState(i, 'pending');
+            }
+            const retryButton = document.getElementById('btnRetryDiagnosis');
+            if (retryButton) retryButton.style.display = 'none';
+        }
+
+        document.getElementById('btnCancelDiagnosis')?.addEventListener('click', () => {
+            if (diagnosisRequest.status !== 'processing' || !diagnosisRequest.controller) return;
+            diagnosisRequest.controller.abort();
+            clearStageTimers();
+            setDiagnosisState('cancelled', 'Đã hủy yêu cầu kiểm tra lá.');
+            for (let i = 1; i <= 5; i++) {
+                setStageState(i, 'skipped', STAGE_DEFAULT_LABELS[i]);
+            }
+        });
+
+        document.getElementById('btnRetryDiagnosis')?.addEventListener('click', () => {
+            runInference();
+        });
+
         function hideAllResults() {
-            document.getElementById('emptyStateResult').style.display = 'none';
-            const failCard = document.getElementById('leafValidationFailureCard');
-            if (failCard) failCard.style.display = 'none';
-            document.getElementById('infoNoticeCard').style.display = 'none';
-            document.getElementById('cropConfirmationCard').style.display = 'none';
-            document.getElementById('rejectionCard').style.display = 'none';
-            document.getElementById('uncertainCard').style.display = 'none';
-            document.getElementById('activeResultCard').style.display = 'none';
-            document.getElementById('progressPipeline').style.display = 'none';
+            const ids = [
+                'emptyStateResult',
+                'leafValidationFailureCard',
+                'infoNoticeCard',
+                'cropConfirmationCard',
+                'rejectionCard',
+                'uncertainCard',
+                'activeResultCard',
+                'progressPipeline'
+            ];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            }
         }
 
         async function runInference(overrideCrop = null) {
             if (!selectedFile) {
                 toast('Vui lòng tải lên hoặc chụp ảnh một chiếc lá cây trước.');
+                return;
+            }
+            if (diagnosisRequest.status === 'processing') {
+                toast('Yêu cầu kiểm tra lá đang được xử lý. Vui lòng chờ hoặc hủy yêu cầu hiện tại.', 'warning');
                 return;
             }
 
@@ -1564,6 +3785,8 @@
             }
 
             const btn = document.getElementById('btnPredict');
+            const requestId = ++diagnosisRequest.requestId;
+            diagnosisRequest.controller = new AbortController();
             btn.disabled = true;
             btn.innerHTML = '<span class="status-dot"></span> Đang xử lý...';
 
@@ -1571,7 +3794,14 @@
             hideAllResults();
             const pipeline = document.getElementById('progressPipeline');
             pipeline.style.display = 'flex';
-            setStage(1);
+            resetPipelineStages();
+            setDiagnosisState('processing', 'Đang gửi ảnh và xử lý qua chuỗi suy luận AI trên máy chủ...');
+
+            // Step 1: In-flight upload and server-side processing indicator
+            setStageState(1, 'active', 'Đang truyền dữ liệu ảnh lên máy chủ & khởi chạy chuỗi mô hình...');
+
+            // Clear any lingering timers; no artificial stage advancement
+            clearStageTimers();
 
             const fd = new FormData();
             fd.append('image', selectedFile);
@@ -1600,27 +3830,60 @@
             const notesVal = document.getElementById('diagNotes').value;
             if (notesVal) fd.append('notes', notesVal);
 
+            const growthStageVal = document.getElementById('fieldGrowthStage')?.value;
+            if (growthStageVal) fd.append('growth_stage', growthStageVal);
+
+            const userSymptomsVal = document.getElementById('fieldSymptoms')?.value;
+            if (userSymptomsVal) fd.append('user_symptoms', userSymptomsVal);
+
+            const fieldConditionsVal = document.getElementById('fieldConditions')?.value;
+            if (fieldConditionsVal) fd.append('field_conditions', fieldConditionsVal);
+
+            if (secondaryFiles && secondaryFiles.length > 0) {
+                const secMeta = secondaryFiles.map((f, idx) => ({ name: f.name, size: f.size, index: idx }));
+                fd.append('image_references', JSON.stringify(secMeta));
+            }
+
             try {
-                setTimeout(() => setStage(2), 200);
-                setTimeout(() => setStage(3), 450);
-                setTimeout(() => setStage(4), 700);
-
-                const token = localStorage.getItem('gari_token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                if (activeMode === 'auto_pro') {
-                    const chkDevPro = document.getElementById('chkDevProAuth');
-                    if (chkDevPro && chkDevPro.checked) {
-                        headers['X-Gari-Dev-Pro'] = 'true';
-                    }
+                if (!activeUser) {
+                    clearStageTimers();
+                    toast('Vui lòng đăng nhập để sử dụng công cụ chẩn đoán AI.', 'warning');
+                    document.getElementById('authOnboardingGateway')?.scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('loginEmail')?.focus();
+                    setDiagnosisState('failed', 'Vui lòng đăng nhập để sử dụng công cụ chẩn đoán AI.');
+                    pipeline.style.display = 'none';
+                    return;
                 }
+                const headers = window.gariAuth ? window.gariAuth.getAuthHeaders() : {};
+                if (activeOrgId) {
+                    fd.append('org_id', activeOrgId);
+                }
+                // Dev Pro header bypass permanently eliminated
 
+                // 45-second client guard prevents indefinite browser hangs
+                diagnosisRequest.timeoutTriggered = false;
+                diagnosisRequest.timeoutId = window.setTimeout(() => {
+                    diagnosisRequest.timeoutTriggered = true;
+                    diagnosisRequest.controller?.abort();
+                }, 45000);
                 const res = await fetch('/api/plant/diagnose', {
                     method: 'POST',
                     headers,
                     credentials: 'include',
-                    body: fd
+                    body: fd,
+                    signal: diagnosisRequest.controller.signal
                 });
-                const data = await res.json();
+
+                clearStageTimers();
+
+                const responseText = await res.text();
+                let data = {};
+                try {
+                    data = responseText ? JSON.parse(responseText) : {};
+                } catch (_) {
+                    data = { detail: 'Máy chủ phản hồi nội dung không hợp lệ hoặc đang bảo trì.' };
+                }
+
                 if (!res.ok) {
                     if (res.status === 429) {
                         const exhMsg = data.detail || data.message || 'Bạn đã dùng hết lượt phân loại miễn phí.';
@@ -1631,26 +3894,141 @@
                             exhCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
                         if (data.quota) updateQuotaUI(data.quota);
+                        setDiagnosisState('failed', exhMsg);
                         throw new Error(exhMsg);
                     }
-                    if (res.status === 403) {
-                        throw new Error(data.detail || 'Mô hình này là mô hình VIP. Vui lòng kích hoạt quyền thử nghiệm Dev Pro hoặc sử dụng tài khoản VIP.');
+                    if (res.status === 401) {
+                        toast('Vui lòng đăng nhập để sử dụng tính năng chẩn đoán AI.');
+                        setTimeout(() => { window.location.href = '/frontend2/login.html?redirect=/frontend2/predict.html'; }, 1000);
+                        setDiagnosisState('failed', 'Chưa đăng nhập');
+                        throw new Error('Chưa đăng nhập');
                     }
-                    throw new Error(data.detail || data.error || 'Chẩn đoán thất bại');
+                    if (res.status === 409) {
+                        const conflictMsg = data.detail || 'Yêu cầu chẩn đoán cho ảnh này vừa được gửi. Vui lòng đợi 3 giây trước khi thử lại.';
+                        setStageState(1, 'failed', conflictMsg);
+                        setDiagnosisState('failed', conflictMsg);
+                        throw new Error(conflictMsg);
+                    }
+                    if (res.status === 502 || res.status === 503) {
+                        const srvMsg = data.detail || 'Không thể kết nối đến máy chủ chẩn đoán AI. Vui lòng kiểm tra kết nối mạng hoặc thử lại sau.';
+                        setStageState(1, 'failed', srvMsg);
+                        setDiagnosisState('failed', srvMsg);
+                        throw new Error(srvMsg);
+                    }
+                    if (res.status === 504) {
+                        const toMsg = data.detail || 'Yêu cầu xử lý quá thời gian từ máy chủ. Bạn có thể nhấn Thử lại.';
+                        setStageState(3, 'timeout', toMsg);
+                        setDiagnosisState('timeout', toMsg);
+                        throw new Error(toMsg);
+                    }
+                    if (res.status === 403) {
+                        const permMsg = data.detail || 'Tính năng này yêu cầu tài khoản Pro hoặc Doanh nghiệp.';
+                        setDiagnosisState('failed', permMsg);
+                        throw new Error(permMsg);
+                    }
+                    const genericMsg = data.detail || data.error || 'Dịch vụ phân tích hiện không khả dụng.';
+                    setDiagnosisState('failed', genericMsg);
+                    throw new Error(genericMsg);
                 }
 
-                setStage(5);
+                // If response is OK, evaluate pipeline state based on actual returned data:
+                if (data.validation && data.validation.status !== 'LEAF_VALID') {
+                    setStageState(1, 'failed', `Không đạt kiểm định: ${data.validation.message_vi || data.validation.status}`);
+                    setStageState(2, 'skipped', 'Bỏ qua nhận diện loài cây');
+                    setStageState(3, 'skipped', 'Bỏ qua phân tích bệnh');
+                    setStageState(4, 'skipped', 'Bỏ qua khoanh vùng');
+                    setStageState(5, 'skipped', 'Bỏ qua tổng hợp');
+                    setDiagnosisState('completed', 'Đã dừng chẩn đoán do ảnh không đạt tiêu chuẩn lá cây.');
+                    pipeline.style.display = 'none';
+                    renderPipelineResponse(data);
+                    return;
+                }
+
+                if (data.status === 'disease_model_unavailable' || data.validation_state === 'DISEASE_MODEL_UNAVAILABLE') {
+                    setStageState(1, 'completed');
+                    setStageState(2, 'completed', `Đã nhận diện: ${data.crop_name_vi || data.crop_id}`);
+                    setStageState(3, 'unavailable', 'Chưa có mô hình bệnh học tương thích cho cây này');
+                    setStageState(4, 'skipped', 'Bỏ qua khoanh vùng trực quan');
+                    setStageState(5, 'skipped', 'Bỏ qua tổng hợp bệnh');
+                    setDiagnosisState('unavailable', data.message || 'Mô hình bệnh học cho cây này chưa sẵn sàng.');
+                    pipeline.style.display = 'none';
+                    renderPipelineResponse(data);
+                    return;
+                }
+
+                if (data.status === 'crop_identified_no_disease_model' || data.validation_state === 'CROP_IDENTIFIED_NO_DISEASE_MODEL') {
+                    setStageState(1, 'completed');
+                    setStageState(2, 'completed', `Đã nhận diện: ${data.crop_name_vi || data.crop_id}`);
+                    setStageState(3, 'unavailable', 'Mô hình chẩn đoán bệnh cho cây này chưa sẵn sàng');
+                    setStageState(4, 'skipped', 'Bỏ qua khoanh vùng trực quan');
+                    setStageState(5, 'skipped', 'Bỏ qua tổng hợp');
+                    setDiagnosisState('unavailable', data.message || 'Mô hình bệnh học chưa sẵn sàng.');
+                    pipeline.style.display = 'none';
+                    renderPipelineResponse(data);
+                    return;
+                }
+
+                // Full successful inference
+                setStageState(1, 'completed', 'Kiểm tra chất lượng ảnh & cấu trúc lá đạt yêu cầu');
+                const rawCrop = data.crop?.name_vi || data.crop_name_vi || data.crop_id || (typeof data.crop === 'string' ? data.crop : (typeof data.crop === 'object' ? data.crop?.id : ''));
+                const cropName = formatCropName(rawCrop);
+                setStageState(2, 'completed', `Đã xác định cây trồng: ${cropName}`);
+
+                const rawDisease = data.diagnosis?.name_vi || data.disease_name_vi || data.prediction || 'Đã phân tích';
+                const diseaseName = formatDiseaseName(rawDisease, rawCrop);
+                setStageState(3, 'completed', `Bệnh học: ${diseaseName}`);
+
+                const locStatus = data.localization?.status || data.localization_status;
+                const hasCam = Boolean(data.localization?.has_attention_map ?? data.has_attention_map);
+                if (locStatus === 'available' && hasCam) {
+                    setStageState(4, 'completed', 'Đã khoanh vùng tổn thương (Grad-CAM & Pathology thành công)');
+                } else {
+                    setStageState(4, 'unavailable', data.localization?.message_vi || data.localization_message_vi || 'Grad-CAM không khả dụng cho ảnh/mô hình này (Bảo toàn chẩn đoán bệnh)');
+                }
+
+                setStageState(5, 'completed', 'Đã tổng hợp đầy đủ kết quả chẩn đoán và khuyến nghị');
+                setDiagnosisState('completed', 'Đã hoàn tất phân tích chẩn đoán bệnh học.');
+
                 setTimeout(() => {
                     pipeline.style.display = 'none';
                     renderPipelineResponse(data);
                 }, 350);
 
             } catch (err) {
-                pipeline.style.display = 'none';
-                toast(err.message);
+                clearStageTimers();
+                if (requestId !== diagnosisRequest.requestId) return;
+
+                // Ensure active stage is not left hanging indefinitely in processing/active state
+                for (let s = 1; s <= 5; s++) {
+                    const el = document.getElementById(`stage${s}`);
+                    if (el && el.classList.contains('active')) {
+                        setStageState(s, 'failed', err.message || 'Lỗi xử lý');
+                    }
+                }
+
+                if (err.name === 'AbortError') {
+                    const message = diagnosisRequest.timeoutTriggered
+                        ? 'Yêu cầu xử lý quá thời gian quy định (45 giây). Máy chủ đang bận, vui lòng thử lại.'
+                        : 'Đã hủy yêu cầu kiểm tra lá.';
+                    setDiagnosisState(diagnosisRequest.timeoutTriggered ? 'timeout' : 'cancelled', message);
+                    if (diagnosisRequest.timeoutTriggered) {
+                        setStageState(4, 'timeout', 'Quá thời gian chờ phản hồi (45s)');
+                    }
+                    toast(message, diagnosisRequest.timeoutTriggered ? 'warning' : 'info');
+                } else {
+                    setDiagnosisState('failed', err.message || 'Dịch vụ phân tích hiện không khả dụng.');
+                    toast(err.message || 'Dịch vụ phân tích hiện không khả dụng.');
+                }
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Tiến hành kiểm tra lá';
+                if (requestId === diagnosisRequest.requestId) {
+                    if (diagnosisRequest.timeoutId) window.clearTimeout(diagnosisRequest.timeoutId);
+                    diagnosisRequest.timeoutId = null;
+                    diagnosisRequest.controller = null;
+                    const cancelButton = document.getElementById('btnCancelDiagnosis');
+                    if (cancelButton) cancelButton.style.display = 'none';
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Tiến hành kiểm tra lá';
+                }
             }
         }
 
@@ -1669,25 +4047,31 @@
                 card.style.display = 'block';
 
                 const status = data.validation.status;
-                const badge = document.getElementById('valFailBadge');
-                const title = document.getElementById('valFailTitle');
-                const msg = document.getElementById('valFailMsg');
+                const badge = document.getElementById('valFailurePill') || document.getElementById('valFailBadge');
+                const title = document.getElementById('valFailureTitle') || document.getElementById('valFailTitle');
+                const msg = document.getElementById('valFailureMessage') || document.getElementById('valFailMsg');
 
                 if (status === 'NOT_A_LEAF') {
-                    badge.className = 'pill pill-danger';
-                    badge.textContent = 'KHÔNG PHẢI LÁ CÂY';
-                    title.textContent = 'Ảnh không có lá cây phù hợp';
-                    msg.textContent = data.validation.message_vi || 'Ảnh này không có lá cây phù hợp để chẩn đoán. Hãy tải ảnh chụp một chiếc lá.';
+                    if (badge) {
+                        badge.className = 'pill pill-danger';
+                        badge.textContent = 'KHÔNG PHẢI LÁ CÂY';
+                    }
+                    if (title) title.textContent = 'Ảnh không có lá cây phù hợp';
+                    if (msg) msg.textContent = data.validation.message_vi || 'Ảnh này không có lá cây phù hợp để chẩn đoán. Hãy tải ảnh chụp một chiếc lá.';
                 } else if (status === 'UNCERTAIN') {
-                    badge.className = 'pill pill-warning';
-                    badge.textContent = 'CHƯA RÕ ĐỐI TƯỢNG';
-                    title.textContent = 'Chưa xác định được đối tượng';
-                    msg.textContent = data.validation.message_vi || 'Gari chưa xác định được đây có phải ảnh lá cây hay không. Hãy chụp rõ một chiếc lá.';
+                    if (badge) {
+                        badge.className = 'pill pill-warning';
+                        badge.textContent = 'CHƯA RÕ ĐỐI TƯỢNG';
+                    }
+                    if (title) title.textContent = 'Chưa xác định được đối tượng';
+                    if (msg) msg.textContent = data.validation.message_vi || 'Gari chưa xác định được đây có phải ảnh lá cây hay không. Hãy chụp rõ một chiếc lá.';
                 } else if (status === 'IMAGE_QUALITY_LOW') {
-                    badge.className = 'pill pill-warning';
-                    badge.textContent = 'CHẤT LƯỢNG ẢNH KÉM';
-                    title.textContent = 'Chất lượng ảnh chưa đạt yêu cầu';
-                    msg.textContent = data.validation.message_vi || 'Ảnh chưa đủ rõ để kiểm tra. Hãy chụp gần hơn, đủ sáng và giữ lá trong khung hình.';
+                    if (badge) {
+                        badge.className = 'pill pill-warning';
+                        badge.textContent = 'CHẤT LƯỢNG ẢNH KÉM';
+                    }
+                    if (title) title.textContent = 'Chất lượng ảnh chưa đạt yêu cầu';
+                    if (msg) msg.textContent = data.validation.message_vi || 'Ảnh chưa đủ rõ để kiểm tra. Hãy chụp gần hơn, đủ sáng và giữ lá trong khung hình.';
                 }
 
                 card.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1697,10 +4081,13 @@
 
             // 1. REJECTED_LOW_QUALITY (Fallback legacy status)
             if (data.status === 'rejected_low_quality' || data.validation_state === 'REJECTED_LOW_QUALITY') {
-                const card = document.getElementById('rejectionCard');
-                card.style.display = 'block';
-                document.getElementById('rejectionReason').textContent = data.reason || data.message || "Ảnh chưa phù hợp để chẩn đoán. Hãy chụp rõ một chiếc lá, đủ sáng và tránh làm mờ ảnh.";
-                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const card = document.getElementById('rejectionCard') || document.getElementById('leafValidationFailureCard');
+                if (card) {
+                    card.style.display = 'block';
+                    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                const rejReason = document.getElementById('rejectionReason') || document.getElementById('valFailMsg');
+                if (rejReason) rejReason.textContent = data.reason || data.message || "Ảnh chưa phù hợp để chẩn đoán. Hãy chụp rõ một chiếc lá, đủ sáng và tránh làm mờ ảnh.";
                 toast('Ảnh chưa phù hợp để chẩn đoán.');
                 return;
             }
@@ -1866,11 +4253,25 @@
 
         function renderVisualLocalization(data) {
             const originalUrl = data.image_url || (selectedFile ? URL.createObjectURL(selectedFile) : '');
+            const localizationUnavailable = data.localization_status === 'unavailable' || (data.has_attention_map === false && !data.attention_image_url);
             const attentionUrl = data.attention_image_url || originalUrl;
             const overlayUrl = data.overlay_image_url || originalUrl;
+            const attentionTab = document.getElementById('tabAttention');
+            const unavailableNotice = document.getElementById('localizationUnavailableNotice');
+            if (attentionTab) {
+                attentionTab.disabled = localizationUnavailable;
+                attentionTab.textContent = localizationUnavailable ? '🎯 Vùng chú ý không khả dụng' : '🎯 Vùng chú ý của AI (Grad-CAM)';
+            }
+            if (unavailableNotice) {
+                unavailableNotice.style.display = localizationUnavailable ? 'block' : 'none';
+                unavailableNotice.textContent = localizationUnavailable
+                    ? (data.localization_message_vi || 'Phân tích bệnh đã hoàn tất, nhưng chưa tạo được vùng giải thích trực quan.')
+                    : '';
+            }
 
             // Update main viewer images
             const mainImg = document.getElementById('viewerMainImg');
+            if (localizationUnavailable && currentViewMode === 'attention') currentViewMode = 'original';
             if (currentViewMode === 'original') mainImg.src = originalUrl;
             else if (currentViewMode === 'overlay') mainImg.src = overlayUrl;
             else mainImg.src = attentionUrl;
@@ -1954,12 +4355,16 @@
                 document.getElementById('repCropScoreText').textContent = '';
             }
             
+            const rawCrop = data.crop_name_vi || data.crop_name || data.crop_id || (typeof data.crop === 'string' ? data.crop : (typeof data.crop === 'object' ? (data.crop?.id || data.crop?.name_vi) : ''));
+            const cropName = formatCropName(rawCrop);
             const isHealthy = (data.class_id && data.class_id.toLowerCase().includes('healthy')) || sevRaw === 'HEALTHY' || data.is_healthy;
             const statusEl = document.getElementById('repStatus');
-            statusEl.textContent = isHealthy ? 'Lá khỏe mạnh, không phát hiện dấu hiệu mầm bệnh.' : 'Có dấu hiệu bất thường trên lá.';
+            statusEl.textContent = isHealthy ? `Lá ${cropName.toLowerCase()} khỏe mạnh, không phát hiện dấu hiệu mầm bệnh.` : 'Có dấu hiệu bất thường trên lá.';
             statusEl.style.color = isHealthy ? 'var(--primary)' : 'var(--danger)';
 
-            document.getElementById('repDisease').textContent = data.disease_name_vi || data.prediction || 'Chưa xác định';
+            const rawDisease = data.disease_name_vi || data.prediction || 'Chưa xác định';
+            const diseaseName = formatDiseaseName(rawDisease, rawCrop);
+            document.getElementById('repDisease').textContent = diseaseName;
             document.getElementById('repScientific').textContent = data.class_id || data.disease_id || '';
 
             const conf = data.disease_score != null ? (data.disease_score * 100).toFixed(1) : (data.confidence != null ? (data.confidence * 100).toFixed(1) : '95.0');
@@ -1967,7 +4372,7 @@
             document.getElementById('repConfBar').style.width = `${conf}%`;
             document.getElementById('repConfidenceLevel').textContent = conf > 80 ? 'Cao' : (conf > 50 ? 'Trung bình' : 'Thấp');
             document.getElementById('repLatency').textContent = `${data.inference_time_ms ? data.inference_time_ms.toFixed(1) : '120.0'}ms`;
-            document.getElementById('repModelUsed').textContent = data.model_name || data.model_id || 'ConvNeXt-Small';
+            document.getElementById('repModelUsed').textContent = data.model_name || data.model_id || `ConvNeXt-Small (${cropName})`;
 
             // Other candidates list
             const otherList = document.getElementById('repOtherCandidatesList');
@@ -1978,7 +4383,7 @@
                     const pct = p.confidence_percent ? p.confidence_percent.toFixed(1) : (p.confidence * 100).toFixed(1);
                     return `
                         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; padding:4px 0; border-bottom:1px dashed var(--border-light);">
-                            <span>${p.name_vi || p.label || p.class_id}</span>
+                            <span>${formatDiseaseName(p.name_vi || p.label || p.class_id, rawCrop)}</span>
                             <span style="font-weight:600; color:var(--text-muted);">${pct}%</span>
                         </div>
                     `;
@@ -2045,15 +4450,75 @@
                 cList.innerHTML = cArr.map(c => `<li>${c}</li>`).join('');
             }
 
-            // Low-Risk Immediate Actions (Sprint 4: prioritize sanitation, isolation, observation)
+            // Low-Risk Immediate Actions (Diagnosis -> Action: 1-click converting to Cultivation Task)
             const rList = document.getElementById('repRecommendationsList');
             if (rList) {
-                const actions = (ag.immediate_low_risk_actions && ag.immediate_low_risk_actions.length) ? ag.immediate_low_risk_actions : (data.recommendations || [
-                    'Kiểm tra thêm các lá xung quanh cây trồng.',
-                    'Theo dõi sự thay đổi của vết bệnh sau 2-3 ngày.',
-                    'Giữ khu vực trồng thông thoáng, tránh tưới đẫm vào chiều muộn.'
-                ]);
-                rList.innerHTML = actions.map(r => `<li>${r}</li>`).join('');
+                const actions = (ag.immediate_low_risk_actions && ag.immediate_low_risk_actions.length)
+                    ? ag.immediate_low_risk_actions
+                    : ((data.recommendations && data.recommendations.length) ? data.recommendations : [
+                        'Kiểm tra thêm các lá xung quanh cây trồng.',
+                        'Theo dõi sự thay đổi của vết bệnh sau 2-3 ngày.',
+                        'Giữ khu vực trồng thông thoáng, tránh tưới đẫm vào chiều muộn.'
+                    ]);
+                const detectedCrop = (typeof data.crop === 'object' && data.crop) ? (data.crop.id || data.crop.name_vi || 'Tomato') : (data.crop_name || data.crop || 'Tomato');
+                const detectedDisease = data.predicted_disease_vi || data.predicted_disease || 'Dịch hại';
+                rList.innerHTML = actions.map((r, idx) => `
+                    <li style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; padding:8px 12px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px;">
+                        <span style="flex:1; line-height:1.4; font-size:13px;">${r}</span>
+                        <button type="button" class="btn btn-secondary btn-sm btn-create-task-from-rec" id="btnTaskRec_${idx}" style="white-space:nowrap; font-size:11px; padding:4px 8px; flex-shrink:0;">
+                            ➕ Tạo việc vào Lịch
+                        </button>
+                    </li>
+                `).join('');
+
+                // Wire up click handlers
+                actions.forEach((r, idx) => {
+                    const btn = document.getElementById(`btnTaskRec_${idx}`);
+                    if (btn) {
+                        btn.onclick = async () => {
+                            btn.disabled = true;
+                            btn.textContent = 'Đang lưu...';
+                            try {
+                                const farmVal = document.getElementById('farmSelect') ? document.getElementById('farmSelect').value : null;
+                                const plotVal = document.getElementById('plotSelect') ? document.getElementById('plotSelect').value : null;
+                                const isUrgent = (data.severity === 'high' || (data.confidence || 0) > 0.85);
+                                const isTreatment = /phun|thuốc|xử lý|cách ly/i.test(r);
+                                
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                const dueDateStr = tomorrow.toISOString().slice(0, 10);
+
+                                const res = await fetch('/api/calendar/tasks', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        title: r.length > 80 ? (r.slice(0, 77) + '...') : r,
+                                        crop_id: detectedCrop,
+                                        priority: isUrgent ? 'high' : 'medium',
+                                        task_type: isTreatment ? 'treatment' : 'monitoring',
+                                        due_date: dueDateStr,
+                                        farm_id: farmVal ? parseInt(farmVal) : null,
+                                        plot_id: plotVal ? parseInt(plotVal) : null,
+                                        notes: `Tạo từ chẩn đoán: ${detectedDisease} (${Math.round((data.confidence||0)*100)}%)`
+                                    })
+                                });
+                                const json = await res.json();
+                                if (res.ok && json.success) {
+                                    btn.className = 'btn btn-primary btn-sm';
+                                    btn.textContent = '✓ Đã thêm vào Lịch';
+                                    if (window.toast) window.toast('✅ Đã tạo công việc vào Lịch canh tác thành công!');
+                                } else {
+                                    btn.disabled = false;
+                                    btn.textContent = 'Thử lại';
+                                    alert(json.detail || 'Không thể tạo công việc.');
+                                }
+                            } catch (e) {
+                                btn.disabled = false;
+                                btn.textContent = 'Lỗi kết nối';
+                            }
+                        };
+                    }
+                });
             }
 
             // Photo Quality Factors & Trust & Safety
@@ -2118,6 +4583,120 @@
 
             // Refresh recent plant records
             loadRecentPlantRecords();
+
+            // SPRINT 6: Activate Integrated GARI Plant Health Assistant Chatbot
+            initPlantHealthAssistant(data);
+
+            // MODULE 02: Handle Low-Confidence Warning Card
+            const lowConfCard = document.getElementById('repLowConfidenceCard');
+            const lowConfText = document.getElementById('repLowConfidenceText');
+            const numConf = parseFloat(conf) || 0;
+            const isUncertain = data.is_uncertain || numConf < 45 || data.status === 'disease_uncertain' || data.diagnosis_status === 'needs_review';
+            if (lowConfCard) {
+                if (isUncertain) {
+                    lowConfCard.style.display = 'block';
+                    if (lowConfText) {
+                        lowConfText.textContent = data.uncertainty_explanation_vi || 'Mô hình AI chưa đủ tin cậy (< 45%) để đưa ra kết luận chắc chắn. Hãy kiểm tra thực địa hoặc chụp lại ảnh ở cự ly gần dưới ánh sáng tự nhiên.';
+                    }
+                } else {
+                    lowConfCard.style.display = 'none';
+                }
+            }
+
+            // MODULE 02: Wire Follow-up Action Buttons
+            const btnAskFollowup = document.getElementById('btnAskAssistantFollowup');
+            if (btnAskFollowup) {
+                btnAskFollowup.onclick = () => {
+                    const chatCard = document.getElementById('assistantChatCard');
+                    if (chatCard) {
+                        chatCard.scrollIntoView({ behavior: 'smooth' });
+                        const chatInput = document.getElementById('assistantChatInput');
+                        if (chatInput) {
+                            const dName = data.disease_name_vi || data.prediction || 'bệnh này';
+                            const cName = data.crop_name || (typeof data.crop === 'object' ? data.crop.name_vi : data.crop) || 'cây trồng';
+                            chatInput.value = `Hãy giải thích chi tiết cơ chế phát sinh bệnh ${dName} trên ${cName} và hướng dẫn phác đồ sinh học an toàn.`;
+                            chatInput.focus();
+                        }
+                    }
+                };
+            }
+
+            const btnCreateTask = document.getElementById('btnCreateTaskFollowup');
+            if (btnCreateTask) {
+                btnCreateTask.onclick = async () => {
+                    btnCreateTask.disabled = true;
+                    btnCreateTask.textContent = 'Đang lưu việc...';
+                    try {
+                        const farmVal = document.getElementById('farmSelect') ? document.getElementById('farmSelect').value : null;
+                        const plotVal = document.getElementById('plotSelect') ? document.getElementById('plotSelect').value : null;
+                        const detectedCrop = (typeof data.crop === 'object' && data.crop) ? (data.crop.id || data.crop.name_vi || 'Tomato') : (data.crop_name || data.crop || 'Tomato');
+                        const detectedDisease = data.disease_name_vi || data.prediction || 'Bệnh lá';
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const dueDateStr = tomorrow.toISOString().slice(0, 10);
+
+                        const res = await fetch('/api/calendar/tasks', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: `Kiểm tra & xử lý: ${detectedDisease} trên ${detectedCrop}`,
+                                crop_id: detectedCrop,
+                                priority: (numConf > 70) ? 'high' : 'medium',
+                                task_type: 'treatment',
+                                due_date: dueDateStr,
+                                farm_id: farmVal ? parseInt(farmVal) : null,
+                                plot_id: plotVal ? parseInt(plotVal) : null,
+                                notes: `Tạo từ chẩn đoán Module 02: ${detectedDisease} (Độ tin cậy: ${conf}%)`
+                            })
+                        });
+                        const resJson = await res.json();
+                        if (res.ok && resJson.success) {
+                            btnCreateTask.className = 'btn btn-primary';
+                            btnCreateTask.textContent = '✓ Đã tạo việc vào Lịch';
+                            if (window.toast) window.toast('✅ Đã tạo công việc vào Lịch canh tác!');
+                            else alert('✅ Đã tạo công việc vào Lịch canh tác!');
+                        } else {
+                            btnCreateTask.disabled = false;
+                            btnCreateTask.textContent = 'Thử lại';
+                            alert(resJson.detail || 'Không thể tạo công việc.');
+                        }
+                    } catch (e) {
+                        btnCreateTask.disabled = false;
+                        btnCreateTask.textContent = 'Lỗi kết nối';
+                    }
+                };
+            }
+
+            const openExpertModal = () => {
+                const modal = document.getElementById('modalExpertReview');
+                const cropDiseaseEl = document.getElementById('expertModalCropDisease');
+                const alertEl = document.getElementById('expertModalAlert');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    if (cropDiseaseEl) {
+                        const dName = data.disease_name_vi || data.prediction || 'Chưa xác định';
+                        const cName = data.crop_name || (typeof data.crop === 'object' ? data.crop.name_vi : data.crop) || 'Cây trồng';
+                        cropDiseaseEl.textContent = `${cName} — ${dName} (Độ tin cậy mô hình: ${conf}%)`;
+                    }
+                    if (alertEl) alertEl.style.display = 'none';
+                }
+            };
+
+            const btnReqExpert = document.getElementById('btnRequestExpertFollowup');
+            if (btnReqExpert) btnReqExpert.onclick = openExpertModal;
+
+            const btnWarnExpert = document.getElementById('btnWarningAskExpert');
+            if (btnWarnExpert) btnWarnExpert.onclick = openExpertModal;
+
+            const btnRetake = document.getElementById('btnRetakePhotoWarning');
+            if (btnRetake) {
+                btnRetake.onclick = () => {
+                    const dropZone = document.getElementById('dropZone');
+                    if (dropZone) dropZone.scrollIntoView({ behavior: 'smooth' });
+                    const fileInput = document.getElementById('fileInput');
+                    if (fileInput) fileInput.click();
+                };
+            }
         }
 
         window.submitDiagnosisFeedback = async function(event) {
@@ -2193,8 +4772,16 @@
             const container = document.getElementById('recentRecordsTableBody') || document.getElementById('recentRecordsBody');
             if (!container) return;
             try {
-                const token = localStorage.getItem('gari_token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                if (!activeUser) {
+                    toast('Vui lòng đăng nhập để sử dụng công cụ chẩn đoán AI.', 'warning');
+                    document.getElementById('authOnboardingGateway')?.scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('loginEmail')?.focus();
+                    return;
+                }
+                const headers = window.gariAuth ? window.gariAuth.getAuthHeaders() : {};
+                if (activeOrgId) {
+                    fd.append('org_id', activeOrgId);
+                }
                 const res = await fetch('/api/diagnoses?limit=6', { headers, credentials: 'include' });
                 if (!res.ok) {
                     container.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">Chưa có dữ liệu theo dõi hoặc cần đăng nhập.</td></tr>';
@@ -2208,8 +4795,10 @@
                 }
                 container.innerHTML = records.map(r => {
                     const dt = r.created_at ? new Date(r.created_at).toLocaleString('vi-VN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
-                    const crop = r.crop_name_vi || r.crop_name || r.crop || 'Lá cây';
-                    const disease = r.disease_name_vi || r.disease_name || r.predicted_disease || r.prediction || 'Khỏe mạnh';
+                    const rawCrop = r.crop_name_vi || r.crop_name || r.crop || 'Lá cây';
+                    const crop = formatCropName(rawCrop);
+                    const rawDisease = r.disease_name_vi || r.disease_name || r.predicted_disease || r.prediction || 'Khỏe mạnh';
+                    const disease = formatDiseaseName(rawDisease, rawCrop);
                     const conf = r.confidence != null ? `${(r.confidence * 100).toFixed(0)}%` : '-';
                     const st = r.diagnosis_status || 'diagnosed';
                     let stPill = '<span class="pill pill-success" style="font-size:10px;">Đã chẩn đoán</span>';
@@ -2246,8 +4835,16 @@
                 return;
             }
             try {
-                const token = localStorage.getItem('gari_token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                if (!activeUser) {
+                    toast('Vui lòng đăng nhập để sử dụng công cụ chẩn đoán AI.', 'warning');
+                    document.getElementById('authOnboardingGateway')?.scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('loginEmail')?.focus();
+                    return;
+                }
+                const headers = window.gariAuth ? window.gariAuth.getAuthHeaders() : {};
+                if (activeOrgId) {
+                    fd.append('org_id', activeOrgId);
+                }
                 const res = await fetch(`/api/diagnoses/${id}`, {
                     method: 'DELETE',
                     headers,

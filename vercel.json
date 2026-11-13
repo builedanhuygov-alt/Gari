@@ -1,32 +1,140 @@
 {
-    "version": 2,
-    "installCommand": "npm --prefix server install --include=dev",
-    "buildCommand": "npm --prefix server run build",
-    "builds": [
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "public": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
         {
-            "src": "server/dist/index.js",
-            "use": "@vercel/node"
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         },
         {
-            "src": "frontend2/**",
-            "use": "@vercel/static"
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(), geolocation=(self)"
         }
-    ],
-    "routes": [
+      ]
+    },
+    {
+      "source": "/frontend2/assets/(.*)",
+      "headers": [
         {
-            "src": "/static/frontend2/(.*)",
-            "dest": "/frontend2/$1"
-        },
-        {
-            "src": "/frontend2/(.*)",
-            "dest": "/frontend2/$1"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "server/dist/index.js"
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
-    ],
-    "env": {
-        "NODE_ENV": "production"
+      ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/frontend2/index.html"
+    },
+    {
+      "source": "/frontend2",
+      "destination": "/frontend2/index.html"
+    },
+    {
+      "source": "/frontend2/",
+      "destination": "/frontend2/index.html"
+    },
+    {
+      "source": "/host",
+      "destination": "/frontend2/host.html"
+    },
+    {
+      "source": "/host-login",
+      "destination": "/frontend2/host-login.html"
+    },
+    {
+      "source": "/expert",
+      "destination": "/frontend2/expert-portal.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/frontend2/login.html"
+    },
+    {
+      "source": "/register",
+      "destination": "/frontend2/register.html"
+    },
+    {
+      "source": "/forgot-password",
+      "destination": "/frontend2/forgot-password.html"
+    },
+    {
+      "source": "/predict",
+      "destination": "/frontend2/predict.html"
+    },
+    {
+      "source": "/crops",
+      "destination": "/frontend2/crops.html"
+    },
+    {
+      "source": "/farms",
+      "destination": "/frontend2/farms.html"
+    },
+    {
+      "source": "/calendar",
+      "destination": "/frontend2/calendar.html"
+    },
+    {
+      "source": "/risk",
+      "destination": "/frontend2/risk.html"
+    },
+    {
+      "source": "/reports",
+      "destination": "/frontend2/reports.html"
+    },
+    {
+      "source": "/organization",
+      "destination": "/frontend2/organization.html"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/frontend2/pricing.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/frontend2/support.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/frontend2/settings.html"
+    },
+    {
+      "source": "/api-docs",
+      "destination": "/frontend2/api-docs.html"
+    },
+    {
+      "source": "/terms-of-service",
+      "destination": "/frontend2/terms-of-service.html"
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/frontend2/privacy-policy.html"
+    },
+    {
+      "source": "/refund-policy",
+      "destination": "/frontend2/refund-policy.html"
+    },
+    {
+      "source": "/cookie-policy",
+      "destination": "/frontend2/cookie-policy.html"
+    }
+  ]
 }

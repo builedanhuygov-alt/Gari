@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isHostAdmin() {
+      return isAuthenticated() && request.auth.token.host_admin == true;
+    }
+
+    function isOrgMember(orgId) {
+      return isAuthenticated() && (
+        request.auth.token.org_id == orgId ||
+        exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid))
+      );
+    }
+
+    function isOrgAdmin(orgId) {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid)).data.role in ['owner', 'admin']
+      );
+    }
+
+    // Default deny for all unspecified paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Users collection: /users/{userId}
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isHostAdmin();
+      allow create: if isOwner(userId)
+                    && !('is_host_admin' in request.resource.data)
+                    && !('subscription_tier' in request.resource.data);
+      allow update: if isOwner(userId)
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['is_host_admin', 'subscription_tier', 'account_type'])
+                    || isHostAdmin();
+      allow delete: if isHostAdmin();
+    }
+
+    // 2. User Profiles collection: /user_profiles/{userId}
+    match /user_profiles/{userId} {
+      allow read: if isOwner(userId) || isHostAdmin();
+      allow write: if isOwner(userId) || isHostAdmin();
+    }
+
+    // 3. Organizations collection: /organizations/{orgId}
+    match /organizations/{orgId} {
+      allow read: if isOrgMember(orgId) || isHostAdmin();
+      allow create: if isAuthenticated();
+      allow update: if isOrgAdmin(orgId) || isHostAdmin();
+      allow delete: if isHostAdmin();
+
+      // Subcollection: /organizations/{orgId}/members/{memberId}
+      match /members/{memberId} {
+        allow read: if isOrgMember(orgId) || isHostAdmin();
+        allow write: if isOrgAdmin(orgId) || isHostAdmin();
+      }
+    }
+
+    // 4. Businesses collection: /businesses/{businessId}
+    match /businesses/{businessId} {
+      allow read: if isAuthenticated() && (resource.data.owner_uid == request.auth.uid || isHostAdmin());
+      allow create: if isAuthenticated() && request.resource.data.owner_uid == request.auth.uid;
+      allow update: if isAuthenticated() && (resource.data.owner_uid == request.auth.uid || isHostAdmin());
+      allow delete: if isHostAdmin();
+    }
+
+    // 5. Subscriptions: Read-only for users, managed exclusively by Host Admin
+    match /subscriptions/{subId} {
+      allow read: if isAuthenticated() && (resource.data.user_uid == request.auth.uid || isHostAdmin());
+      allow write: if isHostAdmin();
+    }
+
+    // 6. Notifications: /notifications/{notificationId}
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.target_uid == request.auth.uid || isHostAdmin());
+      allow update: if isAuthenticated() && resource.data.target_uid == request.auth.uid 
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_read', 'read_at']);
+      allow create, delete: if isHostAdmin();
+    }
+
+    // 7. Support Requests: /support_requests/{requestId}
+    match /support_requests/{requestId} {
+      allow read: if isAuthenticated() && (resource.data.user_uid == request.auth.uid || isHostAdmin());
+      allow create: if isAuthenticated() && request.resource.data.user_uid == request.auth.uid;
+      allow update, delete: if isHostAdmin();
+    }
+
+    // 8. Host Administrative Records: STRICTLY HOST ADMIN ONLY
+    match /host_admin/{docId} {
+      allow read, write: if isHostAdmin();
+    }
+  }
+}

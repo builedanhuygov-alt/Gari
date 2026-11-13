@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cộng đồng & Tri thức Nông nghiệp • Gari AI Lab</title>
+    <script src="/frontend2/features.js"></script>
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+    <style>
+        .community-tabs {
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+        .comm-tab-btn {
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .comm-tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .comm-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+        }
+        .filter-select, .search-input {
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+        }
+        .post-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.2s ease;
+        }
+        .post-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .author-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .author-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .author-name {
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .expert-badge {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .official-badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .post-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .post-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+        .post-content {
+            font-size: 0.95rem;
+            color: var(--text-body);
+            line-height: 1.6;
+            margin-bottom: 14px;
+            white-space: pre-line;
+        }
+        .post-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .tag-pill {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: var(--bg-hover);
+            color: var(--text-muted);
+        }
+        .post-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            font-size: 0.9rem;
+        }
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: color 0.15s ease;
+        }
+        .action-btn:hover, .action-btn.active {
+            color: var(--primary);
+        }
+        .comments-box {
+            margin-top: 16px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 16px;
+            display: none;
+        }
+        .comment-item {
+            padding: 10px 14px;
+            background: var(--bg-hover);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .comment-item.expert-answer {
+            background: #f1f8e9;
+            border-left: 3px solid #4caf50;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+        }
+        .knowledge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .knowledge-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .knowledge-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+        .modal-box {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                    <div>
+                        <h1 class="page-head-title">Cộng đồng & Thư viện Tri thức Nông học</h1>
+                        <p class="page-head-sub">Diễn đàn trao đổi thực địa, giải đáp kỹ thuật cùng chuyên gia và cẩm nang BVTV chính thống.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreatePostModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Tạo bài thảo luận / Đặt câu hỏi
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="community-tabs">
+                    <button class="comm-tab-btn active" id="tabFeedBtn" onclick="switchTab('feed')">Hỏi đáp & Thảo luận Thực địa</button>
+                    <button class="comm-tab-btn" id="tabLibraryBtn" onclick="switchTab('library')">Cẩm nang Tri thức Viện/Cục (Chính thống)</button>
+                </div>
+
+                <!-- TAB 1: FEED -->
+                <div id="sectionFeed">
+                    <div class="comm-filter-bar">
+                        <select class="filter-select" id="filterCrop" onchange="loadCommunityPosts()">
+                            <option value="">Tất cả cây trồng</option>
+                            <option value="coffee">Cà phê</option>
+                            <option value="pepper">Hồ tiêu</option>
+                            <option value="rice">Lúa gạo</option>
+                            <option value="durian">Sầu riêng</option>
+                            <option value="tomato">Cà chua</option>
+                            <option value="chili">Ớt cay</option>
+                            <option value="corn">Bắp (Ngô)</option>
+                        </select>
+                        <select class="filter-select" id="filterRegion" onchange="loadCommunityPosts()">
+                            <option value="">Tất cả vùng canh tác</option>
+                            <option value="Tây Nguyên">Tây Nguyên</option>
+                            <option value="Đồng bằng Sông Cửu Long">ĐBSCL</option>
+                            <option value="Nam Trung Bộ">Nam Trung Bộ</option>
+                            <option value="Bắc Trung Bộ">Bắc Trung Bộ</option>
+                            <option value="Đồng bằng Sông Hồng">Đồng bằng Sông Hồng</option>
+                        </select>
+                        <select class="filter-select" id="filterType" onchange="loadCommunityPosts()">
+                            <option value="">Mọi loại bài viết</option>
+                            <option value="question">Câu hỏi / Nhờ chẩn đoán</option>
+                            <option value="discussion">Thảo luận kinh nghiệm</option>
+                            <option value="guide">Khuyến cáo chuyên gia</option>
+                        </select>
+                        <input type="text" class="search-input" id="searchPostInput" placeholder="Tìm kiếm câu hỏi, triệu chứng, giải pháp..." onkeyup="handlePostSearch(event)">
+                        <button class="btn btn-secondary btn-sm" onclick="loadCommunityPosts()">Tìm kiếm</button>
+                    </div>
+
+                    <div id="postsList">
+                        <div style="text-align:center; padding:40px; color:var(--text-muted);">Đang tải bài viết thảo luận...</div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: KNOWLEDGE LIBRARY -->
+                <div id="sectionLibrary" style="display:none;">
+                    <div class="comm-filter-bar">
+                        <select class="filter-select" id="libCrop" onchange="loadKnowledgeArticles()">
+                            <option value="">Mọi cây trồng</option>
+                            <option value="coffee">Cà phê</option>
+                            <option value="pepper">Hồ tiêu</option>
+                            <option value="rice">Lúa gạo</option>
+                            <option value="durian">Sầu riêng</option>
+                            <option value="tomato">Cà chua</option>
+                        </select>
+                        <select class="filter-select" id="libTopic" onchange="loadKnowledgeArticles()">
+                            <option value="">Mọi chủ đề</option>
+                            <option value="pest_disease">Sâu bệnh hại & Chẩn đoán</option>
+                            <option value="ipm_protocol">Quy trình Quản lý IPM</option>
+                            <option value="fertilization">Bón phân & Dinh dưỡng</option>
+                            <option value="water_management">Tưới tiết kiệm & Thời tiết</option>
+                        </select>
+                        <input type="text" class="search-input" id="searchLibInput" placeholder="Tìm cẩm nang chính thống theo tên dịch hại, viện nghiên cứu..." onkeyup="handleLibSearch(event)">
+                        <button class="btn btn-secondary btn-sm" onclick="loadKnowledgeArticles()">Tra cứu</button>
+                    </div>
+
+                    <div class="knowledge-grid" id="knowledgeGrid">
+                        <div style="text-align:center; padding:40px; color:var(--text-muted); grid-column:1/-1;">Đang tải thư viện cẩm nang nông học...</div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE POST -->
+    <div class="modal-overlay" id="createPostModal">
+        <div class="modal-box">
+            <h3 style="margin-top:0; margin-bottom:16px;">Tạo bài thảo luận / Đặt câu hỏi</h3>
+            <form id="createPostForm" onsubmit="handleCreatePost(event)">
+                <div style="margin-bottom:12px;">
+                    <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Chủ đề bài đăng *</label>
+                    <input type="text" id="postTitle" required class="search-input" style="width:100%;" placeholder="VD: Hiện tượng đốm rỉ sắt trên lá cà phê tháng mưa">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div>
+                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Cây trồng</label>
+                        <select id="postCrop" class="filter-select" style="width:100%;">
+                            <option value="coffee">Cà phê</option>
+                            <option value="pepper">Hồ tiêu</option>
+                            <option value="rice">Lúa</option>
+                            <option value="durian">Sầu riêng</option>
+                            <option value="tomato">Cà chua</option>
+                            <option value="chili">Ớt cay</option>
+                            <option value="corn">Bắp (Ngô)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Khu vực canh tác</label>
+                        <select id="postRegion" class="filter-select" style="width:100%;">
+                            <option value="Tây Nguyên">Tây Nguyên</option>
+                            <option value="Đồng bằng Sông Cửu Long">ĐBSCL</option>
+                            <option value="Nam Trung Bộ">Nam Trung Bộ</option>
+                            <option value="Bắc Trung Bộ">Bắc Trung Bộ</option>
+                            <option value="Đồng bằng Sông Hồng">Đồng bằng Sông Hồng</option>
+                            <option value="Toàn quốc">Toàn quốc</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Nội dung chi tiết triệu chứng & câu hỏi *</label>
+                    <textarea id="postContent" required rows="5" class="search-input" style="width:100%; resize:vertical;" placeholder="Mô tả cụ thể biểu hiện trên lá, thân, cành, thời điểm xuất hiện, các loại thuốc đã sử dụng..."></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreatePostModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitPost">Đăng bài</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: REPORT CONTENT -->
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal-box">
+            <h3 style="margin-top:0; margin-bottom:12px; color:#d32f2f;">Báo cáo nội dung vi phạm</h3>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:16px;">Báo cáo của bạn sẽ được gửi tới Ban Kiểm duyệt Nông học GARI để thẩm tra.</p>
+            <form id="reportForm" onsubmit="handleSendReport(event)">
+                <input type="hidden" id="reportTargetType" value="post">
+                <input type="hidden" id="reportTargetId" value="0">
+                <div style="margin-bottom:12px;">
+                    <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Lý do báo cáo *</label>
+                    <select id="reportCategory" class="filter-select" style="width:100%;" required>
+                        <option value="misleading_advice">Lời khuyên kỹ thuật sai lệch / nguy hại cây trồng</option>
+                        <option value="spam_advertising">Quảng cáo rác / thuốc cấm không rõ nguồn gốc</option>
+                        <option value="inappropriate_content">Nội dung phản cảm, phi nông nghiệp</option>
+                        <option value="fake_expert">Giả mạo chuyên gia nông học / cơ quan nhà nước</option>
+                        <option value="harassment">Xúc phạm, quấy rối thành viên khác</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Chi tiết phản ánh</label>
+                    <textarea id="reportDetails" rows="3" class="search-input" style="width:100%;" placeholder="Vui lòng cung cấp thêm chi tiết để đội ngũ xem xét..."></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeReportModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="background:#d32f2f; border-color:#d32f2f;">Gửi báo cáo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: READ ARTICLE -->
+    <div class="modal-overlay" id="readArticleModal">
+        <div class="modal-box" style="max-width:800px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                <div>
+                    <span class="official-badge" id="artBadge">Viện Khoa Học</span>
+                    <h2 style="margin:8px 0 4px 0; font-size:1.4rem;" id="artTitle">Tiêu đề cẩm nang</h2>
+                    <div style="font-size:0.85rem; color:var(--text-muted);" id="artSource">Cơ quan xuất bản</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="closeArticleModal()">Đóng</button>
+            </div>
+            <div style="padding:14px; background:var(--bg-hover); border-radius:8px; margin-bottom:16px; font-size:0.95rem; font-style:italic;" id="artSummary"></div>
+            <div style="font-size:0.95rem; line-height:1.7; color:var(--text-body); white-space:pre-line;" id="artContent"></div>
+            <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border-color); font-size:0.85rem; color:var(--text-muted);" id="artFooter"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js?v=20261104_stable';
+
+        // Initialize GARI SaaS Shell for Community & Agricultural Knowledge
+        setupSaaSShell('community', 'Cộng đồng & Tri thức Nông học', false);
+
+        const features = window.GARI_FEATURES || { community: false };
+        if (features.community === false) {
+            const main = document.querySelector('.content-body');
+            if (main) {
+                main.innerHTML = `
+                    <div class="gari-dev-notice-wrapper">
+                        <div class="gari-dev-notice-card">
+                            <div class="gari-dev-icon-badge">👥</div>
+                            <h1 class="gari-dev-title">Cộng đồng đang phát triển</h1>
+                            <p class="gari-dev-desc">GARI đang xây dựng không gian cộng đồng nông nghiệp đáng tin cậy, nơi bà con có thể trao đổi kinh nghiệm và kết nối với chuyên gia. Tính năng sẽ sớm được mở lại.</p>
+                            <a href="/frontend2/index.html" class="gari-dev-back-btn">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                <span>Quay về Trang chủ</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        let currentTab = 'feed';
+        let currentPosts = [];
+        let currentArticles = [];
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabFeedBtn').classList.toggle('active', tab === 'feed');
+            document.getElementById('tabLibraryBtn').classList.toggle('active', tab === 'library');
+            document.getElementById('sectionFeed').style.display = tab === 'feed' ? 'block' : 'none';
+            document.getElementById('sectionLibrary').style.display = tab === 'library' ? 'block' : 'none';
+            if (tab === 'library' && currentArticles.length === 0) {
+                loadKnowledgeArticles();
+            }
+        }
+
+        async function loadCommunityPosts() {
+            const crop = document.getElementById('filterCrop').value;
+            const region = document.getElementById('filterRegion').value;
+            const postType = document.getElementById('filterType').value;
+            const query = document.getElementById('searchPostInput').value.trim();
+
+            let url = `/api/community/posts?limit=30`;
+            if (crop) url += `&crop_id=${encodeURIComponent(crop)}`;
+            if (region) url += `&region=${encodeURIComponent(region)}`;
+            if (postType) url += `&post_type=${encodeURIComponent(postType)}`;
+            if (query) url += `&query=${encodeURIComponent(query)}`;
+
+            const container = document.getElementById('postsList');
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">Đang tải dữ liệu...</div>';
+
+            try {
+                const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch(url, { headers });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.detail || 'Không thể tải bài viết');
+
+                currentPosts = data.posts || [];
+                renderPosts(currentPosts);
+            } catch (err) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#d32f2f;">Lỗi: ${err.message}</div>`;
+            }
+        }
+
+        function renderPosts(posts) {
+            const container = document.getElementById('postsList');
+            if (!posts.length) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Chưa có bài thảo luận nào phù hợp. Hãy đặt câu hỏi đầu tiên!</div>';
+                return;
+            }
+
+            container.innerHTML = posts.map(p => {
+                const authorInitial = (p.author_name || 'U').charAt(0).toUpperCase();
+                const expertBadge = p.author_is_expert 
+                    ? `<span class="expert-badge">✓ Chuyên gia: ${p.author_expert_title || 'Agronomist'} (${p.author_institution || 'Viện BVTV'})</span>` 
+                    : '';
+                const officialBadge = p.is_official_guidance
+                    ? `<span class="official-badge">★ Khuyến cáo chính thống</span>`
+                    : '';
+
+                return `
+                <div class="post-card" id="post-${p.id}">
+                    <div class="post-header">
+                        <div class="author-box">
+                            <div class="author-avatar">${authorInitial}</div>
+                            <div>
+                                <div class="author-name">
+                                    ${p.author_name || 'Nông dân GARI'}
+                                    ${expertBadge}
+                                    ${officialBadge}
+                                </div>
+                                <div class="post-meta">
+                                    <span>${p.region || 'Toàn quốc'}</span> • 
+                                    <span>Cây: ${p.crop_id ? p.crop_id.toUpperCase() : 'Chung'}</span> • 
+                                    <span>${p.created_at ? p.created_at.substring(0, 10) : ''}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="post-title">${p.title}</h3>
+                    <div class="post-content">${p.content}</div>
+
+                    <div class="post-actions">
+                        <button class="action-btn ${p.is_liked_by_me ? 'active' : ''}" onclick="toggleLikePost(${p.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="${p.is_liked_by_me ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                            <span id="likes-count-${p.id}">${p.likes_count || 0}</span> Thích
+                        </button>
+                        <button class="action-btn" onclick="toggleComments(${p.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <span id="comments-count-${p.id}">${p.comments_count || 0}</span> Bình luận
+                        </button>
+                        <button class="action-btn" onclick="openReportModal('post', ${p.id})" style="margin-left:auto; color:var(--text-muted);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            Báo cáo
+                        </button>
+                    </div>
+
+                    <!-- Collapsible comments -->
+                    <div class="comments-box" id="comments-box-${p.id}">
+                        <div id="comments-list-${p.id}">Đang tải phản hồi...</div>
+                        <div style="display:flex; gap:8px; margin-top:12px;">
+                            <input type="text" class="search-input" id="newCommentInput-${p.id}" placeholder="Viết phản hồi hoặc chia sẻ biện pháp xử lý..." style="flex:1;">
+                            <button class="btn btn-primary btn-sm" onclick="submitComment(${p.id})">Gửi</button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleLikePost(postId) {
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) {
+                alert('Vui lòng đăng nhập để tương tác!');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/community/posts/${postId}/like`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const span = document.getElementById(`likes-count-${postId}`);
+                    if (span) span.innerText = data.likes_count;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function toggleComments(postId) {
+            const box = document.getElementById(`comments-box-${postId}`);
+            if (box.style.display === 'block') {
+                box.style.display = 'none';
+                return;
+            }
+            box.style.display = 'block';
+            loadComments(postId);
+        }
+
+        async function loadComments(postId) {
+            const list = document.getElementById(`comments-list-${postId}`);
+            try {
+                const res = await fetch(`/api/community/posts/${postId}/comments`);
+                const data = await res.json();
+                if (!data.comments || !data.comments.length) {
+                    list.innerHTML = '<div style="font-size:0.85rem; color:var(--text-muted);">Chưa có bình luận nào. Hãy chia sẻ ý kiến của bạn!</div>';
+                    return;
+                }
+                list.innerHTML = data.comments.map(c => `
+                    <div class="comment-item ${c.is_expert_answer ? 'expert-answer' : ''}">
+                        <div class="comment-header">
+                            <strong>${c.author_name} ${c.is_expert_answer ? '<span class="expert-badge">★ Chuyên gia trả lời</span>' : ''}</strong>
+                            <span style="color:var(--text-muted); font-size:0.75rem;">${c.created_at ? c.created_at.substring(0, 16) : ''}</span>
+                        </div>
+                        <div style="font-size:0.9rem; line-height:1.5;">${c.content}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = '<div style="color:#d32f2f; font-size:0.85rem;">Không thể tải bình luận.</div>';
+            }
+        }
+
+        async function submitComment(postId) {
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) {
+                alert('Vui lòng đăng nhập để bình luận!');
+                return;
+            }
+            const input = document.getElementById(`newCommentInput-${postId}`);
+            const content = (input.value || '').trim();
+            if (!content) return;
+
+            try {
+                const res = await fetch(`/api/community/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ content })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    input.value = '';
+                    loadComments(postId);
+                    const countSpan = document.getElementById(`comments-count-${postId}`);
+                    if (countSpan) countSpan.innerText = parseInt(countSpan.innerText || '0') + 1;
+                } else {
+                    alert(data.detail || 'Không thể gửi bình luận');
+                }
+            } catch (e) {
+                alert('Lỗi gửi bình luận: ' + e.message);
+            }
+        }
+
+        // KNOWLEDGE LIBRARY
+        async function loadKnowledgeArticles() {
+            const crop = document.getElementById('libCrop').value;
+            const topic = document.getElementById('libTopic').value;
+            const query = document.getElementById('searchLibInput').value.trim();
+
+            let url = `/api/knowledge/articles?limit=30`;
+            if (crop) url += `&crop_id=${encodeURIComponent(crop)}`;
+            if (topic) url += `&topic=${encodeURIComponent(topic)}`;
+            if (query) url += `&query=${encodeURIComponent(query)}`;
+
+            const grid = document.getElementById('knowledgeGrid');
+            grid.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); grid-column:1/-1;">Đang nạp cẩm nang từ các Viện nghiên cứu...</div>';
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                currentArticles = data.articles || [];
+                renderArticles(currentArticles);
+            } catch (err) {
+                grid.innerHTML = `<div style="text-align:center; padding:30px; color:#d32f2f; grid-column:1/-1;">Lỗi: ${err.message}</div>`;
+            }
+        }
+
+        function renderArticles(articles) {
+            const grid = document.getElementById('knowledgeGrid');
+            if (!articles.length) {
+                grid.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); grid-column:1/-1;">Không tìm thấy cẩm nang nông học phù hợp.</div>';
+                return;
+            }
+
+            grid.innerHTML = articles.map(a => `
+                <div class="knowledge-card">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span class="official-badge">✓ ${a.verification_badge || 'Chính thống'}</span>
+                            <span style="font-size:0.75rem; color:var(--text-muted);">${a.crop_id ? a.crop_id.toUpperCase() : 'CÂY TRỒNG'}</span>
+                        </div>
+                        <h3 style="font-size:1.1rem; margin:0 0 8px 0; color:var(--text-main); font-weight:700;">${a.title}</h3>
+                        <p style="font-size:0.85rem; color:var(--text-body); line-height:1.5; margin-bottom:12px;">${a.summary}</p>
+                    </div>
+                    <div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">
+                            Nguồn: <strong>${a.source_institution}</strong><br>
+                            Tác giả: ${a.author_name || 'Ban biên tập'} • Ngày: ${a.publication_date || ''}
+                        </div>
+                        <button class="btn btn-secondary btn-sm" style="width:100%;" onclick="readArticle('${a.slug || a.id}')">Xem cẩm nang đầy đủ</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function readArticle(idOrSlug) {
+            try {
+                const res = await fetch(`/api/knowledge/articles/${idOrSlug}`);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.detail || 'Không tìm thấy');
+
+                const art = data.article;
+                document.getElementById('artBadge').innerText = art.verification_badge || 'Chính thống';
+                document.getElementById('artTitle').innerText = art.title;
+                document.getElementById('artSource').innerText = `${art.source_institution} • Tác giả: ${art.author_name || 'Cán bộ viện'}`;
+                document.getElementById('artSummary').innerText = art.summary;
+                document.getElementById('artContent').innerText = art.content_markdown;
+                document.getElementById('artFooter').innerHTML = `
+                    <strong>Nguồn trích dẫn học thuật:</strong> ${art.source_institution}<br>
+                    <strong>Thẩm định & Kiểm chứng:</strong> ${art.review_status === 'official_verified' ? 'Tài liệu khuyến nông được xác thực bởi Viện/Cục BVTV Quốc Gia' : 'Thẩm định bởi Hội đồng chuyên gia GARI'}
+                `;
+
+                document.getElementById('readArticleModal').style.display = 'flex';
+            } catch (err) {
+                alert('Không thể mở cẩm nang: ' + err.message);
+            }
+        }
+
+        function closeArticleModal() {
+            document.getElementById('readArticleModal').style.display = 'none';
+        }
+
+        // CREATE POST MODAL
+        function openCreatePostModal() {
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) {
+                alert('Vui lòng đăng nhập trước khi tạo bài thảo luận!');
+                window.location.href = '/login?next=/community';
+                return;
+            }
+            document.getElementById('createPostModal').style.display = 'flex';
+        }
+
+        function closeCreatePostModal() {
+            document.getElementById('createPostModal').style.display = 'none';
+        }
+
+        async function handleCreatePost(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            const title = document.getElementById('postTitle').value.trim();
+            const crop_id = document.getElementById('postCrop').value;
+            const region = document.getElementById('postRegion').value;
+            const content = document.getElementById('postContent').value.trim();
+
+            const btn = document.getElementById('btnSubmitPost');
+            btn.disabled = true;
+            btn.innerText = 'Đang đăng...';
+
+            try {
+                const res = await fetch('/api/community/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        content,
+                        crop_id,
+                        region,
+                        post_type: 'question'
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeCreatePostModal();
+                    document.getElementById('createPostForm').reset();
+                    loadCommunityPosts();
+                    alert('Đã đăng bài thảo luận thành công!');
+                } else {
+                    alert(data.detail || 'Lỗi đăng bài');
+                }
+            } catch (err) {
+                alert('Lỗi đăng bài: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Đăng bài';
+            }
+        }
+
+        // REPORT MODAL
+        function openReportModal(targetType, targetId) {
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            if (!token) {
+                alert('Vui lòng đăng nhập để gửi báo cáo vi phạm!');
+                return;
+            }
+            document.getElementById('reportTargetType').value = targetType;
+            document.getElementById('reportTargetId').value = targetId;
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        async function handleSendReport(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+            const target_type = document.getElementById('reportTargetType').value;
+            const target_id = parseInt(document.getElementById('reportTargetId').value);
+            const reason_category = document.getElementById('reportCategory').value;
+            const reason_details = document.getElementById('reportDetails').value.trim();
+
+            try {
+                const res = await fetch('/api/community/reports', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        target_type,
+                        target_id,
+                        reason_category,
+                        reason_details
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeReportModal();
+                    alert('Đã gửi báo cáo vi phạm. Cảm ơn bạn đã giữ gìn môi trường tri thức nông học!');
+                } else {
+                    alert(data.detail || 'Lỗi gửi báo cáo');
+                }
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+            }
+        }
+
+        function handlePostSearch(e) {
+            if (e.key === 'Enter') loadCommunityPosts();
+        }
+
+        function handleLibSearch(e) {
+            if (e.key === 'Enter') loadKnowledgeArticles();
+        }
+
+        // Expose functions to window for inline HTML onclick/onchange/onkeydown handlers
+        window.switchTab = switchTab;
+        window.loadCommunityPosts = loadCommunityPosts;
+        window.renderPosts = renderPosts;
+        window.toggleLikePost = toggleLikePost;
+        window.toggleComments = toggleComments;
+        window.loadComments = loadComments;
+        window.submitComment = submitComment;
+        window.loadKnowledgeArticles = loadKnowledgeArticles;
+        window.renderArticles = renderArticles;
+        window.readArticle = readArticle;
+        window.closeArticleModal = closeArticleModal;
+        window.openCreatePostModal = openCreatePostModal;
+        window.closeCreatePostModal = closeCreatePostModal;
+        window.handleCreatePost = handleCreatePost;
+        window.openReportModal = openReportModal;
+        window.closeReportModal = closeReportModal;
+        window.handleSendReport = handleSendReport;
+        window.handlePostSearch = handlePostSearch;
+        window.handleLibSearch = handleLibSearch;
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                loadCommunityPosts();
+            });
+        } else {
+            loadCommunityPosts();
+        }
+    </script>
+</body>
+</html>

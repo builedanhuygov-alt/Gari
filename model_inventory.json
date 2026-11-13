@@ -44,7 +44,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 713.34,
+    "test_latency_ms": 987.41,
     "output_shape": [
       1,
       8
@@ -85,7 +85,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 874.49,
+    "test_latency_ms": 1068.07,
     "output_shape": [
       1,
       3
@@ -140,7 +140,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 900.79,
+    "test_latency_ms": 1094.75,
     "output_shape": [
       1,
       10
@@ -183,7 +183,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 900.0,
+    "test_latency_ms": 1036.46,
     "output_shape": [
       1,
       4
@@ -228,7 +228,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 887.5,
+    "test_latency_ms": 1143.48,
     "output_shape": [
       1,
       5
@@ -269,7 +269,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 924.83,
+    "test_latency_ms": 1101.09,
     "output_shape": [
       1,
       3
@@ -316,7 +316,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 909.89,
+    "test_latency_ms": 1145.87,
     "output_shape": [
       1,
       6
@@ -367,7 +367,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 874.63,
+    "test_latency_ms": 1097.17,
     "output_shape": [
       1,
       8
@@ -412,7 +412,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 919.13,
+    "test_latency_ms": 1137.28,
     "output_shape": [
       1,
       5
@@ -457,7 +457,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 898.64,
+    "test_latency_ms": 1119.78,
     "output_shape": [
       1,
       5
@@ -504,7 +504,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 905.81,
+    "test_latency_ms": 1091.99,
     "output_shape": [
       1,
       6
@@ -545,7 +545,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 883.62,
+    "test_latency_ms": 1100.04,
     "output_shape": [
       1,
       3
@@ -596,7 +596,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 885.47,
+    "test_latency_ms": 1133.54,
     "output_shape": [
       1,
       8
@@ -653,7 +653,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 926.19,
+    "test_latency_ms": 1103.82,
     "output_shape": [
       1,
       11
@@ -702,11 +702,31 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 896.63,
+    "test_latency_ms": 1064.15,
     "output_shape": [
       1,
       7
     ]
+  },
+  {
+    "crop_id": "Crop",
+    "crop_name": "Crop",
+    "kind": "disease",
+    "arch": "unknown",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 21.11,
+    "weight_size_bytes": 22130420,
+    "classes_count": 0,
+    "classes": [],
+    "labels": [],
+    "accuracy": null,
+    "macro_f1": null,
+    "test_images": null,
+    "image_size": 224,
+    "mean": null,
+    "std": null,
+    "loadable": false,
+    "load_error": "'arch'"
   },
   {
     "crop_id": "Cucumber",
@@ -753,7 +773,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 879.89,
+    "test_latency_ms": 1165.61,
     "output_shape": [
       1,
       8
@@ -796,7 +816,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1111.13,
+    "test_latency_ms": 1091.66,
     "output_shape": [
       1,
       4
@@ -847,7 +867,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1713.5,
+    "test_latency_ms": 1093.31,
     "output_shape": [
       1,
       8
@@ -954,7 +974,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1212.07,
+    "test_latency_ms": 1067.71,
     "output_shape": [
       1,
       36
@@ -1021,7 +1041,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1063.67,
+    "test_latency_ms": 1091.7,
     "output_shape": [
       1,
       16
@@ -1064,7 +1084,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1146.28,
+    "test_latency_ms": 1197.66,
     "output_shape": [
       1,
       4
@@ -1121,7 +1141,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1107.07,
+    "test_latency_ms": 1201.42,
     "output_shape": [
       1,
       11
@@ -1168,7 +1188,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1048.06,
+    "test_latency_ms": 1167.88,
     "output_shape": [
       1,
       6
@@ -1207,7 +1227,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1102.21,
+    "test_latency_ms": 1213.85,
     "output_shape": [
       1,
       2
@@ -1264,7 +1284,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 962.44,
+    "test_latency_ms": 1185.93,
     "output_shape": [
       1,
       11
@@ -1315,11 +1335,111 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1050.73,
+    "test_latency_ms": 1104.49,
     "output_shape": [
       1,
       8
     ]
+  },
+  {
+    "crop_id": "Model tong",
+    "crop_name": "Model Tong",
+    "kind": "disease",
+    "arch": "unknown",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 327.43,
+    "weight_size_bytes": 343334720,
+    "classes_count": 0,
+    "classes": [],
+    "labels": [],
+    "accuracy": null,
+    "macro_f1": null,
+    "test_images": null,
+    "image_size": 224,
+    "mean": null,
+    "std": null,
+    "loadable": false,
+    "load_error": "'arch'"
+  },
+  {
+    "crop_id": "Model tong 2 (vip)",
+    "crop_name": "Model Tong 2 (Vip)",
+    "kind": "disease",
+    "arch": "unknown",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 370.82,
+    "weight_size_bytes": 388831924,
+    "classes_count": 0,
+    "classes": [],
+    "labels": [],
+    "accuracy": null,
+    "macro_f1": null,
+    "test_images": null,
+    "image_size": 224,
+    "mean": null,
+    "std": null,
+    "loadable": false,
+    "load_error": "'arch'"
+  },
+  {
+    "crop_id": "model tong 3",
+    "crop_name": "Model Tong 3",
+    "kind": "disease",
+    "arch": "unknown",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 76.9,
+    "weight_size_bytes": 80632432,
+    "classes_count": 0,
+    "classes": [],
+    "labels": [],
+    "accuracy": null,
+    "macro_f1": null,
+    "test_images": null,
+    "image_size": 224,
+    "mean": null,
+    "std": null,
+    "loadable": false,
+    "load_error": "'arch'"
+  },
+  {
+    "crop_id": "model tong 4 (vip)",
+    "crop_name": "Model Tong 4 (Vip)",
+    "kind": "disease",
+    "arch": "unknown",
+    "weight_file": "model.safetensors",
+    "weight_size_mb": 84.27,
+    "weight_size_bytes": 88368584,
+    "classes_count": 0,
+    "classes": [],
+    "labels": [],
+    "accuracy": null,
+    "macro_f1": null,
+    "test_images": null,
+    "image_size": 518,
+    "mean": null,
+    "std": null,
+    "loadable": false,
+    "load_error": "'arch'"
+  },
+  {
+    "crop_id": "Model tong 5",
+    "crop_name": "Model Tong 5",
+    "kind": "disease",
+    "arch": "unknown",
+    "weight_file": null,
+    "weight_size_mb": 0.0,
+    "weight_size_bytes": 0,
+    "classes_count": 0,
+    "classes": [],
+    "labels": [],
+    "accuracy": null,
+    "macro_f1": null,
+    "test_images": null,
+    "image_size": 224,
+    "mean": null,
+    "std": null,
+    "loadable": false,
+    "load_error": null
   },
   {
     "crop_id": "Mulberry",
@@ -1370,7 +1490,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1008.45,
+    "test_latency_ms": 1156.58,
     "output_shape": [
       1,
       10
@@ -1417,7 +1537,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1097.13,
+    "test_latency_ms": 1328.69,
     "output_shape": [
       1,
       6
@@ -1468,7 +1588,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1120.08,
+    "test_latency_ms": 1158.36,
     "output_shape": [
       1,
       8
@@ -1511,7 +1631,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1076.73,
+    "test_latency_ms": 1313.69,
     "output_shape": [
       1,
       4
@@ -1556,7 +1676,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1012.96,
+    "test_latency_ms": 1254.63,
     "output_shape": [
       1,
       5
@@ -1601,7 +1721,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1111.18,
+    "test_latency_ms": 1251.64,
     "output_shape": [
       1,
       5
@@ -1642,7 +1762,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 967.72,
+    "test_latency_ms": 1148.84,
     "output_shape": [
       1,
       3
@@ -1705,7 +1825,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 994.57,
+    "test_latency_ms": 1113.12,
     "output_shape": [
       1,
       14
@@ -1748,7 +1868,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1010.45,
+    "test_latency_ms": 1158.06,
     "output_shape": [
       1,
       4
@@ -1799,7 +1919,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1116.28,
+    "test_latency_ms": 1156.27,
     "output_shape": [
       1,
       8
@@ -1842,7 +1962,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1032.64,
+    "test_latency_ms": 1095.45,
     "output_shape": [
       1,
       4
@@ -1889,7 +2009,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1073.23,
+    "test_latency_ms": 1035.95,
     "output_shape": [
       1,
       6
@@ -1930,7 +2050,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1097.31,
+    "test_latency_ms": 1084.56,
     "output_shape": [
       1,
       3
@@ -1987,7 +2107,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1131.04,
+    "test_latency_ms": 1073.95,
     "output_shape": [
       1,
       11
@@ -2030,7 +2150,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1100.05,
+    "test_latency_ms": 1148.24,
     "output_shape": [
       1,
       4
@@ -2091,7 +2211,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1066.72,
+    "test_latency_ms": 1089.33,
     "output_shape": [
       1,
       13
@@ -2136,7 +2256,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1048.68,
+    "test_latency_ms": 1067.44,
     "output_shape": [
       1,
       5
@@ -2179,7 +2299,7 @@
     ],
     "loadable": true,
     "load_error": null,
-    "test_latency_ms": 1044.75,
+    "test_latency_ms": 1109.89,
     "output_shape": [
       1,
       4

@@ -8,11 +8,19 @@ import sys
 DB_PATH = "database/disease_detector.db"
 SCHEMA_PATH = "database/schema.sql"
 
-def init_database():
-    # Remove old database if exists
+def init_database(force_drop: bool = False):
+    # Production Safeguard
+    app_env = os.getenv("APP_ENV", "development").lower()
+    if app_env in ("production", "prod"):
+        raise RuntimeError("CRITICAL SAFEGUARD: init_database() cannot be executed in production environment!")
+
+    # Remove old database only if explicitly forced
     if os.path.exists(DB_PATH):
+        if not force_drop:
+            print(f"Database already exists at {DB_PATH}. Pass force_drop=True or --force-drop to re-create.")
+            return
         os.remove(DB_PATH)
-        print("Deleted old database")
+        print("Deleted old database (development force drop)")
     
     # Connect to database
     conn = sqlite3.connect(DB_PATH)

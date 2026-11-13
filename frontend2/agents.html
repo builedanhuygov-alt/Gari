@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ sinh thái AI Agents • Gari AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+    <style>
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .agent-card {
+            background: var(--bg-card, #ffffff);
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .agent-card:hover {
+            border-color: var(--primary, #059669);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .agent-card.active {
+            border-color: var(--primary, #059669);
+            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+            background: var(--bg-active, #f0fdf4);
+        }
+        .agent-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #e0f2fe;
+            color: #0369a1;
+            margin-bottom: 8px;
+        }
+        .agent-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 12px;
+        }
+        .tool-chip {
+            font-size: 11px;
+            background: var(--bg-subtle, #f3f4f6);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-muted, #4b5563);
+            font-family: monospace;
+        }
+        .console-panel {
+            background: var(--bg-card, #ffffff);
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .hil-alert-box {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .hil-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .hil-table th {
+            text-align: left;
+            padding: 10px;
+            background: var(--bg-subtle, #f9fafb);
+            border-bottom: 1px solid var(--border-color, #e5e7eb);
+        }
+        .hil-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border-color, #e5e7eb);
+            vertical-align: top;
+        }
+        .output-json {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 360px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-head-title">Hệ Sinh Thái AI Agents Chuyên Trách</h1>
+                        <p class="page-head-sub">7 Trợ lý tự hành thông minh kết nối dữ liệu chẩn đoán, vi khí hậu, viễn thám và điều phối canh tác với cổng kiểm soát con người (Human-in-the-Loop).</p>
+                    </div>
+                </div>
+
+                <!-- KPI Status Row -->
+                <div class="kpi-row" style="margin-bottom:24px;">
+                    <div class="kpi-card">
+                        <span class="kpi-label">Trợ lý Hoạt động</span>
+                        <div class="kpi-metric" id="kpiAgentsCount">7 / 7</div>
+                        <span class="kpi-bottom">Chuyên môn hóa 100%</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Yêu Cầu Chờ Phê Duyệt</span>
+                        <div class="kpi-metric" id="kpiPendingApprovals" style="color:#d97706;">0</div>
+                        <span class="kpi-bottom">Cổng Human-in-the-Loop</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Mô Hình Cách Ly Dữ Liệu</span>
+                        <div class="kpi-metric" style="color:var(--success, #059669);">Zero-Trust</div>
+                        <span class="kpi-bottom">Kiểm soát phạm vi người dùng</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Khử Mã Bí Mật Nhật Ký</span>
+                        <div class="kpi-metric" style="color:var(--success, #059669);">Đã Kích Hoạt</div>
+                        <span class="kpi-bottom">Chống rò rỉ token & bí mật</span>
+                    </div>
+                </div>
+
+                <!-- Section: Human-in-the-Loop Approvals -->
+                <div class="card" id="hilCard" style="display:none; margin-bottom:24px; border: 2px solid #f59e0b;">
+                    <div class="card-header" style="background:#fffbeb;">
+                        <div class="card-title-group">
+                            <h2 class="card-title" style="color:#b45309; display:flex; align-items:center; gap:8px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Cổng Phê Duyệt Con Người (Human-in-the-Loop)
+                            </h2>
+                            <div class="card-subtitle">Các hành động vận hành nhạy cảm (kê đơn hóa học, giao nhiệm vụ, thay đổi quyền) bắt buộc có sự xác nhận của quản lý.</div>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="hil-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã yêu cầu</th>
+                                    <th>Trợ lý AI</th>
+                                    <th>Loại hành động</th>
+                                    <th>Tóm tắt đề xuất</th>
+                                    <th>Thời gian tạo</th>
+                                    <th style="text-align:right;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hilTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section: Agent Selector -->
+                <h3 style="font-size:16px; font-weight:600; margin-bottom:12px; color:var(--text, #111827);">Danh sách 7 Trợ lý Trí tuệ Nhân tạo</h3>
+                <div class="agent-grid" id="agentGrid">
+                    <div style="grid-column: 1 / -1; text-align:center; padding:32px;">
+                        <span class="skeleton" style="display:inline-block; width:60%; height:20px;"></span>
+                    </div>
+                </div>
+
+                <!-- Section: Interactive Console -->
+                <div class="console-panel" id="consolePanel" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                        <div>
+                            <span class="agent-badge" id="activeAgentId">agronomy</span>
+                            <h2 style="font-size:18px; font-weight:700; margin:4px 0;" id="activeAgentName">Trợ lý Nông học & Lâm sàng</h2>
+                            <p style="font-size:13px; color:var(--text-muted, #4b5563); margin:0;" id="activeAgentDesc">Phân tích chẩn đoán, đối soát triệu chứng thực tế.</p>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btnRunAgentTask" style="display:inline-flex; align-items:center; gap:8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            Thực thi Tác vụ Agent
+                        </button>
+                    </div>
+
+                    <!-- Input Parameters Form -->
+                    <div style="background:var(--bg-subtle, #f9fafb); padding:16px; border-radius:8px; margin-bottom:20px;">
+                        <h4 style="font-size:13px; font-weight:600; margin-bottom:12px;">Tham số thực thi (Context Input)</h4>
+                        <div id="dynamicFormInputs" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:12px;">
+                            <!-- Form inputs dynamically injected -->
+                        </div>
+                    </div>
+
+                    <!-- Output & Reasoning Panel -->
+                    <div id="executionOutputContainer" style="display:none;">
+                        <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+                            <span>Kết quả Phân tích & Suy luận</span>
+                            <span id="outputStatusBadge" class="badge"></span>
+                        </h4>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;" id="outputCardsGrid">
+                            <div style="background:var(--bg-subtle, #f9fafb); padding:16px; border-radius:8px;">
+                                <div style="font-size:12px; font-weight:600; color:var(--text-muted, #4b5563); margin-bottom:8px;">NHẬT KÝ CÔNG CỤ (TOOL INVOCATIONS)</div>
+                                <div id="toolsAuditList" style="font-size:12px; font-family:monospace; line-height:1.6;"></div>
+                            </div>
+                            <div style="background:var(--bg-subtle, #f9fafb); padding:16px; border-radius:8px;">
+                                <div style="font-size:12px; font-weight:600; color:var(--text-muted, #4b5563); margin-bottom:8px;">BẰNG CHỨNG NGUỒN GỐC DỮ LIỆU (PROVENANCE)</div>
+                                <div id="provenanceBox" style="font-size:13px; color:var(--text, #111827); line-height:1.5;"></div>
+                            </div>
+                        </div>
+
+                        <div style="font-size:12px; font-weight:600; color:var(--text-muted, #4b5563); margin-bottom:8px;">DỮ LIỆU KẾT QUẢ ĐẦU RA (PAYLOAD)</div>
+                        <pre class="output-json" id="jsonOutputBox">{}</pre>
+                    </div>
+                </div>
+
+                <!-- Section: Execution Audit Log -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <h2 class="card-title">Nhật ký Kiểm toán & Lịch sử Thực thi AI Agents</h2>
+                            <div class="card-subtitle">Lưu trữ minh bạch các lượt gọi công cụ, thời gian phản hồi và trạng thái phê duyệt.</div>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã phiên</th>
+                                    <th>Trợ lý AI</th>
+                                    <th>Loại tác vụ</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thời gian xử lý</th>
+                                    <th>Phê duyệt con người</th>
+                                    <th>Thời điểm</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditExecTableBody">
+                                <tr>
+                                    <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted, #6b7280);">
+                                        Đang tải dữ liệu kiểm toán...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js?v=20261104_stable';
+
+        let registeredAgents = [];
+        let selectedAgent = null;
+
+        async function init() {
+            setupSaaSShell('agents', 'Hệ Sinh Thái AI Agents');
+            await loadAgents();
+            await loadApprovals();
+            await loadExecutions();
+            setupEventListeners();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        async function loadAgents() {
+            try {
+                const res = await fetchJSON('/api/agents');
+                if (res && res.success && res.agents) {
+                    registeredAgents = res.agents;
+                    renderAgentGrid(registeredAgents);
+                    if (registeredAgents.length > 0) {
+                        selectAgent(registeredAgents[0].agent_id);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load agents:", err);
+                toast("Không thể tải danh sách AI Agents: " + err.message);
+            }
+        }
+
+        function renderAgentGrid(agents) {
+            const grid = document.getElementById('agentGrid');
+            if (!grid) return;
+            grid.innerHTML = agents.map(a => `
+                <div class="agent-card ${selectedAgent && selectedAgent.agent_id === a.agent_id ? 'active' : ''}" data-id="${a.agent_id}">
+                    <div>
+                        <span class="agent-badge">v${a.version} • ${a.agent_id}</span>
+                        <h4 style="font-size:15px; font-weight:700; margin:4px 0 6px 0; color:var(--text, #111827);">${a.name_vi}</h4>
+                        <p style="font-size:12px; color:var(--text-muted, #4b5563); margin:0; line-height:1.4;">${a.purpose}</p>
+                    </div>
+                    <div class="agent-tools">
+                        ${(a.allowed_tools || []).map(t => `<span class="tool-chip">${t}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            grid.querySelectorAll('.agent-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const aid = card.getAttribute('data-id');
+                    selectAgent(aid);
+                });
+            });
+        }
+
+        function selectAgent(agentId) {
+            selectedAgent = registeredAgents.find(a => a.agent_id === agentId);
+            if (!selectedAgent) return;
+
+            document.querySelectorAll('.agent-card').forEach(c => {
+                c.classList.toggle('active', c.getAttribute('data-id') === agentId);
+            });
+
+            const panel = document.getElementById('consolePanel');
+            panel.style.display = 'block';
+
+            document.getElementById('activeAgentId').textContent = selectedAgent.agent_id;
+            document.getElementById('activeAgentName').textContent = selectedAgent.name_vi;
+            document.getElementById('activeAgentDesc').textContent = selectedAgent.purpose;
+
+            renderDynamicInputs(selectedAgent);
+            document.getElementById('executionOutputContainer').style.display = 'none';
+        }
+
+        function renderDynamicInputs(agent) {
+            const container = document.getElementById('dynamicFormInputs');
+            container.innerHTML = '';
+
+            const props = (agent.input_schema && agent.input_schema.properties) || {};
+            for (const [key, meta] of Object.entries(props)) {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--text, #111827);">
+                        ${key} ${meta.type ? `(${meta.type})` : ''}
+                    </label>
+                    <input type="${meta.type === 'integer' ? 'number' : 'text'}" 
+                           id="input_${key}" 
+                           class="form-control" 
+                           placeholder="Nhập ${key}..." 
+                           style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--border-color, #d1d5db); font-size:13px;" />
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        async function loadApprovals() {
+            try {
+                const res = await fetchJSON('/api/agents/approvals');
+                const hilCard = document.getElementById('hilCard');
+                const tbody = document.getElementById('hilTableBody');
+                const kpi = document.getElementById('kpiPendingApprovals');
+
+                if (res && res.success && res.approvals) {
+                    kpi.textContent = res.count;
+                    if (res.count > 0) {
+                        hilCard.style.display = 'block';
+                        tbody.innerHTML = res.approvals.map(appr => `
+                            <tr>
+                                <td><strong>#${appr.approval_id.slice(0, 8)}</strong></td>
+                                <td><span class="agent-badge">${appr.agent_id}</span></td>
+                                <td><code>${appr.action_type}</code></td>
+                                <td>${appr.action_summary}</td>
+                                <td>${appr.created_at || ''}</td>
+                                <td style="text-align:right;">
+                                    <button class="btn btn-sm btn-primary btn-resolve" data-id="${appr.approval_id}" data-action="approve" style="padding:4px 8px; font-size:12px; margin-right:4px;">Chấp thuận</button>
+                                    <button class="btn btn-sm btn-secondary btn-resolve" data-id="${appr.approval_id}" data-action="reject" style="padding:4px 8px; font-size:12px; color:#ef4444;">Từ chối</button>
+                                </td>
+                            </tr>
+                        `).join('');
+
+                        tbody.querySelectorAll('.btn-resolve').forEach(btn => {
+                            btn.addEventListener('click', async (e) => {
+                                const id = btn.getAttribute('data-id');
+                                const act = btn.getAttribute('data-action');
+                                await resolveApproval(id, act);
+                            });
+                        });
+                    } else {
+                        hilCard.style.display = 'none';
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load approvals:", err);
+            }
+        }
+
+        async function resolveApproval(approvalId, action) {
+            const note = prompt(`Nhập ghi chú cho quyết định ${action === 'approve' ? 'CHẤP THUẬN' : 'TỪ CHỐI'}:`, "Đã xác nhận bởi người vận hành.");
+            if (note === null) return;
+
+            try {
+                const res = await fetchJSON(`/api/agents/approvals/${approvalId}/resolve`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ action: action, notes: note })
+                });
+                if (res && res.success) {
+                    toast(res.message);
+                    await loadApprovals();
+                    await loadExecutions();
+                }
+            } catch (err) {
+                toast("Lỗi phê duyệt: " + err.message);
+            }
+        }
+
+        async function loadExecutions() {
+            try {
+                const res = await fetchJSON('/api/agents/executions?limit=15');
+                const tbody = document.getElementById('auditExecTableBody');
+                if (res && res.success && res.executions) {
+                    if (res.executions.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted, #6b7280);">Chưa có lượt thực thi AI Agent nào.</td></tr>`;
+                        return;
+                    }
+
+                    tbody.innerHTML = res.executions.map(ex => {
+                        let statusColor = '#059669';
+                        if (ex.status === 'requires_human_review') statusColor = '#d97706';
+                        if (ex.status === 'failed') statusColor = '#ef4444';
+
+                        return `
+                            <tr>
+                                <td><code>${ex.execution_id.slice(0, 10)}...</code></td>
+                                <td><strong>${ex.agent_id}</strong></td>
+                                <td>${ex.task_type}</td>
+                                <td><span style="color:${statusColor}; font-weight:600;">${ex.status}</span></td>
+                                <td>${ex.latency_ms ? ex.latency_ms.toFixed(1) + ' ms' : '—'}</td>
+                                <td>${ex.requires_approval ? '<span style="color:#d97706; font-weight:600;">Bắt buộc</span>' : 'Tự động'}</td>
+                                <td>${ex.created_at || ''}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } catch (err) {
+                console.error("Failed to load executions:", err);
+            }
+        }
+
+        function setupEventListeners() {
+            const btnRun = document.getElementById('btnRunAgentTask');
+            if (!btnRun) return;
+
+            btnRun.addEventListener('click', async () => {
+                if (!selectedAgent) return;
+
+                btnRun.disabled = true;
+                btnRun.innerHTML = 'Đang phân tích & thực thi...';
+
+                const context = {};
+                const props = (selectedAgent.input_schema && selectedAgent.input_schema.properties) || {};
+                for (const key of Object.keys(props)) {
+                    const el = document.getElementById(`input_${key}`);
+                    if (el && el.value.trim() !== '') {
+                        context[key] = isNaN(Number(el.value)) ? el.value.trim() : Number(el.value);
+                    }
+                }
+
+                try {
+                    const res = await fetchJSON(`/api/agents/${selectedAgent.agent_id}/run`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            task_type: `${selectedAgent.agent_id}_autonomous_analysis`,
+                            context: context
+                        })
+                    });
+
+                    if (res && res.success) {
+                        displayExecutionResult(res);
+                        toast(`Tác vụ ${selectedAgent.name_vi} hoàn tất!`);
+                        await loadApprovals();
+                        await loadExecutions();
+                    }
+                } catch (err) {
+                    toast("Thực thi thất bại: " + err.message);
+                } finally {
+                    btnRun.disabled = false;
+                    btnRun.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Thực thi Tác vụ Agent
+                    `;
+                }
+            });
+        }
+
+        function displayExecutionResult(res) {
+            const container = document.getElementById('executionOutputContainer');
+            container.style.display = 'block';
+
+            const badge = document.getElementById('outputStatusBadge');
+            badge.textContent = res.status;
+            badge.style.background = res.status === 'completed' ? '#d1fae5' : '#fef3c7';
+            badge.style.color = res.status === 'completed' ? '#065f46' : '#92400e';
+
+            // Tools audit
+            const toolsBox = document.getElementById('toolsAuditList');
+            if (res.tool_invocations && res.tool_invocations.length > 0) {
+                toolsBox.innerHTML = res.tool_invocations.map(t => `
+                    <div style="margin-bottom:6px;">
+                        <span style="color:#2563eb; font-weight:600;">[TOOL] ${t.tool}</span> 
+                        <span style="color:${t.status === 'success' ? '#059669' : '#dc2626'};">(${t.status})</span>
+                    </div>
+                `).join('');
+            } else {
+                toolsBox.innerHTML = '<span style="color:var(--text-muted, #6b7280);">Không có công cụ bên ngoài nào được gọi.</span>';
+            }
+
+            // Provenance
+            const provBox = document.getElementById('provenanceBox');
+            if (res.requires_approval) {
+                provBox.innerHTML = `
+                    <div style="color:#d97706; font-weight:600; margin-bottom:4px;">⚠️ HÀNH ĐỘNG CẦN PHÊ DUYỆT</div>
+                    <div>Tác vụ chứa quyết định can thiệp canh tác nhạy cảm. Hệ thống đã chuyển sang hàng đợi Human-in-the-Loop để người quản trị duyệt.</div>
+                `;
+            } else {
+                provBox.innerHTML = `
+                    <div><strong>Độ trễ:</strong> ${res.latency_ms ? res.latency_ms.toFixed(1) : '—'} ms</div>
+                    <div><strong>Bảo mật:</strong> Đã khử toàn bộ Secret/Token khỏi log.</div>
+                    <div><strong>Tính toàn vẹn:</strong> Dữ liệu được trích xuất trực tiếp từ cơ sở dữ liệu thật.</div>
+                `;
+            }
+
+            // Json payload
+            document.getElementById('jsonOutputBox').textContent = JSON.stringify(res.result, null, 2);
+        }
+    </script>
+</body>
+</html>
+

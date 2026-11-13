@@ -1,0 +1,64 @@
+{
+  "timestamp": 1794318015.2154386,
+  "total_models": 51,
+  "physical_weights_matched": 50,
+  "missing_files_count": 1,
+  "benchmark_results": {
+    "Tomato": {
+      "cold_sec": 1.813,
+      "warm_sec": 0.333,
+      "ram_delta_mb": 291.1,
+      "total_ram_mb": 630.1,
+      "top_prediction": "B\u1ec7nh xo\u0103n l\u00e1 do virus"
+    },
+    "Rice": {
+      "cold_sec": 1.483,
+      "warm_sec": 0.49,
+      "ram_delta_mb": 42.0,
+      "total_ram_mb": 655.7,
+      "top_prediction": "L\u00e1 kh\u1ecfe m\u1ea1nh, kh\u00f4ng ph\u00e1t hi\u1ec7n d\u1ea5u hi\u1ec7u b\u1ec7nh"
+    },
+    "Coffee": {
+      "cold_sec": 1.371,
+      "warm_sec": 0.32,
+      "ram_delta_mb": 22.2,
+      "total_ram_mb": 656.1,
+      "top_prediction": "L\u00e1 kh\u1ecfe m\u1ea1nh, kh\u00f4ng ph\u00e1t hi\u1ec7n d\u1ea5u hi\u1ec7u b\u1ec7nh"
+    },
+    "Potato": {
+      "cold_sec": 1.487,
+      "warm_sec": 0.372,
+      "ram_delta_mb": 36.3,
+      "total_ram_mb": 655.4,
+      "top_prediction": "L\u00e1 kh\u1ecfe m\u1ea1nh, kh\u00f4ng ph\u00e1t hi\u1ec7n d\u1ea5u hi\u1ec7u b\u1ec7nh"
+    },
+    "Model tong": {
+      "cold_sec": 5.223,
+      "warm_sec": 0.373,
+      "ram_delta_mb": 252.8,
+      "total_ram_mb": 894.5,
+      "top_prediction": null
+    }
+  },
+  "concurrency_results": {
+    "2": {
+      "elapsed_sec": 3.124,
+      "throughput_req_sec": 0.64,
+      "ram_mb": 1503.0,
+      "cpu_percent": 97.3
+    },
+    "5": {
+      "elapsed_sec": 8.334,
+      "throughput_req_sec": 0.6,
+      "ram_mb": 993.5,
+      "cpu_percent": 100.0
+    },
+    "10": {
+      "elapsed_sec": 16.743,
+      "throughput_req_sec": 0.6,
+      "ram_mb": 1342.3,
+      "cpu_percent": 31.9
+    }
+  },
+  "lru_eviction_verified": true
+}

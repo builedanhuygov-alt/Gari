@@ -1,0 +1,57 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Python artifacts
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+htmlcov
+
+# Node & Frontend
+node_modules
+frontend
+frontend2/dist
+frontend2/node_modules
+
+# Models directory (mounted via volume, NOT baked into Docker image)
+models/*.safetensors
+models/*.bin
+models/*.onnx
+models/*.pth
+models/*.h5
+
+# Local persistent data and uploads (mounted via volume)
+database/*.db
+database/*.db-wal
+database/*.db-shm
+database/*.sqlite
+database/uploads/*
+database/backups/*
+
+# Logs and runtime artifacts
+logs
+*.log
+*.pid
+.system_generated
+
+# Secret & Environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+firebase_credentials*.json
+
+# OS and IDE temporary files
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+

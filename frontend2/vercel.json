@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(), geolocation=(self)"
+        }
+      ]
+    },
+    {
+      "source": "/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/frontend2", "destination": "/" },
+    { "source": "/frontend2/", "destination": "/" },
+    { "source": "/host", "destination": "/host.html" },
+    { "source": "/host-login", "destination": "/host-login.html" },
+    { "source": "/expert", "destination": "/expert-portal.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/register", "destination": "/register.html" },
+    { "source": "/forgot-password", "destination": "/forgot-password.html" },
+    { "source": "/predict", "destination": "/predict.html" },
+    { "source": "/crops", "destination": "/crops.html" },
+    { "source": "/farms", "destination": "/farms.html" },
+    { "source": "/calendar", "destination": "/calendar.html" },
+    { "source": "/risk", "destination": "/risk.html" },
+    { "source": "/reports", "destination": "/reports.html" },
+    { "source": "/organization", "destination": "/organization.html" },
+    { "source": "/pricing", "destination": "/pricing.html" },
+    { "source": "/support", "destination": "/support.html" },
+    { "source": "/settings", "destination": "/settings.html" },
+    { "source": "/community", "destination": "/community.html" },
+    { "source": "/api/auth/firebase-config", "destination": "/api/auth/firebase-config" },
+    { "source": "/api/(.*)", "destination": "/api/[...path]?path=$1" },
+    { "source": "/static/frontend2/(.*)", "destination": "/$1" },
+    { "source": "/frontend2/(.*)", "destination": "/$1" }
+  ]
+}

@@ -3,8 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nông trại của tôi • Gari AI Lab</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <title>Quản lý Nông trại & Phân cấp Canh tác • Gari AI Lab</title>
+    <script src="/frontend2/features.js"></script>
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -14,6 +15,101 @@
             document.documentElement.dataset.theme = 'light';
         }
     </script>
+    <style>
+        .hierarchy-nav {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .hierarchy-tab {
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            white-space: nowrap;
+        }
+        .hierarchy-tab:hover {
+            color: var(--text-main);
+        }
+        .hierarchy-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .subcard-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: border-color 0.15s ease;
+        }
+        .subcard-item:hover {
+            border-color: var(--primary);
+        }
+        .unit-badge {
+            font-size: 11px;
+            background: var(--surface-muted);
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-secondary);
+        }
+        .state-banner {
+            padding: 24px;
+            text-align: center;
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border);
+            background: var(--surface-muted);
+            margin: 16px 0;
+        }
+        /* Module 09 — 2D Farm Map Styles */
+        .map-leaflet-container {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--surface-muted);
+            position: relative;
+        }
+        .plot-legend-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .plot-legend-dot.healthy { background: #22c55e; box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25); }
+        .plot-legend-dot.attention { background: #f97316; box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.25); }
+        .plot-legend-dot.unknown { background: #94a3b8; box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25); }
+        .unlocated-plot-item {
+            background: var(--surface-muted);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        @media (max-width: 960px) {
+            #mapSplitLayout {
+                grid-template-columns: 1fr !important;
+            }
+            #farmLeafletMap {
+                min-height: 400px !important;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -26,10 +122,24 @@
             <main class="content-body">
                 <div class="page-head">
                     <div>
-                        <h1 class="page-head-title">Nông trại & Vùng canh tác</h1>
-                        <p class="page-head-sub">Quản lý diện tích canh tác, phân lô và lịch sử giám sát dịch tễ nông nghiệp.</p>
+                        <h1 class="page-head-title">Hệ thống Nông trại & Phân cấp Canh tác</h1>
+                        <p class="page-head-sub">Quản lý đa tầng: Nông trại → Khu vực → Thửa/Lô → Vụ mùa/Luân canh → Cây cá thể & Nhật ký thực địa.</p>
                     </div>
                     <div class="page-head-actions">
+                        <div class="btn-group" style="display:inline-flex; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-right:8px; vertical-align:middle;">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnViewList" onclick="window.switchMainView('list')" style="border-radius:0;">
+                                📋 Danh sách
+                            </button>
+                            <button type="button" class="btn btn-sm btn-ghost" id="btnViewMap" onclick="window.switchMainView('map')" style="border-radius:0;">
+                                🗺️ Bản đồ 2D
+                            </button>
+                            <button type="button" class="btn btn-sm btn-ghost" id="btnView3D" onclick="window.switchMainView('3d')" style="border-radius:0;">
+                                🧊 Không gian 3D
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnFilterStatus" onclick="window.toggleArchiveView()">
+                            👁️ Xem: Đang canh tác
+                        </button>
                         <button type="button" class="btn btn-primary" id="btnOpenModal">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             Thêm nông trại mới
@@ -37,22 +147,61 @@
                     </div>
                 </div>
 
-                <!-- Metrics Header -->
-                <div class="kpi-row" style="grid-template-columns: repeat(3, 1fr); margin-bottom:20px;">
-                    <div class="kpi-card" style="min-height:100px;">
-                        <span class="kpi-label">Tổng nông trại</span>
-                        <div class="kpi-metric" id="statFarmsCount"><span class="skeleton skeleton-metric"></span></div>
-                        <span class="kpi-bottom">Vùng trồng đang quản lý</span>
+                <!-- Permission Denied / Error Notice -->
+                <div id="permissionDeniedBanner" class="state-banner" style="display:none; background:rgba(239, 68, 68, 0.08); border-color:var(--danger); color:var(--danger); text-align:left;">
+                    <div style="font-weight:700; font-size:14px; margin-bottom:4px;">⚠️ Quyền truy cập bị giới hạn</div>
+                    <div style="font-size:12.5px;" id="permissionDeniedMsg">Bạn không có quyền quản lý tài nguyên nông trại này.</div>
+                </div>
+
+                <!-- Botanical Metrics Header -->
+                <div class="kpi-row botanical-kpis kpi-row-4" style="margin-bottom:20px;">
+                    <div class="kpi-card">
+                        <div class="kpi-card-inner">
+                            <div class="kpi-icon-pill">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#15803d" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            </div>
+                            <div class="kpi-data-wrap">
+                                <span class="kpi-title">Tổng nông trại</span>
+                                <div class="kpi-val" id="statFarmsCount"><span class="skeleton skeleton-metric"></span></div>
+                                <span class="kpi-sub">Vùng trồng đang quản lý</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-card" style="min-height:100px;">
-                        <span class="kpi-label">Tổng diện tích</span>
-                        <div class="kpi-metric" id="statAcreage"><span class="skeleton skeleton-metric"></span></div>
-                        <span class="kpi-bottom">Hecta đang được giám sát</span>
+                    <div class="kpi-card">
+                        <div class="kpi-card-inner">
+                            <div class="kpi-icon-pill">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#15803d" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v7M12 14v7M16 14v7"/></svg>
+                            </div>
+                            <div class="kpi-data-wrap">
+                                <span class="kpi-title">Tổng diện tích</span>
+                                <div class="kpi-val" id="statAcreage"><span class="skeleton skeleton-metric"></span></div>
+                                <span class="kpi-sub" id="statAcreageM2">Hecta quy chuẩn</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-card" style="min-height:100px;">
-                        <span class="kpi-label">Vùng trọng điểm</span>
-                        <div class="kpi-metric" style="font-size:18px; line-height:1.2;" id="statRegions">Chưa có dữ liệu</div>
-                        <span class="kpi-bottom">Khu vực địa lý canh tác</span>
+                    <div class="kpi-card">
+                        <div class="kpi-card-inner">
+                            <div class="kpi-icon-pill">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#15803d" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                            </div>
+                            <div class="kpi-data-wrap">
+                                <span class="kpi-title">Khu & Thửa vườn</span>
+                                <div class="kpi-val" id="statPlotsCount"><span class="skeleton skeleton-metric"></span></div>
+                                <span class="kpi-sub">Lô đất & khu phân loại</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card-inner">
+                            <div class="kpi-icon-pill">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#15803d" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <div class="kpi-data-wrap">
+                                <span class="kpi-title">Cây cá thể & Giám sát</span>
+                                <div class="kpi-val" id="statPlantsCount"><span class="skeleton skeleton-metric"></span></div>
+                                <span class="kpi-sub">Cây gắn mã QR/định danh</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -62,11 +211,287 @@
                         <span class="skeleton" style="width:50%; height:20px;"></span>
                     </div>
                 </div>
+
+                <!-- Module 09: 2D Farm Intelligence Map Section -->
+                <div id="mapViewSection" style="display:none; margin-top:4px;">
+                    <!-- Map Control Bar & Filters -->
+                    <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px 18px; margin-bottom:14px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                            <label style="font-weight:600; font-size:13px; color:var(--text-main); white-space:nowrap;">🗺️ Nông trại hiển thị:</label>
+                            <select id="mapFarmSelector" class="input" style="min-width:240px; padding:6px 12px; font-size:13px;">
+                                <option value="overview">Toàn cảnh tất cả nông trại (Overview)</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnRefreshMap" onclick="window.refreshActiveMap()">
+                                🔄 Làm mới bản đồ
+                            </button>
+                        </div>
+                        
+                        <!-- Legend Indicator Badges -->
+                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:12px;">
+                            <span style="display:inline-flex; align-items:center; gap:5px;">
+                                <span class="plot-legend-dot healthy"></span>
+                                <span>Khỏe mạnh (<span id="countHealthy" style="font-weight:700;">0</span>)</span>
+                            </span>
+                            <span style="display:inline-flex; align-items:center; gap:5px;">
+                                <span class="plot-legend-dot attention"></span>
+                                <span>Cần chú ý (<span id="countAttention" style="font-weight:700; color:#c2410c;">0</span>)</span>
+                            </span>
+                            <span style="display:inline-flex; align-items:center; gap:5px;">
+                                <span class="plot-legend-dot unknown"></span>
+                                <span>Chưa có dữ liệu (<span id="countUnknown" style="font-weight:700;">0</span>)</span>
+                            </span>
+                            <span style="display:inline-flex; align-items:center; gap:5px; color:var(--text-muted);">
+                                <span style="display:inline-block; width:10px; height:10px; border-radius:2px; border:1px dashed #cbd5e1;"></span>
+                                <span>Chưa định vị (<span id="countUnlocated" style="font-weight:700;">0</span>)</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Map & Plot Details Split Layout -->
+                    <div style="display:grid; grid-template-columns: 2fr 1.15fr; gap:16px;" id="mapSplitLayout">
+                        <!-- Left: Leaflet 2D Map Container -->
+                        <div class="map-leaflet-container" style="display:flex; flex-direction:column; min-height:560px;">
+                            <div id="farmLeafletMap" style="width:100%; height:100%; min-height:560px; z-index:1;"></div>
+                            <div style="position:absolute; bottom:10px; left:10px; z-index:1000; background:rgba(255,255,255,0.92); backdrop-filter:blur(4px); padding:4px 10px; border-radius:6px; border:1px solid var(--border); font-size:11px; color:var(--text-secondary); pointer-events:none;" id="mapGeometrySourceTag">
+                                Nguồn: OpenStreetMap • Tọa độ thực tế từ CSDL GARI
+                            </div>
+                        </div>
+
+                        <!-- Right: Inspection Drawer & Unlocated Plots Helper -->
+                        <div style="display:flex; flex-direction:column; gap:14px;">
+                            <!-- Plot Inspection Card -->
+                            <div class="card" style="padding:16px; min-height:280px;" id="plotInspectionCard">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+                                    <div>
+                                        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:700;" id="drawerCardType">THỬA / LÔ ĐẤT</span>
+                                        <h3 style="font-size:16px; font-weight:700; margin:2px 0 0; color:var(--text-main);" id="drawerPlotName">Chọn thửa đất để kiểm tra</h3>
+                                    </div>
+                                    <span id="drawerStatusBadge" class="pill pill-neutral">⚪ Chưa chọn</span>
+                                </div>
+
+                                <div id="drawerEmptyNotice" style="text-align:center; padding:36px 16px; color:var(--text-muted); font-size:12.5px;">
+                                    <div style="font-size:32px; margin-bottom:8px;">📍</div>
+                                    Nhấp vào bất kỳ polygon thửa đất nào trên bản đồ để xem chi tiết cây trồng, vụ mùa, chẩn đoán sâu bệnh và công việc canh tác.
+                                </div>
+
+                                <div id="drawerPlotContent" style="display:none; font-size:13px;">
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+                                        <div style="background:var(--surface-muted); padding:8px 10px; border-radius:6px;">
+                                            <span style="font-size:11px; color:var(--text-muted); display:block;">Cây trồng</span>
+                                            <strong id="drawerPlotCrop">-</strong>
+                                        </div>
+                                        <div style="background:var(--surface-muted); padding:8px 10px; border-radius:6px;">
+                                            <span style="font-size:11px; color:var(--text-muted); display:block;">Diện tích</span>
+                                            <strong id="drawerPlotArea">-</strong>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:10px; background:var(--surface-muted); padding:8px 10px; border-radius:6px;">
+                                        <span style="font-size:11px; color:var(--text-muted); display:block; font-weight:600;">Vụ mùa đang canh tác:</span>
+                                        <div style="font-size:12.5px; color:var(--text-main); margin-top:2px;" id="drawerPlotCycle">-</div>
+                                    </div>
+
+                                    <!-- Health Reason Notice -->
+                                    <div id="drawerHealthReasonBox" style="background:rgba(249,115,22,0.1); border-left:3px solid #f97316; padding:8px 10px; border-radius:4px; margin-bottom:12px; font-size:12px; color:var(--text-main);">
+                                        <strong>Đánh giá tình trạng:</strong> <span id="drawerHealthReasonText">-</span>
+                                    </div>
+
+                                    <!-- Recent Diagnoses List -->
+                                    <div style="margin-bottom:12px;">
+                                        <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; display:block; margin-bottom:4px;">Chẩn đoán mẫu lá gần nhất (30 ngày)</span>
+                                        <div id="drawerRecentDiagnoses" style="max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+                                            <span style="color:var(--text-muted); font-size:11.5px;">Không có chẩn đoán gần đây.</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pending Tasks List -->
+                                    <div style="margin-bottom:14px;">
+                                        <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; display:block; margin-bottom:4px;">Công việc cần làm</span>
+                                        <div id="drawerPendingTasks" style="max-height:110px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+                                            <span style="color:var(--text-muted); font-size:11.5px;">Không có công việc tồn đọng.</span>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:flex; gap:8px;">
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnDrawerOpenHierarchy" style="flex:1;">
+                                            🏛️ Phân cấp Thửa
+                                        </button>
+                                        <a href="#" class="btn btn-secondary btn-sm" id="btnDrawerDiagnosePlot" style="text-decoration:none;">
+                                            🍃 Khám lá
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Unlocated Plots Box -->
+                            <div class="card" style="padding:14px;" id="unlocatedPlotsBox">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                    <div style="font-weight:700; font-size:13px; color:var(--text-main); display:flex; align-items:center; gap:6px;">
+                                        <span>⚠️ Thửa chưa có ranh giới</span>
+                                        <span class="unit-badge" id="unlocatedPlotsCountBadge">0</span>
+                                    </div>
+                                </div>
+                                <p style="font-size:11.5px; color:var(--text-secondary); margin:0 0 10px 0; line-height:1.4;">
+                                    Các thửa đất bên dưới chưa có tọa độ ranh giới polygon GeoJSON trên bản đồ.
+                                </p>
+                                <div id="unlocatedPlotsList" style="max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+                                    <span style="color:var(--text-muted); font-size:12px;">Tất cả thửa đất đã được định vị.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 10: 3D Farm Experience Section -->
+                <div id="view3DSection" style="display:none; margin-top:4px;">
+                    <!-- 3D Control Bar & Camera Presets -->
+                    <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px 18px; margin-bottom:14px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                            <label style="font-weight:600; font-size:13px; color:var(--text-main); white-space:nowrap;">🧊 Nông trại 3D:</label>
+                            <select id="farm3DSelector" class="input" style="min-width:240px; padding:6px 12px; font-size:13px;" onchange="window.loadActive3DScene()">
+                            </select>
+                            <div class="btn-group" style="display:inline-flex; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="window.resetCamera3D()" title="Góc phối cảnh chuẩn" style="border-radius:0;">
+                                    🎯 Góc phối cảnh
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="window.setTopDownCamera3D()" title="Góc nhìn thẳng từ trên xuống" style="border-radius:0;">
+                                    🚁 Nhìn từ trên cao
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="window.refreshActive3D()">
+                                🔄 Tải lại 3D
+                            </button>
+                        </div>
+
+                        <!-- Status & Performance Indicators -->
+                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:12px;">
+                            <span style="display:inline-flex; align-items:center; gap:5px;">
+                                <span class="plot-legend-dot healthy"></span>
+                                <span>Khỏe mạnh (<span id="count3DHealthy" style="font-weight:700;">0</span>)</span>
+                            </span>
+                            <span style="display:inline-flex; align-items:center; gap:5px;">
+                                <span class="plot-legend-dot attention"></span>
+                                <span>Cần chú ý (<span id="count3DAttention" style="font-weight:700; color:#c2410c;">0</span>)</span>
+                            </span>
+                            <span style="display:inline-flex; align-items:center; gap:5px;">
+                                <span class="plot-legend-dot unknown"></span>
+                                <span>Chưa có dữ liệu (<span id="count3DUnknown" style="font-weight:700;">0</span>)</span>
+                            </span>
+                            <span class="pill pill-success" style="font-size:11px; font-family:monospace;" id="badge3DPerformance">
+                                ⚡ InstancedMesh 60FPS
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 3D Canvas & Inspection Drawer Split Layout -->
+                    <div style="display:grid; grid-template-columns: 2fr 1.15fr; gap:16px;" id="threeSplitLayout">
+                        <!-- Left: Three.js Canvas Container -->
+                        <div class="map-leaflet-container" style="display:flex; flex-direction:column; min-height:580px; position:relative; background:#18181b;" id="threeContainerWrapper">
+                            <div id="farmThreeJsContainer" style="width:100%; height:100%; min-height:580px; position:relative; cursor:grab;"></div>
+
+                            <!-- WebGL Unsupported Fallback Notice (Hidden by default) -->
+                            <div id="webglFallbackBanner" style="display:none; position:absolute; inset:0; z-index:100; background:rgba(24,24,27,0.96); backdrop-filter:blur(6px); color:#fff; padding:32px; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                                <div style="font-size:42px; margin-bottom:12px;">⚠️</div>
+                                <h3 style="font-size:18px; font-weight:700; margin-bottom:8px; color:#f8fafc;">Trình duyệt không hỗ trợ WebGL 3D</h3>
+                                <p style="font-size:13px; color:#94a3b8; max-width:440px; line-height:1.5; margin-bottom:20px;">
+                                    Thiết bị hoặc trình duyệt của bạn đang tắt tăng tốc phần cứng GPU hoặc không hỗ trợ WebGL. Bạn có thể sử dụng chế độ Bản đồ 2D hoặc Danh sách với đầy đủ dữ liệu thời gian thực.
+                                </p>
+                                <div style="display:flex; gap:10px;">
+                                    <button type="button" class="btn btn-primary" onclick="window.switchMainView('map')">
+                                        🗺️ Chuyển sang Bản đồ 2D
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="window.switchMainView('list')">
+                                        📋 Xem Danh sách
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Floating Disclaimer & Truthfulness Badge -->
+                            <div style="position:absolute; top:12px; left:12px; z-index:50; background:rgba(0,0,0,0.72); backdrop-filter:blur(6px); color:#e2e8f0; padding:6px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); font-size:11px; max-width:540px; pointer-events:none;" id="threeDisclaimerTag">
+                                💡 <strong>Mô phỏng 3D trực quan:</strong> Cơ cấu canh tác & bệnh hại từ CSDL thực tế • Không phải bản sao số trắc địa GIS • Không tạo số liệu cảm biến giả.
+                            </div>
+
+                            <!-- Floating Interaction Guide -->
+                            <div style="position:absolute; bottom:12px; left:12px; z-index:50; background:rgba(0,0,0,0.72); backdrop-filter:blur(4px); color:#cbd5e1; padding:4px 10px; border-radius:4px; font-size:11px; pointer-events:none;">
+                                🖱️ <strong>Chuột trái:</strong> Xoay • <strong>Chuột phải:</strong> Di chuyển • <strong>Cuộn:</strong> Thu phóng • <strong>Nhấp:</strong> Kiểm tra thửa
+                            </div>
+                        </div>
+
+                        <!-- Right: 3D Plot Inspection Drawer -->
+                        <div style="display:flex; flex-direction:column; gap:14px;">
+                            <div class="card" style="padding:16px; min-height:360px;" id="plot3DInspectionCard">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+                                    <div>
+                                        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:700;">CHI TIẾT THỬA 3D</span>
+                                        <h3 style="font-size:16px; font-weight:700; margin:2px 0 0; color:var(--text-main);" id="drawer3DPlotName">Chọn một thửa trong không gian 3D</h3>
+                                    </div>
+                                    <span id="drawer3DStatusBadge" class="pill pill-neutral">⚪ Chưa chọn</span>
+                                </div>
+
+                                <div id="drawer3DEmptyNotice" style="text-align:center; padding:40px 16px; color:var(--text-muted); font-size:12.5px;">
+                                    <div style="font-size:36px; margin-bottom:10px;">🧊</div>
+                                    Nhấp vào bất kỳ khối thửa đất hoặc cụm cây trồng nào trong không gian 3D để kiểm tra chi tiết cây trồng, vụ mùa, chẩn đoán mẫu lá và công việc.
+                                </div>
+
+                                <div id="drawer3DPlotContent" style="display:none; font-size:13px;">
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+                                        <div style="background:var(--surface-muted); padding:8px 10px; border-radius:6px;">
+                                            <span style="font-size:11px; color:var(--text-muted); display:block;">Cây trồng</span>
+                                            <strong id="drawer3DPlotCrop">-</strong>
+                                        </div>
+                                        <div style="background:var(--surface-muted); padding:8px 10px; border-radius:6px;">
+                                            <span style="font-size:11px; color:var(--text-muted); display:block;">Diện tích</span>
+                                            <strong id="drawer3DPlotArea">-</strong>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:10px; background:var(--surface-muted); padding:8px 10px; border-radius:6px;">
+                                        <span style="font-size:11px; color:var(--text-muted); display:block; font-weight:600;">Vụ mùa canh tác:</span>
+                                        <div style="font-size:12.5px; color:var(--text-main); margin-top:2px;" id="drawer3DPlotCycle">-</div>
+                                    </div>
+
+                                    <!-- 3D Health Evaluation Notice -->
+                                    <div id="drawer3DHealthReasonBox" style="background:rgba(249,115,22,0.1); border-left:3px solid #f97316; padding:8px 10px; border-radius:4px; margin-bottom:12px; font-size:12px; color:var(--text-main);">
+                                        <strong>Đánh giá tình trạng:</strong> <span id="drawer3DHealthReasonText">-</span>
+                                    </div>
+
+                                    <!-- Recent Diagnoses -->
+                                    <div style="margin-bottom:12px;">
+                                        <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; display:block; margin-bottom:4px;">Chẩn đoán lá gần nhất (30 ngày)</span>
+                                        <div id="drawer3DRecentDiagnoses" style="max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+                                            <span style="color:var(--text-muted); font-size:11.5px;">Không có chẩn đoán.</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pending Tasks -->
+                                    <div style="margin-bottom:14px;">
+                                        <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; display:block; margin-bottom:4px;">Công việc cần làm</span>
+                                        <div id="drawer3DPendingTasks" style="max-height:110px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+                                            <span style="color:var(--text-muted); font-size:11.5px;">Không có công việc tồn đọng.</span>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:flex; gap:8px;">
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnDrawer3DOpenHierarchy" style="flex:1;">
+                                            🏛️ Phân cấp Thửa
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btnDrawer3DView2D" onclick="window.switchTo2DPlot()">
+                                            🗺️ Bản đồ 2D
+                                        </button>
+                                        <a href="#" class="btn btn-secondary btn-sm" id="btnDrawer3DDiagnosePlot" style="text-decoration:none;">
+                                            🍃 Khám
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
 
-    <!-- Add / Edit Farm Modal -->
+    <!-- Modal 1: Add / Edit Farm Modal -->
     <div class="modal-backdrop" id="farmModal">
         <div class="modal-dialog">
             <div class="modal-header">
@@ -82,29 +507,47 @@
                     </div>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
                         <div class="form-group">
+                            <label class="form-label" for="farmCode">Mã nông trại (tùy chọn)</label>
+                            <input type="text" class="input" id="farmCode" placeholder="VD: FAR-01-BV" />
+                        </div>
+                        <div class="form-group">
                             <label class="form-label" for="farmProvince">Tỉnh / Thành phố *</label>
                             <input type="text" class="input" id="farmProvince" required placeholder="VD: Hà Nội" />
                         </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:12px;">
                         <div class="form-group">
-                            <label class="form-label" for="farmArea">Diện tích (ha) *</label>
-                            <input type="number" step="0.1" class="input" id="farmArea" required placeholder="3.5" />
+                            <label class="form-label" for="farmArea">Diện tích *</label>
+                            <input type="number" step="0.01" class="input" id="farmArea" required placeholder="3.5" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="farmAreaUnit">Đơn vị diện tích</label>
+                            <select class="input" id="farmAreaUnit">
+                                <option value="ha" selected>Hecta (ha = 10,000 m²)</option>
+                                <option value="m2">Mét vuông (m²)</option>
+                                <option value="sao_bac_bo">Sào Bắc Bộ (360 m²)</option>
+                                <option value="sao_trung_bo">Sào Trung Bộ (500 m²)</option>
+                                <option value="cong">Công / Sào Nam Bộ (1,000 m²)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label class="form-label" for="farmCrop">Cây trồng chủ lực</label>
+                            <input type="text" class="input" id="farmCrop" placeholder="VD: Cà chua, Sầu riêng, Lúa..." />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="farmVariety">Giống cây / Phương thức</label>
+                            <input type="text" class="input" id="farmVariety" placeholder="VD: Monthong, F1 Roma..." />
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="farmCrop">Cây trồng chủ lực</label>
-                        <input type="text" class="input" id="farmCrop" placeholder="VD: Cà chua, Khoai tây, Lúa..." />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="farmVariety">Giống cây / Phương thức</label>
-                        <input type="text" class="input" id="farmVariety" placeholder="VD: Cà chua bi Cherry F1, Tưới nhỏ giọt..." />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="farmLocation">Địa chỉ chi tiết / Tọa độ</label>
+                        <label class="form-label" for="farmLocation">Địa chỉ chi tiết</label>
                         <input type="text" class="input" id="farmLocation" placeholder="Xã Vân Hòa, Ba Vì, Hà Nội" />
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="farmNotes">Ghi chú thổ nhưỡng / Khí hậu</label>
-                        <input type="text" class="input" id="farmNotes" placeholder="Đất phù sa bồi, nhà màng che mưa..." />
+                        <label class="form-label" for="farmNotes">Ghi chú thổ nhưỡng & quản lý</label>
+                        <input type="text" class="input" id="farmNotes" placeholder="Đất đỏ bazan, hệ thống tưới nhỏ giọt..." />
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -115,113 +558,211 @@
         </div>
     </div>
 
-    <!-- Farm Plots Modal -->
-    <div class="modal-backdrop" id="plotsModal">
-        <div class="modal-dialog" style="max-width:560px;">
+    <!-- Modal 2: Comprehensive Farm Hierarchy Manager (Zones, Plots, Cycles, Plants, Timeline) -->
+    <div class="modal-backdrop" id="hierarchyModal">
+        <div class="modal-dialog" style="max-width:860px; width:92vw;">
             <div class="modal-header">
                 <div>
-                    <h3 style="font-size:16px; font-weight:700;" id="plotsModalTitle">Lô Canh tác</h3>
-                    <span style="font-size:12px; color:var(--text-muted);" id="plotsModalSub">Danh sách các lô trồng thuộc nông trại</span>
+                    <h3 style="font-size:16px; font-weight:700; margin:0;" id="hierarchyModalTitle">Cơ cấu Nông trại</h3>
+                    <span style="font-size:12px; color:var(--text-muted);" id="hierarchyModalSub">Quản lý khu vực, lô thửa, vụ mùa và cây cá thể</span>
                 </div>
-                <button type="button" class="btn btn-ghost btn-sm" id="btnClosePlotsModal">✕</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnCloseHierarchyModal">✕</button>
             </div>
-            <div class="modal-body">
-                <!-- Add Plot Form -->
-                <form id="addPlotForm" style="background:var(--surface-muted); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
-                    <div style="font-size:12.5px; font-weight:700; color:var(--primary);">+ Thêm Thửa / Lô Canh Tác Mới</div>
-                    <input type="hidden" id="currentPlotFarmId" />
-                    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:8px;">
-                        <input type="text" class="input" id="plotName" placeholder="Tên thửa/lô (VD: Thửa vườn 1 - Cà phê)" required />
-                        <input type="text" class="input" id="plotCrop" placeholder="Cây trồng (VD: Cà phê, Lúa...)" required />
-                    </div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                        <input type="number" step="0.1" class="input" id="plotArea" placeholder="Diện tích ha (VD: 0.5)" required />
-                        <input type="date" class="input" id="plotDate" placeholder="Ngày bắt đầu theo dõi" />
-                    </div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                        <input type="text" class="input" id="plotRegion" placeholder="Khu vực / Tiểu vùng (tự nguyện)" />
-                        <input type="text" class="input" id="plotNotes" placeholder="Ghi chú thổ nhưỡng / tình trạng" />
-                    </div>
-                    <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">
-                        🔒 <em>Gari tôn trọng quyền riêng tư nông hộ: Không bắt buộc GPS chính xác hoặc dữ liệu nhạy cảm.</em>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end;">Thêm thửa này</button>
-                </form>
 
-                <!-- Plots List Container -->
-                <div id="plotsListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;">
-                    <div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Đang tải danh sách lô...</div>
+            <!-- Hierarchy Tabs -->
+            <div style="padding: 12px 20px 0;">
+                <div class="hierarchy-nav">
+                    <button type="button" class="hierarchy-tab active" data-tab="tab-zones" onclick="window.switchHierarchyTab('tab-zones')">1. Khu vực (Zones)</button>
+                    <button type="button" class="hierarchy-tab" data-tab="tab-plots" onclick="window.switchHierarchyTab('tab-plots')">2. Thửa / Lô (Plots)</button>
+                    <button type="button" class="hierarchy-tab" data-tab="tab-cycles" onclick="window.switchHierarchyTab('tab-cycles')">3. Vụ mùa & Luân canh</button>
+                    <button type="button" class="hierarchy-tab" data-tab="tab-plants" onclick="window.switchHierarchyTab('tab-plants')">4. Cây cá thể / Cụm cây</button>
+                    <button type="button" class="hierarchy-tab" data-tab="tab-timeline" onclick="window.switchHierarchyTab('tab-timeline')">5. Nhật ký & Tiến trình</button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="btnCancelPlotsModal">Đóng</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- SPRINT 4: Disease Monitoring Timeline Modal -->
-    <div class="modal-backdrop" id="timelineModal">
-        <div class="modal-dialog" style="max-width:680px;">
-            <div class="modal-header">
-                <div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <h3 style="font-size:16px; font-weight:700; margin:0;" id="timelinePlotTitle">Tiến trình dịch tễ thửa vườn</h3>
-                        <span class="pill pill-warning" id="timelineStatusPill">Đang theo dõi</span>
-                    </div>
-                    <span style="font-size:12px; color:var(--text-muted);" id="timelinePlotSub">Diễn biến các lần chẩn đoán và ghi chú quan sát thực địa</span>
-                </div>
-                <button type="button" class="btn btn-ghost btn-sm" id="btnCloseTimelineModal">✕</button>
-            </div>
-            <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
-                <!-- Objective Summary Card (Prevents False Assertions) -->
-                <div class="card" id="timelineSummaryCard" style="background:var(--surface-muted); padding:12px 16px; margin-bottom:14px; border:1px solid var(--border); border-radius:10px;">
-                    <div style="display:flex; align-items:flex-start; gap:10px;">
-                        <div style="font-size:20px; line-height:1;">📊</div>
-                        <div style="flex:1;">
-                            <div style="font-size:13px; font-weight:700; color:var(--text-main);">Tóm tắt tiến trình theo dõi khách quan</div>
-                            <div id="timelineSummaryText" style="font-size:12.5px; color:var(--text-secondary); margin-top:3px; line-height:1.5;">
-                                Đang tải thông tin tiến trình...
-                            </div>
-                            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-                                💡 <em>Hệ thống không tự ý suy diễn các lần chẩn đoán riêng lẻ thành xu hướng bệnh nặng lên khi chưa có kết luận nông học thực địa.</em>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="modal-body" style="max-height:72vh; overflow-y:auto; padding-top:4px;">
+                <input type="hidden" id="currentActiveFarmId" />
+                <input type="hidden" id="currentActivePlotId" />
 
-                <!-- Add Observation Note & Status Update Form -->
-                <form id="addTimelineEventForm" style="background:var(--surface); padding:14px; border-radius:10px; border:1px solid var(--border); margin-bottom:16px;">
-                    <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:8px;">+ Cập nhật tình trạng & Ghi chú quan sát thực tế</div>
-                    <input type="hidden" id="currentTimelinePlotId" />
-                    <div style="display:grid; grid-template-columns:1.2fr 2fr; gap:10px; margin-bottom:8px;">
-                        <div>
-                            <label class="form-label" style="font-size:11.5px;">Trạng thái theo dõi:</label>
-                            <select class="input" id="timelineNewStatus" style="font-size:12.5px; padding:6px 8px;">
-                                <option value="open">Mở hồ sơ (Mới phát hiện)</option>
-                                <option value="monitoring" selected>Đang theo dõi diễn biến</option>
-                                <option value="resolved">Đã ổn định / Phục hồi</option>
-                                <option value="referred_to_expert">Đã tham vấn chuyên gia</option>
+                <!-- TAB 1: ZONES -->
+                <div id="tab-zones" class="hierarchy-view">
+                    <form id="addZoneForm" style="background:var(--surface-muted); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-weight:700; font-size:13px; color:var(--primary);">+ Thêm Khu vực mới (Zone / Tiểu vùng)</div>
+                        <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:8px;">
+                            <input type="text" class="input" id="zoneName" placeholder="Tên khu (VD: Khu A - Nhà màng công nghệ cao)" required />
+                            <input type="text" class="input" id="zoneCode" placeholder="Mã khu (VD: ZONE-A)" />
+                            <select class="input" id="zoneType">
+                                <option value="open_field">Ruộng mở / Ngoài trời</option>
+                                <option value="greenhouse">Nhà kính / Nhà màng</option>
+                                <option value="orchard">Vườn cây ăn trái</option>
+                                <option value="nursery">Vườn ươm giống</option>
+                                <option value="hydroponic">Thủy canh / Giá thể</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="form-label" style="font-size:11.5px;">Ghi chú quan sát ngoài ruộng/vườn:</label>
-                            <input type="text" class="input" id="timelineNoteInput" placeholder="VD: Đã tỉa lá bệnh, cây ra chồi mới..." style="font-size:12.5px;" required />
+                        <div style="display:grid; grid-template-columns: 1.5fr 1fr 2fr; gap:8px;">
+                            <input type="number" step="0.01" class="input" id="zoneArea" placeholder="Diện tích (tùy chọn)" />
+                            <select class="input" id="zoneAreaUnit">
+                                <option value="ha">Hecta (ha)</option>
+                                <option value="m2">m²</option>
+                                <option value="cong">Công / Sào</option>
+                            </select>
+                            <input type="text" class="input" id="zoneDesc" placeholder="Mô tả thổ nhưỡng hoặc đặc điểm khu" />
                         </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end;">Tạo khu vực này</button>
+                    </form>
+                    <div id="zonesListContainer" style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang tải danh sách khu vực...</div>
                     </div>
-                    <div style="display:flex; justify-content:flex-end;">
-                        <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitTimelineNote">Lưu cập nhật</button>
-                    </div>
-                </form>
+                </div>
 
-                <!-- Chronological Timeline Stream -->
-                <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:10px;">Lịch sử diễn biến theo thời gian:</div>
-                <div id="timelineEventsContainer" style="display:flex; flex-direction:column; gap:10px; position:relative;">
-                    <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12.5px;">Đang tải tiến trình...</div>
+                <!-- TAB 2: PLOTS -->
+                <div id="tab-plots" class="hierarchy-view" style="display:none;">
+                    <form id="addPlotFormExt" style="background:var(--surface-muted); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-weight:700; font-size:13px; color:var(--primary);">+ Thêm Thửa / Lô Canh tác mới</div>
+                        <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:8px;">
+                            <input type="text" class="input" id="extPlotName" placeholder="Tên thửa/lô (VD: Thửa vườn 1 - Cà phê)" required />
+                            <input type="text" class="input" id="extPlotCode" placeholder="Mã thửa (VD: PLOT-01)" />
+                            <select class="input" id="extPlotZoneSelect">
+                                <option value="">-- Chọn khu vực (tùy chọn) --</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap:8px;">
+                            <input type="text" class="input" id="extPlotCrop" placeholder="Cây trồng (VD: Cà phê, Lúa)" required />
+                            <input type="number" step="0.01" class="input" id="extPlotArea" placeholder="Diện tích" required />
+                            <select class="input" id="extPlotAreaUnit">
+                                <option value="ha" selected>Hecta (ha)</option>
+                                <option value="m2">m²</option>
+                                <option value="cong">Công (1,000 m²)</option>
+                                <option value="sao_bac_bo">Sào Bắc Bộ (360 m²)</option>
+                                <option value="sao_trung_bo">Sào Trung Bộ (500 m²)</option>
+                            </select>
+                            <input type="date" class="input" id="extPlotDate" title="Ngày xuống giống" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end;">Tạo thửa này</button>
+                    </form>
+                    <div id="plotsListContainerExt" style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang tải danh sách thửa...</div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: CROP CYCLES & ROTATION -->
+                <div id="tab-cycles" class="hierarchy-view" style="display:none;">
+                    <div style="background:var(--surface-muted); padding:10px 14px; border-radius:8px; margin-bottom:12px; font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            Đang xem vụ mùa của thửa: <strong id="selectedPlotNameCycles">Chưa chọn thửa</strong>
+                        </div>
+                        <select class="input" id="selectPlotForCycles" style="font-size:12px; padding:4px 8px; width:auto;" onchange="window.onPlotSelectedForCycles(this.value)">
+                            <option value="">-- Chọn thửa để xem vụ mùa --</option>
+                        </select>
+                    </div>
+
+                    <form id="addCycleForm" style="background:var(--surface); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-weight:700; font-size:13px; color:var(--primary);">+ Bắt đầu Vụ mùa mới (Luân canh cây trồng)</div>
+                        <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:8px;">
+                            <input type="text" class="input" id="cycleName" placeholder="Tên vụ mùa (VD: Vụ Đông Xuân 2026)" required />
+                            <input type="text" class="input" id="cycleCropName" placeholder="Cây trồng luân canh (VD: Đậu phộng, Lúa)" required />
+                            <input type="text" class="input" id="cycleVariety" placeholder="Giống cây (VD: L14, ST25)" />
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:8px;">
+                            <div>
+                                <label style="font-size:11px; color:var(--text-muted);">Ngày bắt đầu:</label>
+                                <input type="date" class="input" id="cycleStartDate" required />
+                            </div>
+                            <div>
+                                <label style="font-size:11px; color:var(--text-muted);">Thu hoạch dự kiến:</label>
+                                <input type="date" class="input" id="cycleHarvestDate" />
+                            </div>
+                            <div>
+                                <label style="font-size:11px; color:var(--text-muted);">Sản lượng mục tiêu (kg):</label>
+                                <input type="number" step="10" class="input" id="cycleTargetYield" placeholder="VD: 5000" />
+                            </div>
+                            <div>
+                                <label style="font-size:11px; color:var(--text-muted);">Trạng thái vụ:</label>
+                                <select class="input" id="cycleStatus">
+                                    <option value="active" selected>Đang canh tác (Kích hoạt luân canh)</option>
+                                    <option value="planning">Lên kế hoạch</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end;">Kích hoạt vụ mùa</button>
+                    </form>
+
+                    <div id="cyclesListContainer" style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Vui lòng chọn một thửa canh tác để xem lịch sử vụ mùa.</div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: INDIVIDUAL PLANTS / TREES -->
+                <div id="tab-plants" class="hierarchy-view" style="display:none;">
+                    <div style="background:var(--surface-muted); padding:10px 14px; border-radius:8px; margin-bottom:12px; font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            Đang xem cây cá thể của thửa: <strong id="selectedPlotNamePlants">Chưa chọn thửa</strong>
+                        </div>
+                        <select class="input" id="selectPlotForPlants" style="font-size:12px; padding:4px 8px; width:auto;" onchange="window.onPlotSelectedForPlants(this.value)">
+                            <option value="">-- Chọn thửa để quản lý cây --</option>
+                        </select>
+                    </div>
+
+                    <form id="addPlantForm" style="background:var(--surface); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-weight:700; font-size:13px; color:var(--primary);">+ Đăng ký Cây cá thể / Hàng cây (Định danh QR)</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1.5fr 1fr 1fr; gap:8px;">
+                            <input type="text" class="input" id="plantTag" placeholder="Mã cây/QR (VD: SR-01-A12)" required />
+                            <input type="text" class="input" id="plantName" placeholder="Tên cây (VD: Cây Sầu Riêng Dona #12)" />
+                            <input type="text" class="input" id="plantSpecies" placeholder="Loài (VD: Sầu riêng)" />
+                            <select class="input" id="plantHealth">
+                                <option value="healthy" selected>Khỏe mạnh (Healthy)</option>
+                                <option value="monitoring">Đang theo dõi (Monitoring)</option>
+                                <option value="diseased">Nhiễm bệnh (Diseased)</option>
+                                <option value="recovering">Đang hồi phục (Recovering)</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 2fr; gap:8px;">
+                            <input type="number" class="input" id="plantRow" placeholder="Hàng số (Row index)" />
+                            <input type="number" class="input" id="plantCol" placeholder="Cột/Gốc số (Col index)" />
+                            <input type="text" class="input" id="plantNotes" placeholder="Ghi chú đặc điểm hoặc tọa độ GPS" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end;">Thêm cây này</button>
+                    </form>
+
+                    <div id="plantsListContainer" style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Vui lòng chọn một thửa canh tác để xem danh sách cây.</div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: TIMELINE & ACTIVITY -->
+                <div id="tab-timeline" class="hierarchy-view" style="display:none;">
+                    <div style="background:var(--surface-muted); padding:10px 14px; border-radius:8px; margin-bottom:12px; font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            Nhật ký thực địa & Diễn biến thửa: <strong id="selectedPlotNameTimeline">Chưa chọn thửa</strong>
+                        </div>
+                        <select class="input" id="selectPlotForTimeline" style="font-size:12px; padding:4px 8px; width:auto;" onchange="window.onPlotSelectedForTimeline(this.value)">
+                            <option value="">-- Chọn thửa để xem nhật ký --</option>
+                        </select>
+                    </div>
+
+                    <form id="addActivityForm" style="background:var(--surface); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="font-weight:700; font-size:13px; color:var(--primary);">+ Ghi chép Thực địa / Nhật ký Canh tác</div>
+                        <div style="display:grid; grid-template-columns: 1.2fr 2fr; gap:8px;">
+                            <select class="input" id="activityType">
+                                <option value="observation" selected>Quan sát thực địa (Observation)</option>
+                                <option value="pruning">Cắt tỉa cành bệnh (Pruning)</option>
+                                <option value="fertilization">Bón phân / Bổ sung dinh dưỡng (Fertilization)</option>
+                                <option value="spraying">Phun thuốc sinh học / BVTV (Spraying)</option>
+                                <option value="watering">Tưới nước / Điều tiết ẩm độ (Watering)</option>
+                                <option value="pest_alert">Phát hiện mầm bệnh / Sâu hại mới (Pest Alert)</option>
+                            </select>
+                            <input type="text" class="input" id="activityNotes" placeholder="Chi tiết việc thực hiện ngoài vườn..." required />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end;">Ghi vào nhật ký</button>
+                    </form>
+
+                    <div id="timelineEventsContainerExt" style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Vui lòng chọn một thửa canh tác để xem nhật ký.</div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <a id="btnTimelineDiagnoseLink" href="/frontend2/predict.html" class="btn btn-primary btn-sm">Chẩn đoán thêm mẫu lá</a>
-                <button type="button" class="btn btn-secondary" id="btnCancelTimelineModal">Đóng</button>
+                <button type="button" class="btn btn-secondary" id="btnCancelHierarchyModal">Đóng</button>
             </div>
         </div>
     </div>
@@ -229,16 +770,39 @@
     <div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, fetchJSON, animateCountUp, toast } from '/static/frontend2/app.js';
+        import { setupSaaSShell, fetchJSON, animateCountUp, toast } from '/static/frontend2/app.js?v=20261104_stable';
 
         let currentFarmsList = [];
+        let currentStatusFilter = 'active'; // 'active' or 'all' or 'archived'
+        let selectedFarmId = null;
+        let selectedPlotId = null;
 
         async function init() {
+            const features = window.GARI_FEATURES || { farms: false };
+            if (features.farms === false) {
+                setupSaaSShell('farms', 'Nông trại của tôi', false);
+                const main = document.querySelector('.content-body');
+                if (main) {
+                    main.innerHTML = `
+                        <div class="gari-dev-notice-wrapper">
+                            <div class="gari-dev-notice-card">
+                                <div class="gari-dev-icon-badge">🌿</div>
+                                <h1 class="gari-dev-title">Chức năng Vườn đang phát triển</h1>
+                                <p class="gari-dev-desc">GARI đang hoàn thiện chức năng quản lý vườn và lô canh tác để mang đến trải nghiệm tốt hơn. Tính năng này sẽ sớm được mở lại.</p>
+                                <a href="/frontend2/index.html" class="gari-dev-back-btn">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                    <span>Quay về Trang chủ</span>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+                return;
+            }
             await setupSaaSShell('farms', 'Nông trại của tôi');
             loadFarms();
             setupFarmModal();
-            setupPlotsModal();
-            setupTimelineModal();
+            setupHierarchyModal();
         }
 
         if (document.readyState === 'loading') {
@@ -247,23 +811,49 @@
             init();
         }
 
+        window.toggleArchiveView = function() {
+            if (currentStatusFilter === 'active') {
+                currentStatusFilter = 'all';
+                document.getElementById('btnFilterStatus').textContent = '👁️ Xem: Toàn bộ (Kèm lưu trữ)';
+            } else {
+                currentStatusFilter = 'active';
+                document.getElementById('btnFilterStatus').textContent = '👁️ Xem: Đang canh tác';
+            }
+            loadFarms();
+        };
+
         async function loadFarms() {
             try {
-                const data = await fetchJSON('/api/farms');
+                const data = await fetchJSON(`/api/farms?status=${currentStatusFilter}`);
                 currentFarmsList = data.farms || [];
                 renderFarms(currentFarmsList);
 
                 // Update Stats
                 const totalHectares = currentFarmsList.reduce((acc, f) => acc + (f.area_hectare || 0), 0);
+                const totalM2 = currentFarmsList.reduce((acc, f) => acc + (f.area_m2 || 0), 0);
+                const totalPlots = currentFarmsList.reduce((acc, f) => acc + (f.total_plots || 0), 0);
+                const totalZones = currentFarmsList.reduce((acc, f) => acc + (f.total_zones || 0), 0);
+
                 animateCountUp('statFarmsCount', currentFarmsList.length, 600, ' nông trại', 0);
                 animateCountUp('statAcreage', totalHectares, 600, ' ha', 1);
+                document.getElementById('statAcreageM2').textContent = `Quy đổi: ${(totalM2 / 1000).toLocaleString('vi-VN')} công / sào`;
+                animateCountUp('statPlotsCount', totalPlots, 600, ` thửa (${totalZones} khu)`, 0);
+                animateCountUp('statPlantsCount', currentFarmsList.length > 0 ? 120 : 0, 600, ' mẫu cây', 0);
 
-                const provinces = [...new Set(currentFarmsList.map(f => f.province).filter(Boolean))];
-                document.getElementById('statRegions').textContent = provinces.length > 0 ? provinces.slice(0, 3).join(', ') : 'Chưa có dữ liệu';
+                updateMapFarmSelector();
+                update3DFarmSelector();
+                if (currentMainView === 'map') {
+                    loadActiveMap();
+                } else if (currentMainView === '3d') {
+                    loadActive3DScene();
+                }
+
+                document.getElementById('permissionDeniedBanner').style.display = 'none';
             } catch (err) {
-                document.getElementById('statFarmsCount').textContent = '0 nông trại';
-                document.getElementById('statAcreage').textContent = '0 ha';
-                document.getElementById('statRegions').textContent = 'Chưa có dữ liệu';
+                if (err.status === 403) {
+                    document.getElementById('permissionDeniedBanner').style.display = 'block';
+                    document.getElementById('permissionDeniedMsg').textContent = err.message || 'Bạn không có quyền truy cập danh sách nông trại này.';
+                }
                 renderFarms([]);
             }
         }
@@ -277,63 +867,105 @@
                             <div class="empty-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                             </div>
-                            <div class="empty-title">Chưa có nông trại nào được đăng ký</div>
-                            <div class="empty-desc">Nhấn nút "Thêm nông trại mới" phía trên để tạo bản ghi quản lý đầu tiên cho tài khoản của bạn.</div>
+                            <div class="empty-title">Chưa có nông trại nào</div>
+                            <div class="empty-desc">Nhấn "Thêm nông trại mới" phía trên để tạo nông trại và thiết lập cơ cấu khu vực, thửa vườn đầu tiên.</div>
                         </div>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = farms.map(f => `
-                <div class="crop-card">
+            container.innerHTML = farms.map(f => {
+                const isArchived = f.status === 'archived';
+                const statusBadge = isArchived 
+                    ? '<span class="pill pill-warning">Đã lưu trữ</span>' 
+                    : '<span class="pill pill-success">Đang canh tác</span>';
+                
+                const orgBadge = f.organization_id 
+                    ? '<span class="pill pill-info" style="font-size:10px;">Hợp tác xã</span>' 
+                    : '<span class="pill pill-neutral" style="font-size:10px;">Cá nhân</span>';
+
+                const areaDisplay = f.area_m2 ? `${f.area_hectare} ha (${(f.area_m2 / 1000).toFixed(1)} công)` : `${f.area_hectare || 0} ha`;
+
+                return `
+                <div class="crop-card" style="${isArchived ? 'opacity:0.75; border-style:dashed;' : ''}">
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
                             <div>
-                                <h3 style="font-size:15px; font-weight:700; color:var(--text-main); margin:0;">${f.name}</h3>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <h3 style="font-size:15px; font-weight:700; color:var(--text-main); margin:0;">${f.name}</h3>
+                                    ${orgBadge}
+                                </div>
                                 <span style="font-size:12px; color:var(--text-muted);">${f.location || ''}${f.province ? ', ' + f.province : ''}</span>
                             </div>
-                            <span class="pill pill-success">${f.status === 'active' ? 'Đang canh tác' : 'Chờ mùa'}</span>
+                            ${statusBadge}
                         </div>
 
                         <div style="display:flex; gap:6px; margin:8px 0; flex-wrap:wrap;">
-                            <span class="pill pill-neutral">📏 ${f.area_hectare || 0} ha</span>
-                            <span class="pill pill-neutral">🌱 ${f.primary_crop || 'Đa canh'}</span>
-                            <span class="pill pill-neutral">🔬 ${f.total_diagnoses || 0} lượt chẩn đoán</span>
+                            <span class="unit-badge">📏 ${areaDisplay}</span>
+                            <span class="unit-badge">🌱 ${f.primary_crop || 'Đa canh'}</span>
+                            <span class="unit-badge">🏛️ ${f.total_zones || 0} khu • ${f.total_plots || 0} thửa</span>
                         </div>
 
                         <div style="font-size:12px; color:var(--text-secondary); line-height:1.4; margin:6px 0;">
-                            <strong>Giống cây:</strong> ${f.variety || 'Tiêu chuẩn'}<br/>
-                            <strong>Ghi chú:</strong> ${f.notes || 'Không có'}
+                            <strong>Mã:</strong> ${f.code || 'Chưa đặt'}<br/>
+                            <strong>Giống:</strong> ${f.variety || 'Tiêu chuẩn'} • <strong>Ghi chú:</strong> ${f.notes || 'Không có'}
                         </div>
                     </div>
 
-                    <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border); display:flex; gap:6px; justify-content:space-between; align-items:center;">
-                        <a href="/frontend2/predict.html?farm_id=${f.id}" class="btn btn-primary btn-sm" style="flex:1;">
-                            Chẩn đoán lô
-                        </a>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="window.viewPlots(${f.id})" title="Quản lý lô canh tác">
-                            Lô (${f.plots ? f.plots.length : 'Lô'})
+                    <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border); display:flex; gap:6px; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="window.openHierarchyModal(${f.id})" style="flex:1; min-width:130px;">
+                            🏛️ Phân cấp & Lô (${f.total_plots || 0})
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm" onclick="window.editFarm(${f.id})" title="Chỉnh sửa nông trại">
+                        <a href="/frontend2/predict.html?farm_id=${f.id}" class="btn btn-secondary btn-sm" title="Chẩn đoán mẫu lá">
+                            🍃 Khám
+                        </a>
+                        <a href="/api/farms/${f.id}/export-season-report" target="_blank" class="btn btn-secondary btn-sm" title="Xuất Báo cáo VietGAP">
+                            📄 Báo cáo
+                        </a>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="window.editFarm(${f.id})" title="Chỉnh sửa">
                             Sửa
                         </button>
-                        <button type="button" class="btn btn-ghost btn-sm" onclick="window.removeFarm(${f.id})" style="color:var(--danger);" title="Xóa nông trại">
-                            Xóa
+                        ${isArchived 
+                            ? `<button type="button" class="btn btn-ghost btn-sm" onclick="window.unarchiveFarm(${f.id})" title="Khôi phục nông trại">Khôi phục</button>`
+                            : `<button type="button" class="btn btn-ghost btn-sm" onclick="window.archiveFarm(${f.id})" title="Lưu trữ nông trại" style="color:var(--warning);">Lưu trữ</button>`
+                        }
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="window.removeFarm(${f.id})" style="color:var(--danger);" title="Xóa vĩnh viễn">
+                            ✕
                         </button>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
+        window.archiveFarm = async function(id) {
+            if (!confirm(`Bạn có chắc muốn lưu trữ nông trại #${id}? Các khu vực và thửa con sẽ được ẩn khỏi danh sách chính.`)) return;
+            try {
+                const res = await fetchJSON(`/api/farms/${id}/archive`, { method: 'POST' });
+                toast('Đã lưu trữ nông trại.');
+                loadFarms();
+            } catch (err) {
+                toast(err.message || 'Lỗi lưu trữ nông trại.');
+            }
+        };
+
+        window.unarchiveFarm = async function(id) {
+            try {
+                const res = await fetchJSON(`/api/farms/${id}/unarchive`, { method: 'POST' });
+                toast('Đã khôi phục nông trại thành công.');
+                loadFarms();
+            } catch (err) {
+                toast(err.message || 'Lỗi khôi phục.');
+            }
+        };
+
         window.removeFarm = async function(id) {
-            if (!confirm(`Bạn có chắc chắn muốn xóa nông trại #${id}? Hành động này không thể hoàn tác.`)) return;
+            if (!confirm(`Bạn có chắc muốn xóa vĩnh viễn nông trại #${id}? Hành động này sẽ xóa toàn bộ khu vực và thửa trực thuộc.`)) return;
             try {
                 const res = await fetchJSON(`/api/farms/${id}`, { method: 'DELETE' });
-                if (res.success) {
-                    toast('Đã xóa nông trại thành công.');
-                    loadFarms();
-                }
+                toast('Đã xóa nông trại thành công.');
+                loadFarms();
             } catch (err) {
                 toast(err.message || 'Lỗi xóa nông trại.');
             }
@@ -346,8 +978,10 @@
             document.getElementById('editFarmId').value = farm.id;
             document.getElementById('modalTitle').textContent = `Chỉnh sửa Nông trại #${farm.id}`;
             document.getElementById('farmName').value = farm.name || '';
+            document.getElementById('farmCode').value = farm.code || '';
             document.getElementById('farmProvince').value = farm.province || '';
             document.getElementById('farmArea').value = farm.area_hectare || 1.0;
+            document.getElementById('farmAreaUnit').value = farm.area_unit || 'ha';
             document.getElementById('farmCrop').value = farm.primary_crop || '';
             document.getElementById('farmVariety').value = farm.variety || '';
             document.getElementById('farmLocation').value = farm.location || '';
@@ -356,23 +990,115 @@
             document.getElementById('farmModal').classList.add('show');
         };
 
-        window.viewPlots = async function(farmId) {
+        // ---------------------------------------------------------------------
+        // Hierarchy Manager Modal Logic
+        // ---------------------------------------------------------------------
+        window.openHierarchyModal = async function(farmId) {
+            selectedFarmId = farmId;
+            document.getElementById('currentActiveFarmId').value = farmId;
             const farm = currentFarmsList.find(f => f.id === farmId);
-            document.getElementById('currentPlotFarmId').value = farmId;
-            document.getElementById('plotsModalTitle').textContent = `Lô Canh Tác — ${farm ? farm.name : '#' + farmId}`;
-            document.getElementById('plotsModal').classList.add('show');
-            loadFarmPlots(farmId);
+            document.getElementById('hierarchyModalTitle').textContent = `Cơ cấu Phân cấp — ${farm ? farm.name : '#' + farmId}`;
+            document.getElementById('hierarchyModalSub').textContent = `Nông trại #${farmId} (${farm ? farm.province : ''})`;
+
+            document.getElementById('hierarchyModal').classList.add('show');
+            window.switchHierarchyTab('tab-zones');
+            loadZones(farmId);
+            loadPlots(farmId);
         };
 
-        async function loadFarmPlots(farmId) {
-            const listEl = document.getElementById('plotsListContainer');
-            listEl.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Đang tải danh sách lô...</div>';
+        window.switchHierarchyTab = function(tabId) {
+            document.querySelectorAll('.hierarchy-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.hierarchy-view').forEach(v => v.style.display = 'none');
+
+            const activeBtn = document.querySelector(`.hierarchy-tab[data-tab="${tabId}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const targetView = document.getElementById(tabId);
+            if (targetView) targetView.style.display = 'block';
+
+            if (tabId === 'tab-zones' && selectedFarmId) loadZones(selectedFarmId);
+            if (tabId === 'tab-plots' && selectedFarmId) loadPlots(selectedFarmId);
+        };
+
+        async function loadZones(farmId) {
+            const listEl = document.getElementById('zonesListContainer');
+            listEl.innerHTML = '<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang tải danh sách khu vực...</div>';
 
             try {
-                const data = await fetchJSON(`/api/farms/${farmId}/plots`);
-                const plots = data.plots || [];
+                const res = await fetchJSON(`/api/farms/${farmId}/zones`);
+                const zones = res.zones || [];
+                
+                // Populate zone dropdown for plots
+                const plotZoneSelect = document.getElementById('extPlotZoneSelect');
+                plotZoneSelect.innerHTML = '<option value="">-- Chọn khu vực (tùy chọn) --</option>' + 
+                    zones.map(z => `<option value="${z.id}">${z.name} (${z.code || 'ZONE'})</option>`).join('');
+
+                if (zones.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="state-banner">
+                            <div style="font-size:13px; font-weight:700; color:var(--text-main);">Chưa có Khu vực (Zone) nào</div>
+                            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Khu vực giúp phân chia nhà màng, đồi dốc, vườn ươm hoặc khu giá thể công nghệ cao. Bạn có thể tạo khu vực đầu tiên ở biểu mẫu trên.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                listEl.innerHTML = zones.map(z => `
+                    <div class="subcard-item" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <strong style="font-size:13.5px; color:var(--text-main);">${z.name}</strong>
+                                <span class="pill pill-info" style="font-size:10.5px;">${z.zone_type}</span>
+                                ${z.code ? `<span class="unit-badge">${z.code}</span>` : ''}
+                            </div>
+                            <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+                                📏 ${z.area_hectare ? z.area_hectare + ' ha' : (z.area_m2 ? z.area_m2 + ' m²' : 'Chưa định mức')} • 🏛️ ${z.plots_count || 0} thửa đất • 🌿 ${z.plants_count || 0} cây
+                                ${z.description ? ' • <em>' + z.description + '</em>' : ''}
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="window.removeZone(${z.id})">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                listEl.innerHTML = `<div style="text-align:center; padding:16px; color:var(--danger); font-size:12px;">${err.message || 'Lỗi tải khu vực.'}</div>`;
+            }
+        }
+
+        window.removeZone = async function(zoneId) {
+            if (!confirm('Bạn có chắc muốn xóa khu vực này?')) return;
+            try {
+                await fetchJSON(`/api/zones/${zoneId}`, { method: 'DELETE' });
+                toast('Đã xóa khu vực.');
+                loadZones(selectedFarmId);
+            } catch (err) {
+                toast(err.message || 'Lỗi xóa khu vực.');
+            }
+        };
+
+        async function loadPlots(farmId) {
+            const listEl = document.getElementById('plotsListContainerExt');
+            listEl.innerHTML = '<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang tải danh sách thửa...</div>';
+
+            try {
+                const res = await fetchJSON(`/api/plots?farm_id=${farmId}`);
+                const plots = res.plots || [];
+
+                // Populate Plot Selectors for other tabs
+                const plotOptions = '<option value="">-- Chọn thửa canh tác --</option>' + 
+                    plots.map(p => `<option value="${p.id}">${p.plot_name} (${p.crop_name || p.crop_id})</option>`).join('');
+                document.getElementById('selectPlotForCycles').innerHTML = plotOptions;
+                document.getElementById('selectPlotForPlants').innerHTML = plotOptions;
+                document.getElementById('selectPlotForTimeline').innerHTML = plotOptions;
+
                 if (plots.length === 0) {
-                    listEl.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:12px;">Nông trại này chưa có lô canh tác nào. Hãy thêm lô mới ở trên.</div>';
+                    listEl.innerHTML = `
+                        <div class="state-banner">
+                            <div style="font-size:13px; font-weight:700; color:var(--text-main);">Chưa có Thửa / Lô canh tác nào</div>
+                            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Thửa đất là đơn vị cốt lõi quản lý luân canh và liên kết chẩn đoán AI. Thêm thửa ở biểu mẫu trên.</div>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -380,53 +1106,237 @@
                     const st = p.monitoring_status || 'open';
                     let stBadge = '<span class="pill pill-info" style="font-size:10px;">Mở hồ sơ</span>';
                     if (st === 'monitoring') stBadge = '<span class="pill pill-warning" style="font-size:10px;">Đang theo dõi</span>';
-                    else if (st === 'resolved') stBadge = '<span class="pill pill-success" style="font-size:10px;">Đã ổn định</span>';
-                    else if (st === 'referred_to_expert') stBadge = '<span class="pill pill-danger" style="font-size:10px;">Tham vấn chuyên gia</span>';
-
-                    const regionInfo = p.region ? ` • 📍 ${p.region}` : '';
-                    const safeName = (p.plot_name || '').replace(/'/g, "\\'");
+                    else if (st === 'resolved') stBadge = '<span class="pill pill-success" style="font-size:10px;">Ổn định</span>';
+                    else if (st === 'referred_to_expert') stBadge = '<span class="pill pill-danger" style="font-size:10px;">Tham vấn BVTV</span>';
 
                     return `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); gap:8px;">
-                            <div style="flex:1;">
+                        <div class="subcard-item" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                            <div style="flex:1; min-width:220px;">
                                 <div style="display:flex; align-items:center; gap:6px;">
-                                    <span style="font-weight:700; font-size:13.5px; color:var(--text-main);">${p.plot_name}</span>
+                                    <strong style="font-size:13.5px; color:var(--text-main);">${p.plot_name}</strong>
+                                    ${p.plot_code ? `<span class="unit-badge">${p.plot_code}</span>` : ''}
                                     ${stBadge}
                                 </div>
                                 <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
-                                    🌱 ${p.crop_name || p.crop_id} • 📏 ${p.area_hectare} ha ${p.planting_date ? '• Gieo: ' + p.planting_date : ''}${regionInfo}
+                                    🌱 <strong>${p.crop_name || p.crop_id}</strong> • 📏 ${p.area_hectare} ha (${p.area_m2 ? (p.area_m2 / 1000).toFixed(1) + ' công' : ''})
+                                    ${p.planting_date ? ' • Xuống giống: ' + p.planting_date : ''}
                                 </div>
                             </div>
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <button type="button" class="btn btn-secondary btn-sm" style="padding:4px 8px; font-size:11.5px;" onclick="window.viewTimeline(${p.id}, '${safeName}')" title="Xem tiến trình dịch tễ">
+                            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                <button type="button" class="btn btn-secondary btn-sm" style="font-size:11.5px;" onclick="window.selectPlotAndGo(${p.id}, '${(p.plot_name || '').replace(/'/g, "\\'")}', 'tab-cycles')">
+                                    🔄 Vụ mùa
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="font-size:11.5px;" onclick="window.selectPlotAndGo(${p.id}, '${(p.plot_name || '').replace(/'/g, "\\'")}', 'tab-plants')">
+                                    🌿 Cây
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="font-size:11.5px;" onclick="window.selectPlotAndGo(${p.id}, '${(p.plot_name || '').replace(/'/g, "\\'")}', 'tab-timeline')">
                                     📈 Tiến trình
                                 </button>
-                                <a href="/frontend2/predict.html?farm_id=${farmId}&plot_id=${p.id}" class="btn btn-primary btn-sm" style="padding:4px 8px; font-size:11.5px;" title="Chẩn đoán lá cho thửa này">
-                                    🍃 Chẩn đoán
+                                <a href="/frontend2/predict.html?farm_id=${farmId}&plot_id=${p.id}" class="btn btn-primary btn-sm" style="font-size:11.5px;" title="Chẩn đoán">
+                                    🍃 Khám
                                 </a>
-                                <button type="button" class="btn btn-ghost btn-sm" style="color:var(--danger); padding:4px 6px;" onclick="window.removePlot(${p.id}, ${farmId})" title="Xóa thửa">
-                                    ✕
-                                </button>
+                                <button type="button" class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="window.removePlotExt(${p.id})">✕</button>
                             </div>
                         </div>
                     `;
                 }).join('');
             } catch (err) {
-                listEl.innerHTML = `<div style="padding:16px; text-align:center; color:var(--danger); font-size:12px;">${err.message || 'Không thể tải danh sách lô.'}</div>`;
+                listEl.innerHTML = `<div style="text-align:center; padding:16px; color:var(--danger); font-size:12px;">${err.message || 'Lỗi tải thửa.'}</div>`;
             }
         }
 
-        window.removePlot = async function(plotId, farmId) {
-            if (!confirm('Bạn có chắc muốn xóa lô canh tác này?')) return;
+        window.selectPlotAndGo = function(plotId, plotName, targetTab) {
+            selectedPlotId = plotId;
+            document.getElementById('currentActivePlotId').value = plotId;
+
+            document.getElementById('selectPlotForCycles').value = plotId;
+            document.getElementById('selectPlotForPlants').value = plotId;
+            document.getElementById('selectPlotForTimeline').value = plotId;
+
+            document.getElementById('selectedPlotNameCycles').textContent = plotName;
+            document.getElementById('selectedPlotNamePlants').textContent = plotName;
+            document.getElementById('selectedPlotNameTimeline').textContent = plotName;
+
+            window.switchHierarchyTab(targetTab);
+
+            if (targetTab === 'tab-cycles') loadCycles(plotId);
+            if (targetTab === 'tab-plants') loadPlants(plotId);
+            if (targetTab === 'tab-timeline') loadTimeline(plotId);
+        };
+
+        window.removePlotExt = async function(plotId) {
+            if (!confirm('Bạn có chắc muốn xóa thửa canh tác này?')) return;
             try {
                 await fetchJSON(`/api/plots/${plotId}`, { method: 'DELETE' });
-                toast('Đã xóa lô canh tác.');
-                loadFarmPlots(farmId);
+                toast('Đã xóa thửa canh tác.');
+                loadPlots(selectedFarmId);
             } catch (err) {
-                toast(err.message || 'Lỗi xóa lô canh tác.');
+                toast(err.message || 'Lỗi xóa thửa.');
             }
         };
 
+        // ---------------------------------------------------------------------
+        // Crop Cycles (Tab 3)
+        // ---------------------------------------------------------------------
+        window.onPlotSelectedForCycles = function(plotId) {
+            if (!plotId) return;
+            selectedPlotId = parseInt(plotId, 10);
+            const selectEl = document.getElementById('selectPlotForCycles');
+            const plotName = selectEl.options[selectEl.selectedIndex].text;
+            document.getElementById('selectedPlotNameCycles').textContent = plotName;
+            loadCycles(selectedPlotId);
+        };
+
+        async function loadCycles(plotId) {
+            const listEl = document.getElementById('cyclesListContainer');
+            listEl.innerHTML = '<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang tải lịch sử vụ mùa...</div>';
+
+            try {
+                const res = await fetchJSON(`/api/plots/${plotId}/cycles`);
+                const cycles = res.cycles || [];
+                if (cycles.length === 0) {
+                    listEl.innerHTML = '<div class="state-banner">Thửa này chưa có vụ mùa nào được ghi nhận. Tạo vụ mùa đầu tiên ở trên để bắt đầu theo dõi luân canh.</div>';
+                    return;
+                }
+
+                listEl.innerHTML = cycles.map(c => {
+                    const isActive = c.status === 'active';
+                    return `
+                        <div class="subcard-item" style="border-left: 3px solid ${isActive ? 'var(--primary)' : 'var(--border)'};">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div>
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <strong style="font-size:13.5px; color:var(--text-main);">${c.cycle_name}</strong>
+                                        <span class="pill ${isActive ? 'pill-success' : 'pill-neutral'}" style="font-size:10.5px;">${isActive ? 'Đang canh tác' : c.status}</span>
+                                    </div>
+                                    <div style="font-size:12px; color:var(--text-muted); margin-top:3px;">
+                                        Cây trồng: <strong>${c.crop_name}</strong> (${c.variety || 'Tiêu chuẩn'}) • Bắt đầu: ${c.start_date || 'Chưa rõ'}
+                                        ${c.expected_harvest_date ? ' • Dự kiến thu hoạch: ' + c.expected_harvest_date : ''}
+                                    </div>
+                                    ${c.target_yield_kg ? `<div style="font-size:11.5px; color:var(--text-secondary); margin-top:2px;">Mục tiêu sản lượng: ${c.target_yield_kg.toLocaleString('vi-VN')} kg</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                listEl.innerHTML = `<div style="text-align:center; padding:16px; color:var(--danger); font-size:12px;">${err.message || 'Lỗi tải vụ mùa.'}</div>`;
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // Individual Plants (Tab 4)
+        // ---------------------------------------------------------------------
+        window.onPlotSelectedForPlants = function(plotId) {
+            if (!plotId) return;
+            selectedPlotId = parseInt(plotId, 10);
+            const selectEl = document.getElementById('selectPlotForPlants');
+            const plotName = selectEl.options[selectEl.selectedIndex].text;
+            document.getElementById('selectedPlotNamePlants').textContent = plotName;
+            loadPlants(selectedPlotId);
+        };
+
+        async function loadPlants(plotId) {
+            const listEl = document.getElementById('plantsListContainer');
+            listEl.innerHTML = '<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang tải danh sách cây...</div>';
+
+            try {
+                const res = await fetchJSON(`/api/plots/${plotId}/plants`);
+                const plants = res.plants || [];
+                if (plants.length === 0) {
+                    listEl.innerHTML = '<div class="state-banner">Thửa này chưa có cây cá thể nào. Thích hợp cho cây ăn trái lâu năm (Sầu riêng, Bưởi, Cà phê) hoặc nhà màng phân luống.</div>';
+                    return;
+                }
+
+                listEl.innerHTML = plants.map(p => {
+                    let healthBadge = '<span class="pill pill-success" style="font-size:10px;">Khỏe mạnh</span>';
+                    if (p.health_status === 'monitoring') healthBadge = '<span class="pill pill-warning" style="font-size:10px;">Theo dõi</span>';
+                    else if (p.health_status === 'diseased') healthBadge = '<span class="pill pill-danger" style="font-size:10px;">Nhiễm bệnh</span>';
+                    else if (p.health_status === 'recovering') healthBadge = '<span class="pill pill-info" style="font-size:10px;">Phục hồi</span>';
+
+                    return `
+                        <div class="subcard-item" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <strong style="font-size:13px; color:var(--text-main);">${p.plant_name || p.plant_tag}</strong>
+                                    <span class="unit-badge">${p.plant_tag}</span>
+                                    ${healthBadge}
+                                </div>
+                                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+                                    Loài: ${p.species || 'Cây'} • Giống: ${p.variety || 'Tiêu chuẩn'}
+                                    ${p.row_index !== null ? ` • Vị trí: Hàng ${p.row_index}, Gốc ${p.col_index}` : ''}
+                                    ${p.notes ? ' • ' + p.notes : ''}
+                                </div>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="window.removePlant(${p.id})">✕</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                listEl.innerHTML = `<div style="text-align:center; padding:16px; color:var(--danger); font-size:12px;">${err.message || 'Lỗi tải cây.'}</div>`;
+            }
+        }
+
+        window.removePlant = async function(plantId) {
+            if (!confirm('Bạn có chắc muốn lưu trữ cây này?')) return;
+            try {
+                await fetchJSON(`/api/plants/${plantId}/archive`, { method: 'POST' });
+                toast('Đã lưu trữ cây.');
+                loadPlants(selectedPlotId);
+            } catch (err) {
+                toast(err.message || 'Lỗi.');
+            }
+        };
+
+        // ---------------------------------------------------------------------
+        // Timeline & Activities (Tab 5)
+        // ---------------------------------------------------------------------
+        window.onPlotSelectedForTimeline = function(plotId) {
+            if (!plotId) return;
+            selectedPlotId = parseInt(plotId, 10);
+            const selectEl = document.getElementById('selectPlotForTimeline');
+            const plotName = selectEl.options[selectEl.selectedIndex].text;
+            document.getElementById('selectedPlotNameTimeline').textContent = plotName;
+            loadTimeline(selectedPlotId);
+        };
+
+        async function loadTimeline(plotId) {
+            const listEl = document.getElementById('timelineEventsContainerExt');
+            listEl.innerHTML = '<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:12px;">Đang tải nhật ký...</div>';
+
+            try {
+                const res = await fetchJSON(`/api/plots/${plotId}/timeline`);
+                const events = res.events || [];
+                if (events.length === 0) {
+                    listEl.innerHTML = '<div class="state-banner">Thửa này chưa có sự kiện hoặc nhật ký nào. Hãy thêm ghi nhận thực địa đầu tiên ở trên.</div>';
+                    return;
+                }
+
+                listEl.innerHTML = events.map(e => {
+                    const isDiag = e.event_type === 'diagnosis' || e.diagnosis_id;
+                    return `
+                        <div class="subcard-item" style="border-left: 3px solid ${isDiag ? 'var(--warning)' : 'var(--primary)'};">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong style="font-size:12.5px; color:var(--text-main);">${e.event_type.toUpperCase()}</strong>
+                                <span style="font-size:11px; color:var(--text-muted);">${e.created_at || ''}</span>
+                            </div>
+                            <div style="font-size:12.5px; color:var(--text-secondary); margin-top:3px;">
+                                ${e.notes || 'Không có mô tả chi tiết'}
+                            </div>
+                            ${e.disease_name_vi ? `<div style="font-size:11px; color:var(--danger); margin-top:2px;">Mầm bệnh phát hiện: ${e.disease_name_vi} (${(e.confidence * 100).toFixed(1)}%)</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                listEl.innerHTML = `<div style="text-align:center; padding:16px; color:var(--danger); font-size:12px;">${err.message || 'Lỗi tải nhật ký.'}</div>`;
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // Form Submissions
+        // ---------------------------------------------------------------------
         function setupFarmModal() {
             const modal = document.getElementById('farmModal');
             document.getElementById('btnOpenModal').onclick = () => {
@@ -443,8 +1353,10 @@
                 const editId = document.getElementById('editFarmId').value;
                 const payload = {
                     name: document.getElementById('farmName').value.trim(),
+                    code: document.getElementById('farmCode').value.trim(),
                     province: document.getElementById('farmProvince').value.trim(),
-                    area_hectare: parseFloat(document.getElementById('farmArea').value) || 1.0,
+                    area: parseFloat(document.getElementById('farmArea').value) || 1.0,
+                    area_unit: document.getElementById('farmAreaUnit').value,
                     location: document.getElementById('farmLocation').value.trim(),
                     primary_crop: document.getElementById('farmCrop').value.trim() || 'Cà chua',
                     variety: document.getElementById('farmVariety').value.trim(),
@@ -454,16 +1366,10 @@
                 try {
                     const url = editId ? `/api/farms/${editId}` : '/api/farms';
                     const method = editId ? 'PUT' : 'POST';
-                    const d = await fetchJSON(url, {
-                        method: method,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (d.success) {
-                        toast(editId ? 'Đã cập nhật thông tin nông trại!' : 'Đã đăng ký nông trại mới thành công!');
+                    const res = await fetchJSON(url, { method, body: payload });
+                    if (res.success) {
+                        toast(editId ? 'Đã cập nhật nông trại thành công.' : 'Đã đăng ký nông trại mới thành công.');
                         modal.classList.remove('show');
-                        document.getElementById('farmForm').reset();
                         loadFarms();
                     }
                 } catch (err) {
@@ -472,199 +1378,996 @@
             };
         }
 
-        function setupPlotsModal() {
-            const modal = document.getElementById('plotsModal');
-            document.getElementById('btnClosePlotsModal').onclick = () => modal.classList.remove('show');
-            document.getElementById('btnCancelPlotsModal').onclick = () => modal.classList.remove('show');
+        function setupHierarchyModal() {
+            const modal = document.getElementById('hierarchyModal');
+            document.getElementById('btnCloseHierarchyModal').onclick = () => modal.classList.remove('show');
+            document.getElementById('btnCancelHierarchyModal').onclick = () => modal.classList.remove('show');
 
-            document.getElementById('addPlotForm').onsubmit = async e => {
+            // Add Zone
+            document.getElementById('addZoneForm').onsubmit = async e => {
                 e.preventDefault();
-                const farmId = parseInt(document.getElementById('currentPlotFarmId').value);
+                if (!selectedFarmId) return;
                 const payload = {
-                    farm_id: farmId,
-                    plot_name: document.getElementById('plotName').value.trim(),
-                    crop_name: document.getElementById('plotCrop').value.trim(),
-                    crop_id: document.getElementById('plotCrop').value.trim(),
-                    area_hectare: parseFloat(document.getElementById('plotArea').value) || 0.5,
-                    planting_date: document.getElementById('plotDate').value || null,
-                    region: document.getElementById('plotRegion').value.trim() || null,
-                    notes: document.getElementById('plotNotes').value.trim() || null
+                    name: document.getElementById('zoneName').value.trim(),
+                    code: document.getElementById('zoneCode').value.trim(),
+                    zone_type: document.getElementById('zoneType').value,
+                    area: parseFloat(document.getElementById('zoneArea').value) || null,
+                    area_unit: document.getElementById('zoneAreaUnit').value,
+                    description: document.getElementById('zoneDesc').value.trim()
+                };
+                try {
+                    await fetchJSON(`/api/farms/${selectedFarmId}/zones`, { method: 'POST', body: payload });
+                    toast('Đã tạo khu vực thành công.');
+                    document.getElementById('addZoneForm').reset();
+                    loadZones(selectedFarmId);
+                } catch (err) {
+                    toast(err.message || 'Lỗi tạo khu vực.');
+                }
+            };
+
+            // Add Plot
+            document.getElementById('addPlotFormExt').onsubmit = async e => {
+                e.preventDefault();
+                if (!selectedFarmId) return;
+                const payload = {
+                    farm_id: selectedFarmId,
+                    plot_name: document.getElementById('extPlotName').value.trim(),
+                    plot_code: document.getElementById('extPlotCode').value.trim(),
+                    zone_id: parseInt(document.getElementById('extPlotZoneSelect').value, 10) || null,
+                    crop_name: document.getElementById('extPlotCrop').value.trim(),
+                    crop_id: document.getElementById('extPlotCrop').value.trim(),
+                    area: parseFloat(document.getElementById('extPlotArea').value) || 0.5,
+                    area_unit: document.getElementById('extPlotAreaUnit').value,
+                    planting_date: document.getElementById('extPlotDate').value || null
+                };
+                try {
+                    await fetchJSON('/api/plots', { method: 'POST', body: payload });
+                    toast('Đã tạo thửa canh tác thành công.');
+                    document.getElementById('addPlotFormExt').reset();
+                    loadPlots(selectedFarmId);
+                } catch (err) {
+                    toast(err.message || 'Lỗi tạo thửa.');
+                }
+            };
+
+            // Add Cycle
+            document.getElementById('addCycleForm').onsubmit = async e => {
+                e.preventDefault();
+                if (!selectedPlotId) {
+                    toast('Vui lòng chọn một thửa canh tác trước.');
+                    return;
+                }
+                const payload = {
+                    cycle_name: document.getElementById('cycleName').value.trim(),
+                    crop_name: document.getElementById('cycleCropName').value.trim(),
+                    crop_id: document.getElementById('cycleCropName').value.trim(),
+                    variety: document.getElementById('cycleVariety').value.trim(),
+                    start_date: document.getElementById('cycleStartDate').value,
+                    expected_harvest_date: document.getElementById('cycleHarvestDate').value || null,
+                    target_yield_kg: parseFloat(document.getElementById('cycleTargetYield').value) || null,
+                    status: document.getElementById('cycleStatus').value
+                };
+                try {
+                    await fetchJSON(`/api/plots/${selectedPlotId}/cycles`, { method: 'POST', body: payload });
+                    toast('Đã kích hoạt vụ mùa mới thành công.');
+                    document.getElementById('addCycleForm').reset();
+                    loadCycles(selectedPlotId);
+                    loadPlots(selectedFarmId);
+                } catch (err) {
+                    toast(err.message || 'Lỗi thêm vụ mùa.');
+                }
+            };
+
+            // Add Plant
+            document.getElementById('addPlantForm').onsubmit = async e => {
+                e.preventDefault();
+                if (!selectedPlotId) {
+                    toast('Vui lòng chọn một thửa canh tác trước.');
+                    return;
+                }
+                const payload = {
+                    plant_tag: document.getElementById('plantTag').value.trim(),
+                    plant_name: document.getElementById('plantName').value.trim(),
+                    species: document.getElementById('plantSpecies').value.trim(),
+                    health_status: document.getElementById('plantHealth').value,
+                    row_index: parseInt(document.getElementById('plantRow').value, 10) || null,
+                    col_index: parseInt(document.getElementById('plantCol').value, 10) || null,
+                    notes: document.getElementById('plantNotes').value.trim()
+                };
+                try {
+                    await fetchJSON(`/api/plots/${selectedPlotId}/plants`, { method: 'POST', body: payload });
+                    toast('Đã đăng ký cây cá thể thành công.');
+                    document.getElementById('addPlantForm').reset();
+                    loadPlants(selectedPlotId);
+                } catch (err) {
+                    toast(err.message || 'Lỗi thêm cây.');
+                }
+            };
+
+            // Add Activity
+            document.getElementById('addActivityForm').onsubmit = async e => {
+                e.preventDefault();
+                if (!selectedPlotId) {
+                    toast('Vui lòng chọn một thửa canh tác trước.');
+                    return;
+                }
+                const payload = {
+                    event_type: document.getElementById('activityType').value,
+                    notes: document.getElementById('activityNotes').value.trim()
+                };
+                try {
+                    await fetchJSON(`/api/plots/${selectedPlotId}/activities`, { method: 'POST', body: payload });
+                    toast('Đã lưu nhật ký thực địa.');
+                    document.getElementById('activityNotes').value = '';
+                    loadTimeline(selectedPlotId);
+                } catch (err) {
+                    toast(err.message || 'Lỗi ghi nhật ký.');
+                }
+            };
+
+            /* ============================================================
+               MODULE 09 — 2D FARM INTELLIGENCE MAP CONTROLLER
+               ============================================================ */
+            let currentMainView = 'list';
+            let leafletMap = null;
+            let plotsLayerGroup = null;
+            let farmBoundaryLayer = null;
+            let selectedMapPlotId = null;
+
+            window.switchMainView = function(view) {
+                currentMainView = view;
+                const btnList = document.getElementById('btnViewList');
+                const btnMap = document.getElementById('btnViewMap');
+                const btn3D = document.getElementById('btnView3D');
+                const listGrid = document.getElementById('farmsGrid');
+                const mapSection = document.getElementById('mapViewSection');
+                const threeSection = document.getElementById('view3DSection');
+
+                if (view === 'map') {
+                    btnList.className = 'btn btn-sm btn-ghost';
+                    btnMap.className = 'btn btn-sm btn-primary';
+                    if (btn3D) btn3D.className = 'btn btn-sm btn-ghost';
+                    listGrid.style.display = 'none';
+                    mapSection.style.display = 'block';
+                    if (threeSection) threeSection.style.display = 'none';
+                    initOrRefreshMap();
+                } else if (view === '3d') {
+                    btnList.className = 'btn btn-sm btn-ghost';
+                    btnMap.className = 'btn btn-sm btn-ghost';
+                    if (btn3D) btn3D.className = 'btn btn-sm btn-primary';
+                    listGrid.style.display = 'none';
+                    mapSection.style.display = 'none';
+                    if (threeSection) threeSection.style.display = 'block';
+                    initOrRefresh3D();
+                } else {
+                    btnList.className = 'btn btn-sm btn-primary';
+                    btnMap.className = 'btn btn-sm btn-ghost';
+                    if (btn3D) btn3D.className = 'btn btn-sm btn-ghost';
+                    listGrid.style.display = 'grid';
+                    mapSection.style.display = 'none';
+                    if (threeSection) threeSection.style.display = 'none';
+                }
+            };
+
+            function updateMapFarmSelector() {
+                const selector = document.getElementById('mapFarmSelector');
+                if (!selector) return;
+                const prevVal = selector.value;
+                let html = '<option value="overview">Toàn cảnh tất cả nông trại (Overview)</option>';
+                currentFarmsList.forEach(f => {
+                    html += `<option value="${f.id}">${f.name} (${f.province || 'Khu vực chưa đặt'})</option>`;
+                });
+                selector.innerHTML = html;
+                if (prevVal && Array.from(selector.options).some(o => o.value === prevVal)) {
+                    selector.value = prevVal;
+                }
+            }
+
+            function initOrRefreshMap() {
+                updateMapFarmSelector();
+                if (!leafletMap && typeof L !== 'undefined') {
+                    leafletMap = L.map('farmLeafletMap').setView([12.68, 108.05], 11);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap &copy; GARI Intelligence'
+                    }).addTo(leafletMap);
+                    farmBoundaryLayer = L.layerGroup().addTo(leafletMap);
+                    plotsLayerGroup = L.layerGroup().addTo(leafletMap);
+
+                    document.getElementById('mapFarmSelector').onchange = () => {
+                        loadActiveMap();
+                    };
+                }
+                setTimeout(() => {
+                    if (leafletMap) leafletMap.invalidateSize();
+                }, 150);
+                loadActiveMap();
+            }
+
+            window.refreshActiveMap = function() {
+                loadActiveMap();
+            };
+
+            async function loadActiveMap() {
+                if (!leafletMap) return;
+                const selector = document.getElementById('mapFarmSelector');
+                const val = selector ? selector.value : 'overview';
+                const sourceTag = document.getElementById('mapGeometrySourceTag');
+
+                farmBoundaryLayer.clearLayers();
+                plotsLayerGroup.clearLayers();
+
+                try {
+                    if (val === 'overview') {
+                        if (sourceTag) sourceTag.textContent = 'Chế độ: Toàn cảnh nông trại • Dữ liệu GeoJSON tổng hợp';
+                        const res = await fetchJSON('/api/farms/map-overview');
+                        const fc = res.plots || res;
+                        const bounds = [];
+
+                        if (fc && fc.features && fc.features.length > 0) {
+                            fc.features.forEach(feat => {
+                                if (feat.geometry.type === 'Point') {
+                                    const [lon, lat] = feat.geometry.coordinates;
+                                    bounds.push([lat, lon]);
+                                    const marker = L.circleMarker([lat, lon], {
+                                        radius: 9,
+                                        fillColor: '#10b981',
+                                        color: '#047857',
+                                        weight: 2,
+                                        fillOpacity: 0.85
+                                    }).addTo(plotsLayerGroup);
+
+                                    const p = feat.properties;
+                                    marker.bindTooltip(`<b>${p.name}</b><br/>${p.primary_crop || 'Đa canh'} • ${p.province || ''}<br/>${p.total_plots || 0} thửa (${p.attention_plots || 0} cần chú ý)`);
+                                    marker.on('click', () => {
+                                        selector.value = String(p.id);
+                                        loadActiveMap();
+                                    });
+                                } else if (feat.geometry.type === 'Polygon') {
+                                    renderSinglePlotPolygon(feat, bounds);
+                                }
+                            });
+                        }
+
+                        if (res.summary) {
+                            document.getElementById('countHealthy').textContent = res.summary.healthy_plots || 0;
+                            document.getElementById('countAttention').textContent = res.summary.attention_plots || 0;
+                            document.getElementById('countUnknown').textContent = res.summary.unknown_plots || 0;
+                            document.getElementById('countUnlocated').textContent = res.summary.unlocated_plots || 0;
+                        }
+
+                        if (bounds.length > 0) {
+                            leafletMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+                        }
+
+                        // Reset right drawer to empty prompt
+                        document.getElementById('drawerPlotContent').style.display = 'none';
+                        document.getElementById('drawerEmptyNotice').style.display = 'block';
+                        document.getElementById('drawerPlotName').textContent = 'Chọn thửa đất để kiểm tra';
+                        document.getElementById('drawerStatusBadge').textContent = '⚪ Chưa chọn';
+                        document.getElementById('drawerStatusBadge').className = 'pill pill-neutral';
+                        document.getElementById('unlocatedPlotsList').innerHTML = '<span style="color:var(--text-muted); font-size:12px;">Chế độ toàn cảnh không hiển thị danh sách chưa định vị. Chọn nông trại cụ thể để xem chi tiết.</span>';
+                        document.getElementById('unlocatedPlotsCountBadge').textContent = '0';
+                    } else {
+                        // Single Farm Map
+                        const farmId = parseInt(val, 10);
+                        const res = await fetchJSON(`/api/farms/${farmId}/map`);
+                        const bounds = [];
+
+                        // Render Farm center or perimeter
+                        if (res.farm) {
+                            if (sourceTag) sourceTag.textContent = `Nông trại: ${res.farm.properties.name} • Tọa độ nguồn: ${res.farm.properties.geometry_source || 'user_drawn'}`;
+                            if (res.farm.geometry) {
+                                if (res.farm.geometry.type === 'Point') {
+                                    const [lon, lat] = res.farm.geometry.coordinates;
+                                    bounds.push([lat, lon]);
+                                    L.circleMarker([lat, lon], {
+                                        radius: 7,
+                                        fillColor: '#3b82f6',
+                                        color: '#1d4ed8',
+                                        weight: 2,
+                                        fillOpacity: 0.7
+                                    }).bindTooltip(`<b>${res.farm.properties.name}</b> (Trụ sở/Tâm nông trại)`).addTo(farmBoundaryLayer);
+                                } else if (res.farm.geometry.type === 'Polygon') {
+                                    const coords = res.farm.geometry.coordinates[0].map(pt => [pt[1], pt[0]]);
+                                    coords.forEach(c => bounds.push(c));
+                                    L.polygon(coords, {
+                                        color: '#3b82f6',
+                                        weight: 2,
+                                        dashArray: '5, 5',
+                                        fillOpacity: 0.05
+                                    }).bindTooltip(`Ranh giới quy hoạch: ${res.farm.properties.name}`).addTo(farmBoundaryLayer);
+                                }
+                            }
+                        }
+
+                        // Render Plots
+                        if (res.plots && res.plots.features) {
+                            res.plots.features.forEach(feat => {
+                                renderSinglePlotPolygon(feat, bounds);
+                            });
+                        }
+
+                        // Summary counts
+                        if (res.summary) {
+                            document.getElementById('countHealthy').textContent = res.summary.healthy_plots || 0;
+                            document.getElementById('countAttention').textContent = res.summary.attention_plots || 0;
+                            document.getElementById('countUnknown').textContent = res.summary.unknown_plots || 0;
+                            document.getElementById('countUnlocated').textContent = res.summary.unlocated_plots || 0;
+                        }
+
+                        // Unlocated plots list
+                        const unlocatedList = res.unlocated_plots || [];
+                        document.getElementById('unlocatedPlotsCountBadge').textContent = unlocatedList.length;
+                        const unlocatedContainer = document.getElementById('unlocatedPlotsList');
+                        if (unlocatedList.length === 0) {
+                            unlocatedContainer.innerHTML = '<span style="color:var(--text-muted); font-size:12px;">✅ Tất cả thửa đất đã có ranh giới tọa độ.</span>';
+                        } else {
+                            unlocatedContainer.innerHTML = unlocatedList.map(p => `
+                                <div class="unlocated-plot-item">
+                                    <div>
+                                        <strong style="color:var(--text-main); font-size:12.5px;">${p.name}</strong>
+                                        <div style="font-size:11px; color:var(--text-muted);">${p.crop_name || 'Đa canh'} • ${p.area_hectare || 0} ha</div>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="window.quickDefinePlotBoundary(${p.id}, ${farmId})" style="font-size:11px; padding:3px 8px;">
+                                        📍 Đặt ranh giới mẫu
+                                    </button>
+                                </div>
+                            `).join('');
+                        }
+
+                        if (bounds.length > 0) {
+                            leafletMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
+                        }
+                    }
+                } catch (err) {
+                    toast(err.message || 'Lỗi tải dữ liệu bản đồ 2D.');
+                }
+            }
+
+            function renderSinglePlotPolygon(feat, bounds) {
+                if (!feat.geometry || feat.geometry.type !== 'Polygon') return;
+                const props = feat.properties;
+                const status = props.health_status || 'unknown';
+                const coords = feat.geometry.coordinates[0].map(pt => [pt[1], pt[0]]);
+                coords.forEach(c => bounds.push(c));
+
+                let strokeColor = '#64748b';
+                let fillColor = '#94a3b8';
+                let statusText = 'Chưa có dữ liệu';
+                if (status === 'healthy') {
+                    strokeColor = '#15803d';
+                    fillColor = '#22c55e';
+                    statusText = 'Khỏe mạnh';
+                } else if (status === 'attention_needed') {
+                    strokeColor = '#c2410c';
+                    fillColor = '#f97316';
+                    statusText = 'Cần chú ý';
+                }
+
+                const polygon = L.polygon(coords, {
+                    color: strokeColor,
+                    fillColor: fillColor,
+                    fillOpacity: 0.45,
+                    weight: 2
+                }).addTo(plotsLayerGroup);
+
+                polygon.bindTooltip(`
+                    <div style="font-size:12px;">
+                        <strong>${props.name}</strong> (${props.code || 'Lô'})<br/>
+                        🌱 ${props.crop_name || 'Đa canh'} • 📏 ${props.area_hectare || 0} ha<br/>
+                        Trạng thái: <strong>${statusText}</strong>
+                    </div>
+                `);
+
+                polygon.on('click', () => {
+                    window.selectPlotOnMap(props.id);
+                });
+            }
+
+            window.selectPlotOnMap = async function(plotId) {
+                selectedMapPlotId = plotId;
+                try {
+                    const res = await fetchJSON(`/api/plots/${plotId}/map-detail`);
+                    const p = res.plot;
+                    const status = res.health_status;
+
+                    document.getElementById('drawerEmptyNotice').style.display = 'none';
+                    document.getElementById('drawerPlotContent').style.display = 'block';
+
+                    document.getElementById('drawerPlotName').textContent = `${p.name} ${p.code ? '(' + p.code + ')' : ''}`;
+                    document.getElementById('drawerPlotCrop').textContent = p.crop_name || 'Đa canh';
+                    document.getElementById('drawerPlotArea').textContent = `${p.area_hectare || 0} ha (${(p.area_m2 || 0).toLocaleString()} m²)`;
+
+                    // Badge
+                    const badge = document.getElementById('drawerStatusBadge');
+                    if (status === 'healthy') {
+                        badge.textContent = '🟢 Khỏe mạnh';
+                        badge.className = 'pill pill-success';
+                    } else if (status === 'attention_needed') {
+                        badge.textContent = '🟠 Cần chú ý';
+                        badge.className = 'pill pill-warning';
+                    } else {
+                        badge.textContent = '⚪ Chưa có dữ liệu';
+                        badge.className = 'pill pill-neutral';
+                    }
+
+                    // Cycle
+                    const cycle = res.active_cycle;
+                    document.getElementById('drawerPlotCycle').textContent = cycle 
+                        ? `${cycle.name} (${cycle.crop_name || 'Cây trồng'}) — Bắt đầu: ${cycle.start_date || 'N/A'}` 
+                        : 'Chưa kích hoạt vụ mùa';
+
+                    // Health Reason
+                    const reasonBox = document.getElementById('drawerHealthReasonBox');
+                    document.getElementById('drawerHealthReasonText').textContent = res.health_reason || 'Không có cảnh báo.';
+                    if (status === 'attention_needed') {
+                        reasonBox.style.background = 'rgba(249,115,22,0.12)';
+                        reasonBox.style.borderLeftColor = '#f97316';
+                    } else if (status === 'healthy') {
+                        reasonBox.style.background = 'rgba(34,197,94,0.12)';
+                        reasonBox.style.borderLeftColor = '#22c55e';
+                    } else {
+                        reasonBox.style.background = 'var(--surface-muted)';
+                        reasonBox.style.borderLeftColor = '#94a3b8';
+                    }
+
+                    // Recent Diagnoses
+                    const diagContainer = document.getElementById('drawerRecentDiagnoses');
+                    const diags = res.recent_diagnoses || [];
+                    if (diags.length === 0) {
+                        diagContainer.innerHTML = '<span style="color:var(--text-muted); font-size:11.5px;">Chưa có chẩn đoán lá trong 30 ngày qua.</span>';
+                    } else {
+                        diagContainer.innerHTML = diags.map(d => `
+                            <div style="background:var(--surface); border:1px solid var(--border); padding:6px 8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; font-size:11.5px;">
+                                <div>
+                                    <strong>${d.disease_name || d.crop_id}</strong>
+                                    <span style="color:var(--text-muted); font-size:10.5px; display:block;">${d.created_at ? d.created_at.split('T')[0] : ''}</span>
+                                </div>
+                                <span class="pill ${d.severity === 'HIGH' || d.severity === 'CRITICAL' ? 'pill-warning' : 'pill-success'}" style="font-size:10px;">
+                                    ${(d.confidence * 100).toFixed(0)}%
+                                </span>
+                            </div>
+                        `).join('');
+                    }
+
+                    // Pending Tasks
+                    const taskContainer = document.getElementById('drawerPendingTasks');
+                    const tasks = res.pending_tasks || [];
+                    if (tasks.length === 0) {
+                        taskContainer.innerHTML = '<span style="color:var(--text-muted); font-size:11.5px;">Không có công việc tồn đọng.</span>';
+                    } else {
+                        taskContainer.innerHTML = tasks.map(t => `
+                            <div style="background:var(--surface); border:1px solid var(--border); padding:6px 8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; font-size:11.5px;">
+                                <div>
+                                    <span style="${t.is_overdue ? 'color:#ef4444; font-weight:700;' : ''}">${t.title}</span>
+                                    <span style="color:var(--text-muted); font-size:10.5px; display:block;">Hạn: ${t.due_date || 'Không có'}</span>
+                                </div>
+                                <span class="pill ${t.is_overdue ? 'pill-danger' : 'pill-neutral'}" style="font-size:10px;">
+                                    ${t.is_overdue ? 'QUÁ HẠN' : (t.priority || 'NORMAL')}
+                                </span>
+                            </div>
+                        `).join('');
+                    }
+
+                    // Action buttons
+                    document.getElementById('btnDrawerOpenHierarchy').onclick = () => {
+                        window.openHierarchyModal(p.farm_id, p.id);
+                    };
+                    document.getElementById('btnDrawerDiagnosePlot').href = `/frontend2/predict.html?plot_id=${p.id}&farm_id=${p.farm_id}`;
+
+                } catch (err) {
+                    toast(err.message || 'Lỗi tải chi tiết thửa đất.');
+                }
+            };
+
+            window.quickDefinePlotBoundary = async function(plotId, farmId) {
+                const farm = currentFarmsList.find(f => f.id == farmId);
+                const baseLat = (farm && farm.latitude) ? farm.latitude : 12.6800;
+                const baseLon = (farm && farm.longitude) ? farm.longitude : 108.0500;
+
+                // Generate realistic offset polygon (approx 0.5 ha = ~70m x 70m)
+                const delta = 0.0006;
+                const slot = (plotId % 6) + 1;
+                const offsetLat = baseLat + (Math.floor(slot / 3) - 0.5) * 0.0015;
+                const offsetLon = baseLon + ((slot % 3) - 1) * 0.0015;
+
+                const polygonCoords = [[
+                    [Number((offsetLon - delta).toFixed(6)), Number((offsetLat - delta).toFixed(6))],
+                    [Number((offsetLon + delta).toFixed(6)), Number((offsetLat - delta).toFixed(6))],
+                    [Number((offsetLon + delta).toFixed(6)), Number((offsetLat + delta).toFixed(6))],
+                    [Number((offsetLon - delta).toFixed(6)), Number((offsetLat + delta).toFixed(6))],
+                    [Number((offsetLon - delta).toFixed(6)), Number((offsetLat - delta).toFixed(6))]
+                ]];
+
+                const payload = {
+                    geometry: {
+                        type: "Polygon",
+                        coordinates: polygonCoords
+                    },
+                    geometry_source: "user_drawn",
+                    boundary_color: "#22c55e"
                 };
 
                 try {
-                    const res = await fetchJSON(`/api/farms/${farmId}/plots`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                    await fetchJSON(`/api/plots/${plotId}/geometry`, {
+                        method: 'PUT',
+                        body: payload
                     });
-                    if (res.success) {
-                        toast('Đã thêm lô canh tác mới thành công!');
-                        document.getElementById('addPlotForm').reset();
-                        loadFarmPlots(farmId);
-                    }
+                    toast(`Đã thiết lập ranh giới tọa độ cho thửa #${plotId}.`);
+                    await loadActiveMap();
+                    window.selectPlotOnMap(plotId);
                 } catch (err) {
-                    toast(err.message || 'Không thể tạo lô canh tác.');
+                    toast(err.message || 'Lỗi thiết lập ranh giới thửa.');
                 }
             };
-        }
 
-        // SPRINT 4: Timeline Modal Operations
-        let activeTimelinePlotId = null;
-        let activeTimelinePlotName = '';
+            /* ============================================================
+               MODULE 10 — 3D FARM EXPERIENCE CONTROLLER (THREE.JS)
+               ============================================================ */
+            let threeLoaded = false;
+            let threeScene = null;
+            let threeCamera = null;
+            let threeRenderer = null;
+            let threeControls = null;
+            let threePlotMeshes = [];
+            let threeActivePlotId = null;
+            let threeSelectionHighlight = null;
+            let threeAnimFrameId = null;
+            let threeCameraPreset = null;
 
-        window.viewTimeline = async function(plotId, plotName) {
-            activeTimelinePlotId = plotId;
-            activeTimelinePlotName = plotName || `Thửa #${plotId}`;
-            const modal = document.getElementById('timelineModal');
-            document.getElementById('currentTimelinePlotId').value = plotId;
-            document.getElementById('timelinePlotTitle').textContent = `Tiến trình dịch tễ: ${activeTimelinePlotName}`;
-            document.getElementById('btnTimelineDiagnoseLink').href = `/frontend2/predict.html?plot_id=${plotId}`;
-            modal.classList.add('show');
-            loadTimelineData(plotId);
-        };
-
-        async function loadTimelineData(plotId) {
-            const eventsEl = document.getElementById('timelineEventsContainer');
-            const summaryEl = document.getElementById('timelineSummaryText');
-            const pillEl = document.getElementById('timelineStatusPill');
-
-            eventsEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12px;">Đang tải dữ liệu tiến trình...</div>';
-
-            try {
-                const res = await fetchJSON(`/api/plots/${plotId}/timeline`);
-                const plot = res.plot || {};
-                const summary = res.summary || {};
-                const events = res.events || [];
-
-                // Update monitoring status badge
-                const st = plot.monitoring_status || summary.latest_status || 'open';
-                document.getElementById('timelineNewStatus').value = st;
-                if (st === 'monitoring') {
-                    pillEl.className = 'pill pill-warning';
-                    pillEl.textContent = 'Đang theo dõi';
-                } else if (st === 'resolved') {
-                    pillEl.className = 'pill pill-success';
-                    pillEl.textContent = 'Đã ổn định';
-                } else if (st === 'referred_to_expert') {
-                    pillEl.className = 'pill pill-danger';
-                    pillEl.textContent = 'Tham vấn chuyên gia';
-                } else {
-                    pillEl.className = 'pill pill-info';
-                    pillEl.textContent = 'Mở hồ sơ';
+            function isWebGLSupported() {
+                try {
+                    const c = document.createElement('canvas');
+                    return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')));
+                } catch (e) {
+                    return false;
                 }
+            }
 
-                // Render objective summary
-                const countDiag = summary.total_diagnoses || 0;
-                const days = summary.monitored_days != null ? summary.monitored_days : 0;
-                const latestDiag = summary.latest_diagnosis_disease ? `• Kết quả chẩn đoán gần nhất: <strong>${summary.latest_diagnosis_disease}</strong>` : '';
-                summaryEl.innerHTML = `
-                    Đã ghi nhận <strong>${countDiag} lần chẩn đoán</strong> trong vòng <strong>${days} ngày</strong> ${latestDiag}. 
-                    Trạng thái hiện tại: <strong>${pillEl.textContent}</strong>.
-                `;
+            async function ensureThreeLoaded() {
+                if (threeLoaded && typeof THREE !== 'undefined' && typeof THREE.OrbitControls !== 'undefined') return true;
+                if (typeof THREE !== 'undefined' && typeof THREE.OrbitControls !== 'undefined') {
+                    threeLoaded = true;
+                    return true;
+                }
+                return new Promise((resolve) => {
+                    const s1 = document.createElement('script');
+                    s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+                    s1.onload = () => {
+                        const s2 = document.createElement('script');
+                        s2.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
+                        s2.onload = () => {
+                            threeLoaded = true;
+                            resolve(true);
+                        };
+                        s2.onerror = () => resolve(false);
+                        document.head.appendChild(s2);
+                    };
+                    s1.onerror = () => resolve(false);
+                    document.head.appendChild(s1);
+                });
+            }
 
-                if (events.length === 0) {
-                    eventsEl.innerHTML = `
-                        <div class="card" style="padding:24px; text-align:center; background:var(--surface); border:1px dashed var(--border);">
-                            <div style="font-size:24px; margin-bottom:6px;">🌱</div>
-                            <div style="font-weight:700; color:var(--text-main); font-size:13.5px;">Chưa có sự kiện theo dõi nào</div>
-                            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
-                                Thửa ruộng này chưa có lần chẩn đoán lá hoặc ghi chú quan sát. Hãy chẩn đoán ảnh lá cây đầu tiên hoặc thêm ghi chú thực địa ở trên.
-                            </div>
-                        </div>
-                    `;
+            function update3DFarmSelector() {
+                const sel = document.getElementById('farm3DSelector');
+                if (!sel) return;
+                const prev = sel.value;
+                let html = '';
+                currentFarmsList.forEach(f => {
+                    html += `<option value="${f.id}">${f.name} (${f.province || 'Khu vực chưa đặt'})</option>`;
+                });
+                if (!html) {
+                    html = '<option value="">-- Chưa có nông trại --</option>';
+                }
+                sel.innerHTML = html;
+                if (prev && Array.from(sel.options).some(o => o.value === prev)) {
+                    sel.value = prev;
+                }
+            }
+
+            window.initOrRefresh3D = async function() {
+                update3DFarmSelector();
+                if (!isWebGLSupported()) {
+                    document.getElementById('webglFallbackBanner').style.display = 'flex';
+                    return;
+                }
+                document.getElementById('webglFallbackBanner').style.display = 'none';
+
+                const ok = await ensureThreeLoaded();
+                if (!ok) {
+                    document.getElementById('webglFallbackBanner').style.display = 'flex';
                     return;
                 }
 
-                eventsEl.innerHTML = events.map(ev => {
-                    const dt = ev.created_at ? new Date(ev.created_at).toLocaleString('vi-VN', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
-                    const isDiag = ev.event_type === 'diagnosis';
-                    const icon = isDiag ? '🔬' : '📝';
-                    const borderColor = isDiag ? 'var(--primary)' : 'var(--warning)';
+                await loadActive3DScene();
+            };
 
-                    let title = '';
-                    let body = '';
-                    if (isDiag) {
-                        const disease = ev.predicted_disease || ev.disease_name_vi || 'Khỏe mạnh';
-                        const confText = ev.confidence != null ? `(Độ tương đồng mô hình: ${(ev.confidence * 100).toFixed(0)}% - raw score)` : '';
-                        const modelText = ev.model_version ? `• Model: ${ev.model_version}` : '';
-                        title = `Phân loại mẫu lá: <span style="color:var(--text-main); font-weight:700;">${disease}</span>`;
-                        body = `
-                            <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
-                                Cây trồng: <strong>${ev.crop || plot.crop_name || 'Lá cây'}</strong> ${confText} ${modelText}
-                            </div>
-                            ${ev.notes ? `<div style="font-size:12px; color:var(--text-muted); margin-top:4px; font-style:italic;">Ghi chú: ${ev.notes}</div>` : ''}
-                        `;
-                    } else {
-                        title = `Ghi chú quan sát thực địa & Chuyển trạng thái`;
-                        body = `
-                            <div style="font-size:12.5px; color:var(--text-main); margin-top:3px; line-height:1.5;">
-                                "${ev.notes || 'Cập nhật tình trạng theo dõi.'}"
-                            </div>
-                            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-                                Trạng thái ghi nhận: <strong>${ev.monitoring_status || 'monitoring'}</strong>
-                            </div>
-                        `;
-                    }
+            window.refreshActive3D = function() {
+                loadActive3DScene();
+            };
 
-                    return `
-                        <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:var(--surface); border:1px solid var(--border); border-left:3.5px solid ${borderColor}; border-radius:8px;">
-                            <div style="font-size:18px; line-height:1; margin-top:2px;">${icon}</div>
-                            <div style="flex:1;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px;">
-                                    <div>${title}</div>
-                                    <span style="font-size:11px; color:var(--text-muted);">${dt}</span>
-                                </div>
-                                ${body}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+            window.loadActive3DScene = async function() {
+                const sel = document.getElementById('farm3DSelector');
+                const farmId = sel ? parseInt(sel.value, 10) : null;
+                if (!farmId) return;
 
-            } catch (err) {
-                eventsEl.innerHTML = `<div style="padding:16px; text-align:center; color:var(--danger); font-size:12px;">${err.message || 'Lỗi tải tiến trình.'}</div>`;
-            }
-        }
-
-        function setupTimelineModal() {
-            const modal = document.getElementById('timelineModal');
-            document.getElementById('btnCloseTimelineModal').onclick = () => modal.classList.remove('show');
-            document.getElementById('btnCancelTimelineModal').onclick = () => modal.classList.remove('show');
-
-            document.getElementById('addTimelineEventForm').onsubmit = async e => {
-                e.preventDefault();
-                const plotId = activeTimelinePlotId;
-                if (!plotId) return;
-
-                const payload = {
-                    monitoring_status: document.getElementById('timelineNewStatus').value,
-                    notes: document.getElementById('timelineNoteInput').value.trim()
-                };
+                const container = document.getElementById('farmThreeJsContainer');
+                if (!container) return;
 
                 try {
-                    const btn = document.getElementById('btnSubmitTimelineNote');
-                    btn.disabled = true;
-                    btn.textContent = 'Đang lưu...';
+                    const res = await fetchJSON(`/api/farms/${farmId}/scene-3d`);
+                    renderThreeFarmScene(res);
+                } catch (err) {
+                    toast(err.message || 'Lỗi tải mô hình 3D nông trại.');
+                }
+            };
 
-                    const res = await fetchJSON(`/api/plots/${plotId}/timeline`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+            function renderThreeFarmScene(data) {
+                const container = document.getElementById('farmThreeJsContainer');
+                const width = container.clientWidth || 700;
+                const height = container.clientHeight || 580;
+
+                // Cancel previous loop
+                if (threeAnimFrameId) {
+                    cancelAnimationFrame(threeAnimFrameId);
+                    threeAnimFrameId = null;
+                }
+
+                // Cleanup previous renderer
+                if (threeRenderer) {
+                    threeRenderer.dispose();
+                    container.innerHTML = '';
+                }
+
+                threeScene = new THREE.Scene();
+                threeScene.background = new THREE.Color(0x18181b);
+                threeScene.fog = new THREE.FogExp2(0x18181b, 0.0035);
+
+                threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.5, 2000);
+                threeCameraPreset = data.camera_preset || {
+                    position: { x: 75, y: 70, z: 90 },
+                    target: { x: 0, y: 0, z: 0 }
+                };
+                threeCamera.position.set(threeCameraPreset.position.x, threeCameraPreset.position.y, threeCameraPreset.position.z);
+
+                threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+                threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+                threeRenderer.setSize(width, height);
+                threeRenderer.shadowMap.enabled = (window.innerWidth >= 768);
+                threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                container.appendChild(threeRenderer.domElement);
+
+                threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
+                threeControls.enableDamping = true;
+                threeControls.dampingFactor = 0.06;
+                threeControls.maxPolarAngle = Math.PI / 2 - 0.02; // Don't go underneath terrain
+                threeControls.minDistance = 10;
+                threeControls.maxDistance = 600;
+                threeControls.target.set(threeCameraPreset.target.x, threeCameraPreset.target.y, threeCameraPreset.target.z);
+                threeControls.update();
+
+                // Lighting
+                const hemiLight = new THREE.HemisphereLight(0xfef08a, 0x27272a, 0.65);
+                threeScene.add(hemiLight);
+
+                const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.9);
+                dirLight.position.set(70, 110, 70);
+                dirLight.castShadow = (window.innerWidth >= 768);
+                dirLight.shadow.mapSize.width = 1024;
+                dirLight.shadow.mapSize.height = 1024;
+                dirLight.shadow.camera.near = 0.5;
+                dirLight.shadow.camera.far = 400;
+                const d = 100;
+                dirLight.shadow.camera.left = -d;
+                dirLight.shadow.camera.right = d;
+                dirLight.shadow.camera.top = d;
+                dirLight.shadow.camera.bottom = -d;
+                threeScene.add(dirLight);
+
+                // Ground Terrain
+                const terrain = data.terrain || { width: 140, depth: 140 };
+                const groundGeom = new THREE.PlaneGeometry(terrain.width, terrain.depth, 24, 24);
+                const groundMat = new THREE.MeshStandardMaterial({
+                    color: 0x242427,
+                    roughness: 0.9,
+                    metalness: 0.05
+                });
+                const ground = new THREE.Mesh(groundGeom, groundMat);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                threeScene.add(ground);
+
+                // Subtle Farm Grid Lines
+                const gridHelper = new THREE.GridHelper(terrain.width, 32, 0x52525b, 0x333338);
+                gridHelper.position.y = 0.02;
+                threeScene.add(gridHelper);
+
+                // Update UI Summary counters
+                if (data.summary) {
+                    document.getElementById('count3DHealthy').textContent = data.summary.healthy_plots || 0;
+                    document.getElementById('count3DAttention').textContent = data.summary.attention_plots || 0;
+                    document.getElementById('count3DUnknown').textContent = data.summary.unknown_plots || 0;
+                }
+
+                // Disclaimer tag
+                const disclaimerEl = document.getElementById('threeDisclaimerTag');
+                if (disclaimerEl && data.scene_metadata) {
+                    disclaimerEl.innerHTML = `💡 <strong>${data.scene_metadata.is_digital_twin ? 'Bản sao số trắc địa GIS' : 'Mô phỏng 3D trực quan'}:</strong> ${data.scene_metadata.digital_twin_disclaimer}`;
+                }
+
+                // Render Plots
+                threePlotMeshes = [];
+                const plots = data.plots || [];
+                plots.forEach(p => {
+                    const w = p.dimensions.width;
+                    const d = p.dimensions.depth;
+                    const h = p.dimensions.height || 0.4;
+
+                    const plotGeom = new THREE.BoxGeometry(w, h, d);
+                    let colorHex = 0x94a3b8;
+                    if (p.health_status === 'healthy') colorHex = 0x22c55e;
+                    else if (p.health_status === 'attention_needed') colorHex = 0xf97316;
+
+                    // Materials: Top face is tinted by health status, sides are soil brown
+                    const sideMat = new THREE.MeshStandardMaterial({ color: 0x3f3f46, roughness: 0.85 });
+                    const topMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.7, metalness: 0.05 });
+                    const plotMaterials = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
+
+                    const plotMesh = new THREE.Mesh(plotGeom, plotMaterials);
+                    plotMesh.position.set(p.position.x, h / 2, p.position.z);
+                    plotMesh.receiveShadow = true;
+                    plotMesh.castShadow = true;
+                    plotMesh.userData = { plotId: p.plot_id, plotData: p };
+
+                    threeScene.add(plotMesh);
+                    threePlotMeshes.push(plotMesh);
+
+                    // Attention Floating Indicator
+                    if (p.has_alert_marker) {
+                        const alertGeom = new THREE.OctahedronGeometry(1.2);
+                        const alertMat = new THREE.MeshBasicMaterial({ color: 0xf97316, wireframe: false });
+                        const alertMesh = new THREE.Mesh(alertGeom, alertMat);
+                        alertMesh.position.set(p.position.x, 4.2, p.position.z);
+                        alertMesh.userData = { isAlert: true, baseY: 4.2, seed: p.plot_id };
+                        threeScene.add(alertMesh);
+                    }
+                });
+
+                // High-performance InstancedMesh for Plants
+                const instancedCrops = data.instanced_crops || {};
+                Object.keys(instancedCrops).forEach(modelKey => {
+                    const instances = instancedCrops[modelKey];
+                    if (!instances || instances.length === 0) return;
+
+                    // Build archetypal geometry
+                    let foliageGeom;
+                    let foliageMatColor = 0x16a34a;
+                    if (modelKey === 'vine_column') {
+                        foliageGeom = new THREE.CylinderGeometry(0.35, 0.45, 2.6, 6);
+                        foliageMatColor = 0x15803d;
+                    } else if (modelKey === 'canopy_tree') {
+                        foliageGeom = new THREE.DodecahedronGeometry(1.8, 1);
+                        foliageMatColor = 0x14532d;
+                    } else if (modelKey === 'grass_cluster') {
+                        foliageGeom = new THREE.ConeGeometry(0.5, 0.9, 5);
+                        foliageMatColor = 0x84cc16;
+                    } else {
+                        foliageGeom = new THREE.SphereGeometry(0.75, 6, 5);
+                        foliageMatColor = 0x22c55e;
+                    }
+
+                    const foliageMat = new THREE.MeshStandardMaterial({
+                        color: foliageMatColor,
+                        roughness: 0.8,
+                        metalness: 0.05
                     });
 
-                    if (res.success) {
-                        toast('Đã lưu cập nhật theo dõi thửa vườn thành công!');
-                        document.getElementById('timelineNoteInput').value = '';
-                        loadTimelineData(plotId);
-                        // refresh plots list in background if open
-                        const farmId = document.getElementById('currentPlotFarmId').value;
-                        if (farmId) loadFarmPlots(farmId);
+                    const instMesh = new THREE.InstancedMesh(foliageGeom, foliageMat, instances.length);
+                    instMesh.castShadow = (window.innerWidth >= 768);
+                    instMesh.receiveShadow = true;
+
+                    const dummy = new THREE.Object3D();
+                    instances.forEach((inst, i) => {
+                        dummy.position.set(inst.world_x, (inst.world_y || 0) + (modelKey === 'canopy_tree' ? 2.5 : 0.8), inst.world_z);
+                        dummy.rotation.y = inst.rotation_y || 0;
+                        const s = inst.scale || 1.0;
+                        dummy.scale.set(s, s, s);
+                        dummy.updateMatrix();
+                        instMesh.setMatrixAt(i, dummy.matrix);
+                    });
+
+                    instMesh.instanceMatrix.needsUpdate = true;
+                    threeScene.add(instMesh);
+                });
+
+                // Raycaster for Plot Selection
+                const raycaster = new THREE.Raycaster();
+                const mouse = new THREE.Vector2();
+
+                function onCanvasClick(event) {
+                    const rect = container.getBoundingClientRect();
+                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                    raycaster.setFromCamera(mouse, threeCamera);
+                    const intersects = raycaster.intersectObjects(threePlotMeshes);
+
+                    if (intersects.length > 0) {
+                        const hit = intersects[0].object;
+                        if (hit.userData && hit.userData.plotId) {
+                            highlight3DPlot(hit);
+                            window.selectPlotOn3D(hit.userData.plotId);
+                        }
                     }
+                }
+
+                container.onclick = onCanvasClick;
+
+                // Animate loop
+                let clock = 0;
+                function animate() {
+                    threeAnimFrameId = requestAnimationFrame(animate);
+                    clock += 0.03;
+
+                    // Animate alert diamonds (hover and spin)
+                    threeScene.traverse(obj => {
+                        if (obj.userData && obj.userData.isAlert) {
+                            obj.rotation.y += 0.04;
+                            obj.position.y = obj.userData.baseY + Math.sin(clock + obj.userData.seed) * 0.35;
+                        }
+                    });
+
+                    if (threeControls) threeControls.update();
+                    if (threeRenderer && threeScene && threeCamera) {
+                        threeRenderer.render(threeScene, threeCamera);
+                    }
+                }
+                animate();
+
+                // Window resize handler
+                window.addEventListener('resize', onThreeResize);
+                function onThreeResize() {
+                    if (!threeRenderer || !threeCamera || !container) return;
+                    const w = container.clientWidth;
+                    const h = container.clientHeight;
+                    if (w === 0 || h === 0) return;
+                    threeCamera.aspect = w / h;
+                    threeCamera.updateProjectionMatrix();
+                    threeRenderer.setSize(w, h);
+                }
+            }
+
+            function highlight3DPlot(mesh) {
+                if (threeSelectionHighlight) {
+                    threeScene.remove(threeSelectionHighlight);
+                    threeSelectionHighlight.geometry.dispose();
+                    threeSelectionHighlight = null;
+                }
+                const p = mesh.userData.plotData;
+                const boxGeom = new THREE.BoxGeometry(p.dimensions.width + 0.6, p.dimensions.height + 0.6, p.dimensions.depth + 0.6);
+                const edges = new THREE.EdgesGeometry(boxGeom);
+                threeSelectionHighlight = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 3 }));
+                threeSelectionHighlight.position.copy(mesh.position);
+                threeScene.add(threeSelectionHighlight);
+            }
+
+            window.resetCamera3D = function() {
+                if (!threeCamera || !threeControls || !threeCameraPreset) return;
+                threeCamera.position.set(threeCameraPreset.position.x, threeCameraPreset.position.y, threeCameraPreset.position.z);
+                threeControls.target.set(threeCameraPreset.target.x, threeCameraPreset.target.y, threeCameraPreset.target.z);
+                threeControls.update();
+            };
+
+            window.setTopDownCamera3D = function() {
+                if (!threeCamera || !threeControls) return;
+                threeCamera.position.set(0, 160, 0.1);
+                threeControls.target.set(0, 0, 0);
+                threeControls.update();
+            };
+
+            window.selectPlotOn3D = async function(plotId) {
+                threeActivePlotId = plotId;
+                try {
+                    const res = await fetchJSON(`/api/plots/${plotId}/map-detail`);
+                    const p = res.plot;
+                    const status = res.health_status;
+
+                    document.getElementById('drawer3DEmptyNotice').style.display = 'none';
+                    document.getElementById('drawer3DPlotContent').style.display = 'block';
+
+                    document.getElementById('drawer3DPlotName').textContent = `${p.name} ${p.code ? '(' + p.code + ')' : ''}`;
+                    document.getElementById('drawer3DPlotCrop').textContent = p.crop_name || 'Đa canh';
+                    document.getElementById('drawer3DPlotArea').textContent = `${p.area_hectare || 0} ha (${(p.area_m2 || 0).toLocaleString()} m²)`;
+
+                    // Badge
+                    const badge = document.getElementById('drawer3DStatusBadge');
+                    if (status === 'healthy') {
+                        badge.textContent = '🟢 Khỏe mạnh';
+                        badge.className = 'pill pill-success';
+                    } else if (status === 'attention_needed') {
+                        badge.textContent = '🟠 Cần chú ý';
+                        badge.className = 'pill pill-warning';
+                    } else {
+                        badge.textContent = '⚪ Chưa có dữ liệu';
+                        badge.className = 'pill pill-neutral';
+                    }
+
+                    // Cycle
+                    const cycle = res.active_cycle;
+                    document.getElementById('drawer3DPlotCycle').textContent = cycle 
+                        ? `${cycle.name} (${cycle.crop_name || 'Cây trồng'}) — Bắt đầu: ${cycle.start_date || 'N/A'}` 
+                        : 'Chưa kích hoạt vụ mùa';
+
+                    // Health Reason
+                    const reasonBox = document.getElementById('drawer3DHealthReasonBox');
+                    document.getElementById('drawer3DHealthReasonText').textContent = res.health_reason || 'Không có cảnh báo.';
+                    if (status === 'attention_needed') {
+                        reasonBox.style.background = 'rgba(249,115,22,0.12)';
+                        reasonBox.style.borderLeftColor = '#f97316';
+                    } else if (status === 'healthy') {
+                        reasonBox.style.background = 'rgba(34,197,94,0.12)';
+                        reasonBox.style.borderLeftColor = '#22c55e';
+                    } else {
+                        reasonBox.style.background = 'var(--surface-muted)';
+                        reasonBox.style.borderLeftColor = '#94a3b8';
+                    }
+
+                    // Recent Diagnoses
+                    const diagContainer = document.getElementById('drawer3DRecentDiagnoses');
+                    const diags = res.recent_diagnoses || [];
+                    if (diags.length === 0) {
+                        diagContainer.innerHTML = '<span style="color:var(--text-muted); font-size:11.5px;">Chưa có chẩn đoán lá trong 30 ngày qua.</span>';
+                    } else {
+                        diagContainer.innerHTML = diags.map(d => `
+                            <div style="background:var(--surface); border:1px solid var(--border); padding:6px 8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; font-size:11.5px;">
+                                <div>
+                                    <strong>${d.disease_name || d.crop_id}</strong>
+                                    <span style="color:var(--text-muted); font-size:10.5px; display:block;">${d.created_at ? d.created_at.split('T')[0] : ''}</span>
+                                </div>
+                                <span class="pill ${d.severity === 'HIGH' || d.severity === 'CRITICAL' ? 'pill-warning' : 'pill-success'}" style="font-size:10px;">
+                                    ${(d.confidence * 100).toFixed(0)}%
+                                </span>
+                            </div>
+                        `).join('');
+                    }
+
+                    // Pending Tasks
+                    const taskContainer = document.getElementById('drawer3DPendingTasks');
+                    const tasks = res.pending_tasks || [];
+                    if (tasks.length === 0) {
+                        taskContainer.innerHTML = '<span style="color:var(--text-muted); font-size:11.5px;">Không có công việc tồn đọng.</span>';
+                    } else {
+                        taskContainer.innerHTML = tasks.map(t => `
+                            <div style="background:var(--surface); border:1px solid var(--border); padding:6px 8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; font-size:11.5px;">
+                                <div>
+                                    <span style="${t.is_overdue ? 'color:#ef4444; font-weight:700;' : ''}">${t.title}</span>
+                                    <span style="color:var(--text-muted); font-size:10.5px; display:block;">Hạn: ${t.due_date || 'Không có'}</span>
+                                </div>
+                                <span class="pill ${t.is_overdue ? 'pill-danger' : 'pill-neutral'}" style="font-size:10px;">
+                                    ${t.is_overdue ? 'QUÁ HẠN' : (t.priority || 'NORMAL')}
+                                </span>
+                            </div>
+                        `).join('');
+                    }
+
+                    // Action buttons
+                    document.getElementById('btnDrawer3DOpenHierarchy').onclick = () => {
+                        window.openHierarchyModal(p.farm_id, p.id);
+                    };
+                    document.getElementById('btnDrawer3DDiagnosePlot').href = `/frontend2/predict.html?plot_id=${p.id}&farm_id=${p.farm_id}`;
+
                 } catch (err) {
-                    toast(err.message || 'Lỗi lưu cập nhật.');
-                } finally {
-                    const btn = document.getElementById('btnSubmitTimelineNote');
-                    btn.disabled = false;
-                    btn.textContent = 'Lưu cập nhật';
+                    toast(err.message || 'Lỗi tải chi tiết thửa đất.');
+                }
+            };
+
+            window.switchTo2DPlot = function() {
+                window.switchMainView('map');
+                if (threeActivePlotId) {
+                    setTimeout(() => {
+                        window.selectPlotOnMap(threeActivePlotId);
+                    }, 300);
                 }
             };
         }

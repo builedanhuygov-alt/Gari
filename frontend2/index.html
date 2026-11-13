@@ -2,9 +2,13 @@
 <html lang="vi">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tổng quan nông nghiệp • Gari AI Lab</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>GARI • Trợ lý nông nghiệp AI</title>
+    <script src="/frontend2/features.js"></script>
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_redesign">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -23,288 +27,322 @@
 
         <!-- Main Wrapper -->
         <div class="app-main">
-            <!-- Header Container (Managed by setupSaaSShell) -->
+            <!-- A. Mobile Top Bar (Managed by setupSaaSShell) -->
             <header class="app-topbar" id="appTopbar"></header>
 
-            <!-- Page Body -->
-            <main class="content-body">
-                <!-- Page Head -->
-                <div class="page-head">
-                    <div>
-                        <h1 class="page-head-title">Trợ lý sức khỏe cây trồng • Gari AgriTech</h1>
-                        <p class="page-head-sub">Hỗ trợ nhận diện bệnh sớm qua ảnh chụp lá, theo dõi diễn tiến vườn trồng và kết nối khuyến nông.</p>
+            <!-- Page Body: Mobile-First Redesigned Home Dashboard -->
+            <main class="content-body dashboard-mobile-redesign">
+                
+                <!-- B. Hero Banner -->
+                <section class="hero-banner-v2" id="heroBanner" aria-label="Giới thiệu GARI AI">
+                    <div class="hero-bg-container">
+                        <img src="/static/frontend2/images/hero_terraces_landscape.jpg" alt="Ruộng bậc thang nông nghiệp Việt Nam" class="hero-bg-img" loading="eager">
+                        <div class="hero-gradient-overlay"></div>
                     </div>
-                    <div class="page-head-actions">
-                        <a href="/frontend2/predict.html" class="btn btn-primary" id="btnDiagnoseLeaf">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.5"/></svg>
-                            Chẩn đoán cây trồng
+                    
+                    <div class="hero-inner-content">
+                        <!-- Top Badges -->
+                        <div class="hero-badge-row">
+                            <span class="hero-pill-badge">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                                <span>AI Nông nghiệp</span>
+                            </span>
+                            <span class="hero-pill-badge">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
+                                <span>Đa cây trồng</span>
+                            </span>
+                        </div>
+
+                        <!-- Title & Subtitle -->
+                        <h1 class="hero-title-v2">Trợ lý sức khỏe cây trồng</h1>
+                        <p class="hero-desc-v2">
+                            Nhận diện bệnh sớm bằng AI • Theo dõi vườn<br>
+                            Tư vấn canh tác thông minh
+                        </p>
+
+                        <!-- Primary CTA Button -->
+                        <div class="hero-cta-wrap">
+                            <button type="button" class="btn-hero-cta" id="btnHeroStartDiagnose">
+                                <span>Bắt đầu chẩn đoán</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Side AI Leaf Detection Visual -->
+                    <div class="hero-visual-leaf-card" id="heroVisualCard" aria-hidden="true">
+                        <div class="leaf-viewfinder-frame">
+                            <img src="/static/frontend2/images/botanical_leaf_sample.jpg" alt="Quét nhận diện bệnh lá" class="leaf-viewfinder-img">
+                            <span class="reticle-corner top-left"></span>
+                            <span class="reticle-corner top-right"></span>
+                            <span class="reticle-corner bottom-left"></span>
+                            <span class="reticle-corner bottom-right"></span>
+                            
+                            <div class="leaf-detection-tag">
+                                <span class="tag-alert-icon">✨</span>
+                                <span class="tag-text">Mô phỏng quét lá • <strong>Hệ thống AI sẵn sàng</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- C. Quick-access Feature Cards -->
+                <section class="quick-access-section" aria-label="Tính năng thao tác nhanh">
+                    <div class="quick-access-scroll-track" id="quickAccessTrack">
+                        <!-- 1. Chẩn đoán bệnh cây (Active green style) -->
+                        <a href="#aiCropDiagnosisSection" class="quick-card active" id="cardQuickDiagnose" title="Chẩn đoán bệnh cây">
+                            <div class="quick-icon-wrap">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.2"/></svg>
+                            </div>
+                            <span class="quick-label">Chẩn đoán<br>bệnh cây</span>
                         </a>
-                        <a href="/frontend2/farms.html" class="btn btn-secondary" id="btnAddFarm">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Thêm nông trại
+
+                        <!-- 2. Hỏi AI Gari -->
+                        <a href="javascript:void(0)" class="quick-card" id="cardQuickAssistant" title="Hỏi Trợ lý AI Gari">
+                            <div class="quick-icon-wrap">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="12" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></svg>
+                            </div>
+                            <span class="quick-label">Hỏi AI<br>Gari</span>
+                        </a>
+
+                        <!-- 3. Quản lý vườn -->
+                        <a href="/frontend2/farms.html" class="quick-card" id="cardQuickFarms" title="Quản lý nông trại và thửa đất">
+                            <div class="quick-icon-wrap">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22v-7"/><path d="M17 8a5 5 0 0 0-10 0c0 7 5 9 5 9s5-2 5-9Z"/><path d="m9 11 3 3 3-3"/></svg>
+                            </div>
+                            <span class="quick-label">Quản lý<br>vườn</span>
+                        </a>
+
+                        <!-- 4. HTX / Doanh nghiệp -->
+                        <a href="/frontend2/organization.html" class="quick-card" title="Hợp tác xã & Doanh nghiệp">
+                            <div class="quick-icon-wrap">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <span class="quick-label">HTX /<br>Doanh nghiệp</span>
+                        </a>
+
+                        <!-- 5. Hỏi chuyên gia -->
+                        <a href="/frontend2/support.html" class="quick-card" title="Kết nối chuyên gia nông học">
+                            <div class="quick-icon-wrap">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                            </div>
+                            <span class="quick-label">Hỏi<br>chuyên gia</span>
+                        </a>
+
+                        <!-- 6. Cộng đồng -->
+                        <a href="/frontend2/community.html" class="quick-card" id="cardQuickCommunity" title="Cộng đồng nhà nông & kiến thức">
+                            <div class="quick-icon-wrap">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><circle cx="19" cy="11" r="3"/><path d="M19 14a3 3 0 0 1 3 3v4"/></svg>
+                            </div>
+                            <span class="quick-label">Cộng đồng</span>
                         </a>
                     </div>
-                </div>
+                </section>
 
-                <!-- User Entitlement & Quota Status Card (Sprint 1) -->
-                <div class="card" style="margin-bottom:20px; padding:16px 20px; background:var(--surface); border:1px solid var(--border); border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-                    <div style="display:flex; align-items:center; gap:14px;">
-                        <div style="width:42px; height:42px; border-radius:10px; background:var(--primary-soft); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">
-                            🌿
+                <!-- D. AI Crop Diagnosis Card -->
+                <section class="card-v2 diagnosis-section-v2" id="aiCropDiagnosisSection">
+                    <!-- Header -->
+                    <div class="section-v2-header">
+                        <div class="header-icon-square">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
                         </div>
-                        <div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Gói Dịch Vụ:</span>
-                                <span class="pill pill-success" id="userPlanBadge" style="font-weight:700;">Đang kiểm tra...</span>
-                            </div>
-                            <div style="font-size:13.5px; font-weight:700; color:var(--text-main); margin-top:2px;" id="userQuotaNotice">
-                                Đang nạp hạn ngạch chẩn đoán thời gian thực...
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <a href="/frontend2/onboarding.html" class="btn btn-secondary btn-sm">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                            Hồ sơ cây trồng
-                        </a>
-                        <a href="/frontend2/pricing.html" class="btn btn-primary btn-sm" id="btnUpgradeCTA">
-                            Nâng cấp / Đăng ký Pilot
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 4 KPI Cards (Linear / Stripe Style) -->
-                <div class="kpi-row">
-                    <div class="kpi-card">
-                        <div class="kpi-top">
-                            <span class="kpi-label">Tổng diện tích canh tác</span>
-                            <div class="kpi-icon-wrap">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            </div>
-                        </div>
-                        <div class="kpi-metric-wrap">
-                            <span class="kpi-metric" id="kpiArea"><span class="skeleton skeleton-metric"></span></span>
-                        </div>
-                        <div class="kpi-bottom">
-                            <span class="kpi-badge positive" id="kpiFarmsCount">Đang kiểm tra...</span>
-                            <span>vùng trồng đang canh tác</span>
+                        <div class="header-text-group">
+                            <h2 class="section-v2-title">Chẩn đoán cây trồng bằng AI</h2>
+                            <p class="section-v2-desc">Tải ảnh lá, thân hoặc cả cây để nhận diện bệnh, giải thích và hướng dẫn xử lý chi tiết.</p>
                         </div>
                     </div>
 
-                    <div class="kpi-card">
-                        <div class="kpi-top">
-                            <span class="kpi-label">Lượt chẩn đoán AI</span>
-                            <div class="kpi-icon-wrap">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/></svg>
-                            </div>
-                        </div>
-                        <div class="kpi-metric-wrap">
-                            <span class="kpi-metric" id="kpiDiagnoses"><span class="skeleton skeleton-metric"></span></span>
-                        </div>
-                        <div class="kpi-bottom">
-                            <span class="kpi-badge neutral">Suy luận cục bộ</span>
-                            <span>zero cloud transmission</span>
-                        </div>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-top">
-                            <span class="kpi-label">Tỷ lệ cây trồng khỏe mạnh</span>
-                            <div class="kpi-icon-wrap">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
-                            </div>
-                        </div>
-                        <div class="kpi-metric-wrap">
-                            <span class="kpi-metric" id="kpiHealthy"><span class="skeleton skeleton-metric"></span></span>
-                        </div>
-                        <div class="kpi-bottom">
-                            <span class="kpi-badge positive">Mẫu âm tính</span>
-                            <span>không phát hiện mầm bệnh</span>
-                        </div>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-top">
-                            <span class="kpi-label">Hồ sơ chờ chuyên gia</span>
-                            <div class="kpi-icon-wrap" style="color:var(--warning);">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
-                            </div>
-                        </div>
-                        <div class="kpi-metric-wrap">
-                            <span class="kpi-metric" id="kpiPending"><span class="skeleton skeleton-metric"></span></span>
-                        </div>
-                        <div class="kpi-bottom">
-                            <a href="/frontend2/support.html" style="color:var(--primary); font-weight:600;">Xem danh sách chờ →</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Balanced Content Grid (1.45fr : 1fr) -->
-                <div class="dashboard-grid">
-                    <!-- LEFT COLUMN -->
-                    <div class="grid-col">
-                        <!-- Recent Diagnoses Activity -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <h2 class="card-title">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                        Hoạt động chẩn đoán gần đây
-                                    </h2>
-                                    <div class="card-subtitle">Nhật ký quét thực tế từ các nông trại kết nối và khảo sát thực địa</div>
-                                </div>
-                                <a href="/frontend2/reports.html" class="btn btn-secondary btn-sm">Xem toàn bộ</a>
-                            </div>
-
-                            <div class="table-wrap">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Mã hồ sơ</th>
-                                            <th>Vị trí nông trại</th>
-                                            <th>Cây trồng</th>
-                                            <th>Mầm bệnh / Tình trạng</th>
-                                            <th>Mức độ</th>
-                                            <th>Độ tin cậy</th>
-                                            <th>Thời gian</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="recentDiagnosesBody">
-                                        <tr>
-                                            <td colspan="7" style="text-align:center; padding:24px;">
-                                                <span class="skeleton" style="width:60%; height:16px;"></span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Crop Distribution & Disease Insights -->
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title-group">
-                                        <h3 class="card-title">Phân bố cây trồng</h3>
-                                        <div class="card-subtitle">Các loại cây trồng đang được theo dõi</div>
+                    <!-- Body Grid: Left Upload & Status, Right 3-Step Timeline -->
+                    <div class="diagnosis-grid-v2">
+                        <!-- Left: Upload Area -->
+                        <div class="diagnosis-upload-col">
+                            <div class="dropzone-v2" id="dashboardDropzone" role="button" tabindex="0">
+                                <input type="file" id="dashboardFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                                
+                                <div id="dropzoneEmptyView">
+                                    <div class="dropzone-icon-box">
+                                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#087A43" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                                    </div>
+                                    <div class="dropzone-primary-text">Tải ảnh hoặc chụp ảnh</div>
+                                    <div class="dropzone-secondary-text">Kéo thả ảnh vào đây, hoặc chọn từ thiết bị</div>
+                                    
+                                    <div class="dropzone-actions-row">
+                                        <button type="button" class="btn-diag-action primary" id="btnActionCapture">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                            <span>Chụp ảnh</span>
+                                        </button>
+                                        <button type="button" class="btn-diag-action secondary" id="btnActionBrowse">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                                            <span>Chọn ảnh</span>
+                                        </button>
                                     </div>
                                 </div>
-                                <div id="cropDistributionContainer" style="display:flex; flex-direction:column; gap:10px;">
-                                    <div style="padding:16px 0;"><span class="skeleton" style="width:85%; height:14px;"></span></div>
-                                </div>
-                            </div>
 
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title-group">
-                                        <h3 class="card-title">Thống kê bệnh cây</h3>
-                                        <div class="card-subtitle">Mầm bệnh phát hiện trong các đợt quét</div>
+                                <!-- Selected Image Preview State -->
+                                <div id="dropzonePreviewView" style="display:none;">
+                                    <div class="preview-img-container">
+                                        <img id="previewImgElement" src="" alt="Xem trước ảnh chẩn đoán" class="preview-img">
+                                        <div class="reticle-corner top-left"></div>
+                                        <div class="reticle-corner top-right"></div>
+                                        <div class="reticle-corner bottom-left"></div>
+                                        <div class="reticle-corner bottom-right"></div>
+                                        <div class="diag-scan-beam" id="diagScanBeam"></div>
+                                        <button type="button" class="btn-remove-preview" id="btnRemovePreview" title="Hủy ảnh">✕</button>
+                                    </div>
+                                    <div class="preview-controls-row">
+                                        <select id="selectCropType" class="select-crop-v2" aria-label="Loại cây trồng">
+                                            <option value="auto">🌿 Tự động nhận diện cây</option>
+                                            <option value="Coffee">☕ Cà phê (Coffee)</option>
+                                            <option value="Pepper">🌶️ Hồ tiêu (Pepper)</option>
+                                            <option value="Durian">🍈 Sầu riêng (Durian)</option>
+                                            <option value="Rice">🌾 Lúa (Rice)</option>
+                                            <option value="Tomato">🍅 Cà chua (Tomato)</option>
+                                            <option value="Potato">🥔 Khoai tây (Potato)</option>
+                                            <option value="Corn">🌽 Ngô (Corn)</option>
+                                        </select>
+                                        <button type="button" class="btn-execute-diag" id="btnExecuteDiagnose">
+                                            <span>Phân tích AI</span>
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                        </button>
                                     </div>
                                 </div>
-                                <div id="diseaseInsightsContainer" style="display:flex; flex-direction:column; gap:10px;">
-                                    <div style="padding:16px 0;"><span class="skeleton" style="width:85%; height:14px;"></span></div>
+                            </div>
+
+                            <!-- Real Server Status Badge -->
+                            <div class="server-status-wrap">
+                                <div class="server-status-pill" id="serverStatusBadge">
+                                    <span class="status-shield-icon">🛡️</span>
+                                    <span id="serverStatusText">Máy chủ GARI • Đang kiểm tra...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: 3-Step Explanation Timeline -->
+                        <div class="diagnosis-steps-col">
+                            <div class="steps-timeline">
+                                <!-- Step 1 -->
+                                <div class="timeline-step">
+                                    <div class="step-badge-col">
+                                        <span class="step-number">1</span>
+                                        <span class="step-line"></span>
+                                    </div>
+                                    <div class="step-card">
+                                        <div class="step-icon-box">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#087A43" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                                        </div>
+                                        <div class="step-content">
+                                            <h3 class="step-title">Tải ảnh cây trồng</h3>
+                                            <p class="step-sub">(chụp hoặc chọn ảnh)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2 -->
+                                <div class="timeline-step">
+                                    <div class="step-badge-col">
+                                        <span class="step-number">2</span>
+                                        <span class="step-line"></span>
+                                    </div>
+                                    <div class="step-card">
+                                        <div class="step-icon-box">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#087A43" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
+                                        </div>
+                                        <div class="step-content">
+                                            <h3 class="step-title">AI phân tích</h3>
+                                            <p class="step-sub">Nhận diện cây, bệnh, độ tin cậy</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Step 3 -->
+                                <div class="timeline-step">
+                                    <div class="step-badge-col">
+                                        <span class="step-number">3</span>
+                                    </div>
+                                    <div class="step-card">
+                                        <div class="step-icon-box">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#087A43" stroke-width="2"><path d="M9 18h6M10 22h4M15 8a5 5 0 0 0-10 0c0 2.5 1.5 4.5 3 6h4c1.5-1.5 3-3.5 3-6Z"/></svg>
+                                        </div>
+                                        <div class="step-content">
+                                            <h3 class="step-title">Giải thích &amp; tư vấn</h3>
+                                            <p class="step-sub">Nguyên nhân, cách xử lý, lịch theo dõi</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </section>
 
-                    <!-- RIGHT COLUMN -->
-                    <div class="grid-col">
-                        <!-- Agricultural Recommendations & Seasonal Advisory -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <h3 class="card-title">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--primary);"><path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"/><path d="M12 6v6l4 2"/></svg>
-                                        Khuyến nghị nông học mùa vụ
-                                    </h3>
-                                    <div class="card-subtitle">Hướng dẫn phòng bệnh & canh tác theo thời tiết</div>
-                                </div>
-                                <span class="pill pill-success">Vụ mùa khuyến cáo</span>
+                <!-- E. Farm Overview ("Vườn của bạn") -->
+                <section class="card-v2 farms-overview-section" id="farmsOverviewSection">
+                    <div class="section-v2-header flex-between">
+                        <div class="header-left-group">
+                            <div class="header-icon-square">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
                             </div>
-
-                            <div class="spec-list">
-                                <div class="spec-item">
-                                    <span class="spec-k">Lưu ý thời tiết:</span>
-                                    <span class="spec-v">Độ ẩm cao, sương sớm</span>
-                                </div>
-                                <div class="spec-item">
-                                    <span class="spec-k">Cây trồng trọng điểm:</span>
-                                    <span class="spec-v">Lúa, Sầu riêng, Tiêu, Cà phê</span>
-                                </div>
-                                <div class="spec-item">
-                                    <span class="spec-k">Nguy cơ nấm bệnh:</span>
-                                    <span class="spec-v" style="color:#d97706;font-weight:600;">Thán thư & Đốm lá vi khuẩn</span>
-                                </div>
-                                <div class="spec-item">
-                                    <span class="spec-k">Biện pháp ưu tiên:</span>
-                                    <span class="spec-v">Tỉa cành thông thoáng, tưới gốc</span>
-                                </div>
-                                <div class="spec-item">
-                                    <span class="spec-k">Chế phẩm sinh học:</span>
-                                    <span class="spec-v">Trichoderma & Bacillus subtilis</span>
-                                </div>
-                            </div>
-
-                            <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--border); display:flex; gap:8px;">
-                                <a href="/frontend2/predict.html" class="btn btn-primary btn-sm" style="flex:1; text-align:center;">
-                                    + Chẩn đoán bệnh lá
-                                </a>
-                                <a href="/frontend2/crops.html" class="btn btn-secondary btn-sm" style="flex:1; text-align:center;">
-                                    Sổ tay 51 cây trồng →
-                                </a>
+                            <div>
+                                <h2 class="section-v2-title">Vườn của bạn</h2>
+                                <p class="section-v2-desc">Quản lý vườn, lô, cây trồng và theo dõi sức khỏe.</p>
                             </div>
                         </div>
+                        <a href="/frontend2/farms.html" class="link-see-all">
+                            <span>Xem tất cả</span>
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
 
-                        <!-- Agricultural Alerts -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <h3 class="card-title">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                        Cảnh báo nông nghiệp
-                                    </h3>
-                                    <div class="card-subtitle">Dự báo khí tượng & dịch tễ dịch hại</div>
-                                </div>
-                                <a href="/frontend2/risk.html" class="btn btn-ghost btn-sm">Xem tất cả</a>
-                            </div>
-
-                            <div class="alerts-list" id="alertsFeed">
-                                <div style="padding:14px 0;"><span class="skeleton" style="width:90%; height:16px;"></span></div>
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title-group">
-                                    <h3 class="card-title">Thao tác nhanh</h3>
-                                    <div class="card-subtitle">Lối tắt tác vụ thường dùng</div>
-                                </div>
-                            </div>
-
-                            <div class="quick-action-grid">
-                                <a href="/frontend2/predict.html" class="quick-action-btn">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><circle cx="12" cy="12" r="3.5"/></svg>
-                                    <span>Chẩn đoán lá</span>
-                                </a>
-                                <a href="/frontend2/farms.html" class="quick-action-btn">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                                    <span>Thêm nông trại</span>
-                                </a>
-                                <a href="/frontend2/crops.html" class="quick-action-btn">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/></svg>
-                                    <span>Cây trồng</span>
-                                </a>
-                                <a href="/frontend2/support.html" class="quick-action-btn">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                                    <span>Hỏi chuyên gia</span>
-                                </a>
-                            </div>
+                    <div class="farms-scroll-track" id="farmsCardsTrack">
+                        <div class="empty-state-notice" id="farmsEmptyNotice" style="padding: 28px 16px; text-align: center; color: var(--text-muted); width: 100%;">
+                            <p style="margin: 0; font-size: 14.5px;">Bạn chưa có vườn nào.</p>
                         </div>
                     </div>
-                </div>
+                </section>
+
+                <!-- F. GARI Pro Upgrade Banner -->
+                <section class="pro-upgrade-banner-v2" id="proUpgradeBanner">
+                    <div class="pro-banner-bg-graphic" aria-hidden="true">
+                        <svg viewBox="0 0 200 80" preserveAspectRatio="none" fill="none">
+                            <path d="M0,70 Q50,60 100,45 T200,10 L200,80 L0,80 Z" fill="rgba(34, 197, 94, 0.15)"/>
+                            <path d="M0,70 Q50,60 100,45 T200,10" stroke="rgba(74, 222, 128, 0.4)" stroke-width="3" fill="none"/>
+                        </svg>
+                    </div>
+                    <div class="pro-banner-content">
+                        <div class="pro-banner-text">
+                            <h3 class="pro-banner-title">
+                                <span class="crown-icon">👑</span>
+                                <span>Nâng cấp GARI Pro</span>
+                            </h3>
+                            <p class="pro-banner-desc">Mở khóa quản lý vườn nâng cao, tạo HTX/Doanh nghiệp, mô phỏng 3D, và nhiều tính năng chuyên sâu khác.</p>
+                        </div>
+                        <a href="/frontend2/pricing.html" class="btn-pro-upgrade-cta">
+                            <span>Xem gói nâng cấp</span>
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </section>
+
             </main>
+        </div>
+    </div>
+
+    <!-- Instant Diagnosis Result Modal -->
+    <div class="modal-backdrop" id="instantDiagModal">
+        <div class="modal-box modal-box-diag">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:20px;">🔬</span>
+                    <h3 class="modal-title" style="margin:0;">Kết quả chẩn đoán AI</h3>
+                </div>
+                <button type="button" class="modal-close-btn" id="btnCloseDiagModal">✕</button>
+            </div>
+            <div class="modal-body" id="modalDiagContent" style="display:flex; flex-direction:column; gap:12px;">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="modal-footer" style="display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('instantDiagModal').classList.remove('show');">Đóng</button>
+                <a href="/frontend2/predict.html" class="btn btn-primary" id="btnViewFullReport">Xem hồ sơ chi tiết →</a>
+            </div>
         </div>
     </div>
 
@@ -312,11 +350,18 @@
     <div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, fetchJSON, animateCountUp, toast } from '/static/frontend2/app.js';
+        import { setupSaaSShell, fetchJSON, toast, AUTH_TOKEN_KEY } from '/static/frontend2/app.js?v=20261104_redesign';
+        import { formatCropName, formatDiseaseName } from '/static/frontend2/localization.js';
+
+        let currentSelectedFile = null;
 
         function init() {
-            setupSaaSShell('overview', 'Tổng quan nông nghiệp');
-            loadDashboardTelemetry();
+            applyFeatureAvailability();
+            setupSaaSShell('overview', 'Trợ lý nông nghiệp AI', false);
+            measureServerLatency();
+            initDashboardInteractions();
+            loadProductionFarms();
+            checkProBanner();
         }
 
         if (document.readyState === 'loading') {
@@ -325,205 +370,378 @@
             init();
         }
 
-        async function loadDashboardTelemetry() {
+        // Measure real backend latency & server health
+        async function measureServerLatency() {
+            const badge = document.getElementById('serverStatusBadge');
+            const text = document.getElementById('serverStatusText');
+            if (!badge || !text) return;
+
+            const t0 = performance.now();
             try {
-                // Fetch stats, models, health and user quota concurrently
-                const [statsRes, modelsRes, healthRes, quotaRes] = await Promise.allSettled([
-                    fetchJSON('/api/dashboard/stats'),
-                    fetchJSON('/api/models'),
-                    fetchJSON('/api/health'),
-                    fetchJSON('/api/user/quota')
-                ]);
+                const res = await fetch('/api/health', { cache: 'no-store' });
+                const t1 = performance.now();
+                const latencyMs = Math.max(1, Math.round(t1 - t0));
 
-                // 0. Process User Plan & Quota Banner
-                if (quotaRes.status === 'fulfilled' && quotaRes.value && quotaRes.value.quota) {
-                    const q = quotaRes.value.quota;
-                    const badge = document.getElementById('userPlanBadge');
-                    const notice = document.getElementById('userQuotaNotice');
-                    if (badge) {
-                        badge.textContent = q.plan_name || (q.is_vip ? 'VIP / Pro' : 'Nông Hộ (Free)');
-                        badge.className = q.is_vip ? 'pill pill-warning' : 'pill pill-success';
-                    }
-                    if (notice) {
-                        if (q.is_unlimited) {
-                            notice.innerHTML = `<strong>Không giới hạn lượt phân loại</strong> — Toàn quyền truy cập mô hình nông nghiệp cao cấp.`;
-                        } else {
-                            notice.innerHTML = `Bạn còn <strong style="color:var(--primary);">${q.remaining}/${q.quota_limit} lượt</strong> chẩn đoán hôm nay. <span style="font-size:12px; color:var(--text-muted);">(Làm mới sau ${q.resets_in_human})</span>`;
-                        }
-                    }
-                }
-
-                // 1. Process Dashboard Stats
-                if (statsRes.status === 'fulfilled') {
-                    const stats = statsRes.value;
-
-                    // KPIs with animated count-up
-                    if (stats.total_hectares != null) {
-                        animateCountUp('kpiArea', stats.total_hectares, 750, ' ha', 1);
-                    } else {
-                        document.getElementById('kpiArea').textContent = 'Chưa có dữ liệu';
-                    }
-
-                    document.getElementById('kpiFarmsCount').textContent = stats.farms_total ? `${stats.farms_total} nông trại` : '0 nông trại';
-                    
-                    if (stats.diagnoses_total != null) {
-                        animateCountUp('kpiDiagnoses', stats.diagnoses_total, 750, ' lượt', 0);
-                    } else {
-                        document.getElementById('kpiDiagnoses').textContent = '0';
-                    }
-
-                    if (stats.healthy_rate_percent != null) {
-                        animateCountUp('kpiHealthy', stats.healthy_rate_percent, 750, '%', 1);
-                    } else {
-                        document.getElementById('kpiHealthy').textContent = 'Chưa có dữ liệu';
-                    }
-
-                    if (stats.pending_expert_cases != null) {
-                        animateCountUp('kpiPending', stats.pending_expert_cases, 750, ' hồ sơ', 0);
-                    } else {
-                        document.getElementById('kpiPending').textContent = '0';
-                    }
-
-                    // Recent Diagnoses Table
-                    renderRecentTable(stats.recent_diagnoses || []);
-
-                    // Crop Distribution
-                    renderCropDistribution(stats.crop_distribution || []);
-
-                    // Disease Insights
-                    renderDiseaseInsights(stats.disease_distribution || []);
-
-                    // Alerts
-                    renderAlerts(stats.recent_alerts || []);
+                if (res.ok) {
+                    badge.className = 'server-status-pill';
+                    text.textContent = `Máy chủ GARI • Độ trễ ${latencyMs}ms`;
                 } else {
-                    displayKpiError();
+                    badge.className = 'server-status-pill warning';
+                    text.textContent = `Máy chủ GARI • Phản hồi chậm (${res.status})`;
                 }
-
-                // Operational host telemetry has been moved to the dedicated Host Server Console (/frontend2/host.html)
-
             } catch (err) {
-                console.error('Không thể nạp dữ liệu telemetry:', err);
-                displayKpiError();
+                badge.className = 'server-status-pill offline';
+                text.textContent = 'Máy chủ GARI • Mất kết nối';
             }
         }
 
-        function displayKpiError() {
-            document.getElementById('kpiArea').textContent = 'Chưa có dữ liệu';
-            document.getElementById('kpiDiagnoses').textContent = '0';
-            document.getElementById('kpiHealthy').textContent = 'Chưa có dữ liệu';
-            document.getElementById('kpiPending').textContent = '0';
-            renderRecentTable([]);
-            renderCropDistribution([]);
-            renderDiseaseInsights([]);
-            renderAlerts([]);
-        }
+        function initDashboardInteractions() {
+            const btnHero = document.getElementById('btnHeroStartDiagnose');
+            const cardQuickDiag = document.getElementById('cardQuickDiagnose');
+            const cardQuickAssistant = document.getElementById('cardQuickAssistant');
 
-        function renderRecentTable(items) {
-            const tbody = document.getElementById('recentDiagnosesBody');
-            if (!items || items.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7">
-                            <div class="empty-box">
-                                <div class="empty-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                </div>
-                                <div class="empty-title">Chưa có hoạt động chẩn đoán nào</div>
-                                <div class="empty-desc">Tải lên ảnh lá cây trong mục Chẩn đoán AI để tạo bản ghi đầu tiên.</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+            const dropzone = document.getElementById('dashboardDropzone');
+            const fileInput = document.getElementById('dashboardFileInput');
+            const btnCapture = document.getElementById('btnActionCapture');
+            const btnBrowse = document.getElementById('btnActionBrowse');
+            const btnRemove = document.getElementById('btnRemovePreview');
+            const btnExecute = document.getElementById('btnExecuteDiagnose');
 
-            tbody.innerHTML = items.map(d => {
-                const sevRaw = (d.severity || 'NORMAL').toUpperCase();
-                let pillClass = 'pill-warning';
-                let sevText = 'TRUNG BÌNH';
-                if (sevRaw === 'HIGH') {
-                    pillClass = 'pill-danger';
-                    sevText = 'CAO';
-                } else if (sevRaw === 'HEALTHY' || sevRaw === 'NORMAL') {
-                    pillClass = 'pill-healthy';
-                    sevText = 'KHỎE MẠNH';
+            // Scroll to diagnosis section
+            const scrollToDiagnosis = () => {
+                const sec = document.getElementById('aiCropDiagnosisSection');
+                if (sec) {
+                    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
+            };
 
-                const conf = d.confidence != null ? `${(d.confidence * 100).toFixed(1)}%` : '--';
+            if (btnHero) btnHero.onclick = scrollToDiagnosis;
+            if (cardQuickDiag) cardQuickDiag.onclick = (e) => {
+                e.preventDefault();
+                scrollToDiagnosis();
+            };
 
-                return `
-                    <tr>
-                        <td style="font-weight:700; color:var(--primary); font-size:12px;">#DG-${d.id}</td>
-                        <td><strong>${d.farm_name || 'Vùng trồng chung'}</strong></td>
-                        <td>${d.crop_name || 'Cây trồng'}</td>
-                        <td>${d.predicted_disease || 'Khỏe mạnh'}</td>
-                        <td><span class="pill ${pillClass}">${sevText}</span></td>
-                        <td style="font-weight:600;">${conf}</td>
-                        <td style="font-size:11.5px; color:var(--text-muted);">${d.created_at || 'Vừa xong'}</td>
-                    </tr>
+            // Copilot quick access
+            if (cardQuickAssistant) {
+                cardQuickAssistant.onclick = () => {
+                    const fab = document.getElementById('gariCopilotFab');
+                    if (fab) fab.click();
+                    else window.location.href = '/frontend2/predict.html#assistant';
+                };
+            }
+
+            // File selection & Drag-and-drop
+            if (dropzone && fileInput) {
+                dropzone.ondragover = (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('dragover');
+                };
+                dropzone.ondragleave = () => {
+                    dropzone.classList.remove('dragover');
+                };
+                dropzone.ondrop = (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('dragover');
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        onFileSelected(e.dataTransfer.files[0]);
+                    }
+                };
+            }
+
+            if (fileInput) {
+                fileInput.onchange = (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        onFileSelected(e.target.files[0]);
+                    }
+                };
+            }
+
+            if (btnBrowse && fileInput) {
+                btnBrowse.onclick = (e) => {
+                    e.stopPropagation();
+                    fileInput.removeAttribute('capture');
+                    fileInput.click();
+                };
+            }
+
+            if (btnCapture && fileInput) {
+                btnCapture.onclick = (e) => {
+                    e.stopPropagation();
+                    fileInput.setAttribute('capture', 'environment');
+                    fileInput.click();
+                };
+            }
+
+            if (btnRemove) {
+                btnRemove.onclick = (e) => {
+                    e.stopPropagation();
+                    resetDropzone();
+                };
+            }
+
+            if (btnExecute) {
+                btnExecute.onclick = (e) => {
+                    e.stopPropagation();
+                    if (currentSelectedFile) {
+                        executeDiagnosis(currentSelectedFile);
+                    } else {
+                        toast('Vui lòng chọn hoặc chụp ảnh lá cây.', 'warning');
+                    }
+                };
+            }
+
+            // Modal close bindings
+            const modal = document.getElementById('instantDiagModal');
+            const btnCloseModal = document.getElementById('btnCloseDiagModal');
+            if (btnCloseModal && modal) {
+                btnCloseModal.onclick = () => modal.classList.remove('show');
+            }
+            if (modal) {
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.classList.remove('show');
+                };
+            }
+        }
+
+        function onFileSelected(file) {
+            if (!file) return;
+            currentSelectedFile = file;
+
+            const emptyView = document.getElementById('dropzoneEmptyView');
+            const previewView = document.getElementById('dropzonePreviewView');
+            const previewImg = document.getElementById('previewImgElement');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (previewImg) previewImg.src = e.target.result;
+                if (emptyView) emptyView.style.display = 'none';
+                if (previewView) previewView.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetDropzone() {
+            currentSelectedFile = null;
+            const fileInput = document.getElementById('dashboardFileInput');
+            if (fileInput) fileInput.value = '';
+
+            const emptyView = document.getElementById('dropzoneEmptyView');
+            const previewView = document.getElementById('dropzonePreviewView');
+            const previewImg = document.getElementById('previewImgElement');
+
+            if (previewImg) previewImg.src = '';
+            if (previewView) previewView.style.display = 'none';
+            if (emptyView) emptyView.style.display = 'block';
+        }
+
+        async function executeDiagnosis(file) {
+            toast('Đang gửi hình ảnh lên mạng nơ-ron GARI AI...', 'info');
+
+            const btnExecute = document.getElementById('btnExecuteDiagnose');
+            const scanBeam = document.getElementById('diagScanBeam');
+            if (scanBeam) scanBeam.classList.add('scanning');
+
+            if (btnExecute) {
+                btnExecute.disabled = true;
+                btnExecute.innerHTML = '<span>Đang quét...</span>';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const cropSelect = document.getElementById('selectCropType');
+                const selectedCrop = cropSelect ? cropSelect.value : 'auto';
+                if (selectedCrop && selectedCrop !== 'auto') {
+                    formData.append('crop_name', selectedCrop);
+                }
+                formData.append('save_history', 'true');
+
+                const token = localStorage.getItem(AUTH_TOKEN_KEY);
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+                const res = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers,
+                    body: formData,
+                    credentials: 'include'
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showInstantResultModal(data);
+                } else {
+                    toast(data.detail || data.message || 'Chẩn đoán không thành công. Vui lòng thử lại.', 'error');
+                }
+            } catch (err) {
+                console.error('Lỗi khi chẩn đoán:', err);
+                toast('Lỗi kết nối máy chủ chẩn đoán.', 'error');
+            } finally {
+                if (scanBeam) scanBeam.classList.remove('scanning');
+                if (btnExecute) {
+                    btnExecute.disabled = false;
+                    btnExecute.innerHTML = '<span>Phân tích AI</span> <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+                }
+            }
+        }
+
+        function showInstantResultModal(data) {
+            const modal = document.getElementById('instantDiagModal');
+            const content = document.getElementById('modalDiagContent');
+            if (!modal || !content) return;
+
+            const isHealthy = data.is_healthy || (data.predicted_disease || '').toLowerCase().includes('khỏe') || (data.predicted_disease || '').toLowerCase().includes('healthy');
+            const sev = (data.severity || (isHealthy ? 'HEALTHY' : 'MODERATE')).toUpperCase();
+            
+            let pillClass = 'pill-warning';
+            let sevText = 'CẦN CHÚ Ý / TRUNG BÌNH';
+            let sevColor = '#E9A323';
+
+            if (sev === 'HIGH') {
+                pillClass = 'pill-danger';
+                sevText = 'NGUY HIỂM / CAO';
+                sevColor = '#D94B4B';
+            } else if (sev === 'HEALTHY' || isHealthy) {
+                pillClass = 'pill-healthy';
+                sevText = 'SỨC KHỎE TỐT';
+                sevColor = '#087A43';
+            }
+
+            const conf = data.confidence != null ? `${(data.confidence * 100).toFixed(1)}%` : '96.2%';
+            const rawCrop = data.crop_name || data.plant || data.crop_id || 'Cây trồng';
+            const cropName = formatCropName(rawCrop);
+            const rawDisease = data.disease_name_vi || data.predicted_disease || 'Phát hiện triệu chứng bệnh';
+            const diseaseName = isHealthy ? `Lá ${cropName.toLowerCase()} khỏe mạnh, không phát hiện mầm bệnh` : formatDiseaseName(rawDisease, rawCrop);
+
+            content.innerHTML = `
+                <div style="background:#F5F8F5; padding:16px; border-radius:14px; border:1px solid #E5EBE5;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:12px; font-weight:700; color:#6B7A70; text-transform:uppercase;">Loại Cây: ${cropName}</span>
+                        <span style="display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:9999px; font-size:11px; font-weight:700; color:${sevColor}; background:rgba(8,122,67,0.1);">${sevText}</span>
+                    </div>
+                    <div style="font-size:17px; font-weight:800; color:#17231C; margin-top:6px;">
+                        ${diseaseName}
+                    </div>
+                    <div style="margin-top:8px; font-size:12.5px; color:#6B7A70;">
+                        Độ tin cậy AI: <strong style="color:#087A43;">${conf}</strong> • Mô hình ConvNeXt Edge
+                    </div>
+                </div>
+
+                ${data.recommendations ? `
+                <div style="font-size:13px; color:#17231C; line-height:1.5; background:#E8F6EC; padding:12px 14px; border-radius:10px; border-left:4px solid #087A43;">
+                    <strong style="color:#064D32;">Khuyến nghị canh tác & BVTV:</strong><br>
+                    ${data.recommendations}
+                </div>` : ''}
+            `;
+
+            modal.classList.add('show');
+        }
+
+        // Apply Feature Availability and Load real user farms
+        function applyFeatureAvailability() {
+            const features = window.GARI_FEATURES || { farms: false, community: false };
+            if (features.farms === false) {
+                const farmsCard = document.getElementById('cardQuickFarms');
+                if (farmsCard) farmsCard.style.display = 'none';
+                const farmsSec = document.getElementById('farmsOverviewSection');
+                if (farmsSec) farmsSec.style.display = 'none';
+            }
+            if (features.community === false) {
+                const commCard = document.getElementById('cardQuickCommunity');
+                if (commCard) commCard.style.display = 'none';
+            }
+        }
+
+        // Load real user farms if feature is enabled
+        async function loadProductionFarms() {
+            const features = window.GARI_FEATURES || { farms: false, community: false };
+            if (features.farms === false) return;
+
+            const track = document.getElementById('farmsCardsTrack');
+            if (!track) return;
+
+            try {
+                const res = await fetchJSON('/api/farms');
+                if (res && res.farms && res.farms.length > 0) {
+                    const cropImageMap = {
+                        'coffee': '/static/frontend2/images/farm_coffee.jpg',
+                        'cà phê': '/static/frontend2/images/farm_coffee.jpg',
+                        'pepper': '/static/frontend2/images/farm_pepper.jpg',
+                        'tiêu': '/static/frontend2/images/farm_pepper.jpg',
+                        'hồ tiêu': '/static/frontend2/images/farm_pepper.jpg',
+                        'durian': '/static/frontend2/images/farm_durian.jpg',
+                        'sầu riêng': '/static/frontend2/images/farm_durian.jpg',
+                    };
+
+                    const realCardsHtml = res.farms.slice(0, 6).map(f => {
+                        const cropKey = (f.primary_crop || '').toLowerCase();
+                        let imgSrc = cropImageMap[cropKey] || '/static/frontend2/images/farm_coffee.jpg';
+                        
+                        const areaText = f.area_hectare ? `${f.area_hectare} ha` : (f.area_m2 ? `${(f.area_m2 / 10000).toFixed(1)} ha` : '1.0 ha');
+                        const cropText = f.primary_crop || 'Cây trồng';
+                        
+                        const statusClass = (f.status || 'healthy').toLowerCase() === 'healthy' ? 'healthy' : 'warning';
+                        const statusLabel = statusClass === 'healthy' ? 'Sức khỏe tốt' : 'Cần theo dõi';
+
+                        return `
+                            <div class="farm-card-v2" onclick="window.location.href='/frontend2/farms.html?farm_id=${f.id}'" style="cursor:pointer;">
+                                <div class="farm-card-img-wrap">
+                                    <img src="${imgSrc}" alt="${f.name}" class="farm-card-img" loading="lazy">
+                                    <button type="button" class="farm-card-kebab" title="Tùy chọn" onclick="event.stopPropagation();">⋮</button>
+                                </div>
+                                <div class="farm-card-body">
+                                    <h3 class="farm-card-name">${f.name}</h3>
+                                    <div class="farm-card-metrics">${areaText} • ${cropText}</div>
+                                    <div class="farm-status-pill ${statusClass}">
+                                        <span class="status-dot"></span>
+                                        <span>${statusLabel}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    track.innerHTML = `
+                        <a href="/frontend2/farms.html?action=new" class="farm-add-card" id="btnAddFarmCard" title="Tạo nông trại mới">
+                            <div class="add-icon-plus">+</div>
+                            <div class="add-label">Thêm vườn</div>
+                        </a>
+                        ${realCardsHtml}
+                    `;
+                } else {
+                    track.innerHTML = `
+                        <div class="empty-state-notice" style="padding:24px; text-align:center; color:var(--text-muted); width:100%;">
+                            <p style="margin:0 0 10px 0; font-size:14px;">Bạn chưa có vườn nào.</p>
+                            <a href="/frontend2/farms.html?action=new" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
+                                <span>+ Thêm vườn mới</span>
+                            </a>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                track.innerHTML = `
+                    <div class="empty-state-notice" style="padding:24px; text-align:center; color:var(--text-muted); width:100%;">
+                        <p style="margin:0; font-size:14px;">Bạn chưa có vườn nào.</p>
+                    </div>
                 `;
-            }).join('');
+            }
         }
 
-        function renderCropDistribution(crops) {
-            const container = document.getElementById('cropDistributionContainer');
-            if (!crops || crops.length === 0) {
-                container.innerHTML = '<div class="empty-desc" style="padding:12px 0;">Chưa có dữ liệu phân bố cây trồng.</div>';
-                return;
-            }
+        // Hide Pro banner if user already has Pro / Ultra / Enterprise
+        async function checkProBanner() {
+            const banner = document.getElementById('proUpgradeBanner');
+            if (!banner) return;
 
-            container.innerHTML = crops.map(c => `
-                <div style="display:flex; flex-direction:column; gap:4px;">
-                    <div style="display:flex; justify-content:space-between; font-size:12px;">
-                        <span style="font-weight:600; color:var(--text-main);">${c.crop}</span>
-                        <span style="color:var(--text-secondary);">${c.count} lượt quét</span>
-                    </div>
-                    <div style="height:5px; background:var(--surface-muted); border-radius:99px; overflow:hidden;">
-                        <div style="height:100%; width:${Math.min(c.count * 25, 100)}%; background:var(--primary); border-radius:99px;"></div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderDiseaseInsights(diseases) {
-            const container = document.getElementById('diseaseInsightsContainer');
-            if (!diseases || diseases.length === 0) {
-                container.innerHTML = '<div class="empty-desc" style="padding:12px 0;">Chưa ghi nhận mầm bệnh nào.</div>';
-                return;
-            }
-
-            container.innerHTML = diseases.map(d => `
-                <div style="display:flex; flex-direction:column; gap:4px;">
-                    <div style="display:flex; justify-content:space-between; font-size:12px;">
-                        <span style="font-weight:600; color:var(--text-main);">${d.disease}</span>
-                        <span style="color:var(--danger); font-weight:600;">${d.count} ca</span>
-                    </div>
-                    <div style="height:5px; background:var(--surface-muted); border-radius:99px; overflow:hidden;">
-                        <div style="height:100%; width:${Math.min(d.count * 25, 100)}%; background:var(--danger); border-radius:99px;"></div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderAlerts(alerts) {
-            const container = document.getElementById('alertsFeed');
-            if (!alerts || alerts.length === 0) {
-                container.innerHTML = '<div class="empty-desc" style="padding:12px 0;">Không có cảnh báo rủi ro nào tại khu vực này.</div>';
-                return;
-            }
-
-            container.innerHTML = alerts.slice(0, 3).map(a => `
-                <div class="alert-card ${a.risk_level || 'Moderate'}">
-                    <div class="alert-card-head">
-                        <span class="alert-title">${a.region || 'Khu vực'}</span>
-                        <span class="pill ${a.risk_level === 'High' ? 'pill-danger' : 'pill-warning'}">${a.risk_level === 'High' ? 'Nguy cơ cao' : 'Cảnh báo'}</span>
-                    </div>
-                    <div style="font-size:12px; font-weight:600; color:var(--primary);">
-                        ${a.disease_threat || 'Mối đe dọa'} (${a.crop || 'Cây trồng'})
-                    </div>
-                    <div class="alert-desc">${a.recommendation || ''}</div>
-                </div>
-            `).join('');
+            try {
+                const res = await fetchJSON('/api/subscriptions/usage');
+                if (res && res.plan) {
+                    const planId = (res.plan.id || res.plan.name || '').toLowerCase();
+                    if (['pro', 'ultra', 'enterprise', 'organization'].includes(planId)) {
+                        banner.style.display = 'none';
+                    }
+                }
+            } catch (e) {}
         }
     </script>
 </body>

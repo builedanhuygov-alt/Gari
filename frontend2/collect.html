@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thu Thập Mẫu Thực Địa Nông Nghiệp • Gari AI Lab</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -438,7 +438,7 @@
     <div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js';
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js?v=20261104_stable';
 
         let selectedFiles = [];
         let currentRecords = [];
@@ -716,7 +716,7 @@
                 if (token) headers['Authorization'] = `Bearer ${token}`;
 
                 const payload = {
-                    reviewer_name: 'Kỹ sư Đan Huỳnh',
+                    reviewer_name: 'Cán bộ thực địa',
                     status: status,
                     corrected_crop_id: correctedCrop || null,
                     corrected_crop_name_vi: correctedCrop || null,

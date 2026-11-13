@@ -1,14 +1,17 @@
 services:
   - type: web
-    name: gari-ai-lab-node
-    env: node
-    plan: free
-    buildCommand: npm --prefix server install --include=dev && npm --prefix server run build
-    startCommand: node server/dist/index.js
+    name: gari-ai-lab-inference-api
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: standard
     healthCheckPath: /health
-    autoDeploy: true
+    autoDeploy: false
     envVars:
-      - key: NODE_VERSION
-        value: "22"
-      - key: NODE_ENV
+      - key: APP_ENV
         value: production
+      - key: GARI_PORT
+        value: "8000"
+      - key: DEVICE
+        value: cpu
+      - key: MAX_CACHED_MODELS
+        value: "3"

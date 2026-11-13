@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Chuyên Gia Nông Nghiệp • GARI Expert Portal</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
+    <style>
+        .expert-layout {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        @media (max-width: 992px) {
+            .expert-layout { grid-template-columns: 1fr; }
+        }
+        .expert-case-item {
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-bottom: 10px;
+        }
+        .expert-case-item:hover {
+            border-color: var(--primary);
+            background: var(--surface-hover);
+        }
+        .expert-case-item.active {
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.08);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+        .chat-thread-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 380px;
+            overflow-y: auto;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .chat-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            line-height: 1.45;
+        }
+        .chat-bubble.expert {
+            align-self: flex-end;
+            background: var(--primary);
+            color: #fff;
+            border-bottom-right-radius: 2px;
+        }
+        .chat-bubble.farmer {
+            align-self: flex-start;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 2px;
+        }
+        .prescription-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <!-- Page Head -->
+                <div class="page-head" style="margin-bottom:20px;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <h1 class="page-head-title">Cổng Chuyên Gia Nông Nghiệp (GARI Expert Portal)</h1>
+                            <span class="pill pill-success" id="expertBadge">Chuyên gia BVTV</span>
+                        </div>
+                        <p class="page-head-sub">Không gian làm việc dành riêng cho kỹ sư nông học, bác sĩ BVTV tiếp nhận và thẩm định đơn thuốc cho nông hộ.</p>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-ghost" onclick="loadPortalCases()">🔄 Làm mới</button>
+                        <button class="btn-primary" id="btnOpenApplyModal" onclick="openApplyModal()" style="display:none;">📝 Nộp đơn xét duyệt</button>
+                    </div>
+                </div>
+
+                <!-- Not Certified Warning Banner (if user is not expert) -->
+                <div id="unauthorizedBanner" style="display:none; margin-bottom:24px; padding:20px; border-radius:12px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);">
+                    <div style="display:flex; gap:16px; align-items:flex-start;">
+                        <span style="font-size:28px;">🌾</span>
+                        <div>
+                            <h3 style="font-size:16px; font-weight:700; color:#d97706; margin-bottom:6px;">Bạn chưa được cấp chứng chỉ Chuyên gia Nông nghiệp GARI</h3>
+                            <p style="font-size:13.5px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;" id="unauthDesc">
+                                Khu vực này chỉ dành cho Kỹ sư Nông nghiệp, Thạc sĩ/Tiến sĩ BVTV hoặc Chuyên gia Khuyến nông đã được Hội đồng Chuyên môn GARI thẩm định.
+                            </p>
+                            <button class="btn-primary" onclick="openApplyModal()">Gửi Hồ Sơ Ứng Tuyển Chuyên Gia Ngay</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workspace Layout -->
+                <div class="expert-layout" id="expertWorkspace">
+                    <!-- Left: Case Queue -->
+                    <div class="card" style="padding:16px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h2 style="font-size:15px; font-weight:700;">Hàng đợi ca bệnh</h2>
+                            <span class="pill pill-neutral" id="caseCountBadge">0 ca</span>
+                        </div>
+
+                        <!-- Filter Tabs -->
+                        <div style="display:flex; gap:6px; margin-bottom:14px; overflow-x:auto; padding-bottom:4px;">
+                            <button class="pill pill-primary" id="filterAll" onclick="setCaseFilter('all')">Tất cả</button>
+                            <button class="pill pill-neutral" id="filterAssigned" onclick="setCaseFilter('assigned_to_me')">Ca của tôi</button>
+                            <button class="pill pill-neutral" id="filterUnassigned" onclick="setCaseFilter('unassigned')">Chưa nhận</button>
+                            <button class="pill pill-neutral" id="filterResolved" onclick="setCaseFilter('resolved')">Đã xử lý</button>
+                        </div>
+
+                        <!-- Cases List -->
+                        <div id="casesContainer">
+                            <div style="text-align:center; padding:30px 10px; color:var(--text-muted); font-size:13px;">
+                                Đang nạp danh sách ca bệnh...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Active Case Detail & Consultation Workspace -->
+                    <div class="card" id="detailCard" style="padding:20px; min-height:500px;">
+                        <div id="noCaseSelected" style="text-align:center; padding:60px 20px; color:var(--text-muted);">
+                            <div style="font-size:40px; margin-bottom:12px;">🩺</div>
+                            <h3 style="font-size:16px; font-weight:600; margin-bottom:6px;">Chưa chọn ca bệnh nào</h3>
+                            <p style="font-size:13px;">Nhấp vào một ca bệnh bên hàng đợi để xem chi tiết ảnh chụp, chẩn đoán AI và trao đổi với nông hộ.</p>
+                        </div>
+
+                        <div id="caseDetailContent" style="display:none;">
+                            <!-- Header Info -->
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:14px;">
+                                <div>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <h2 style="font-size:18px; font-weight:700;" id="detailCrop">Cây trồng</h2>
+                                        <span class="pill pill-neutral" id="detailStatus">Trạng thái</span>
+                                        <span class="pill pill-danger" id="detailUrgency" style="display:none;">Khẩn cấp</span>
+                                    </div>
+                                    <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px;" id="detailMeta">
+                                        Nông hộ: -- • Ngày gửi: --
+                                    </div>
+                                </div>
+                                <div id="claimActionBox">
+                                    <button class="btn-primary" id="btnClaimCase" onclick="claimCurrentCase()">
+                                        🎯 Tiếp nhận ca bệnh này
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Diagnosis & Symptoms Grid -->
+                            <div style="display:grid; grid-template-columns: 200px 1fr; gap:16px; margin-bottom:20px;">
+                                <div>
+                                    <div style="border-radius:10px; overflow:hidden; border:1px solid var(--border); background:var(--bg); aspect-ratio:1; display:flex; align-items:center; justify-content:center;">
+                                        <img id="detailImage" src="" alt="Lá bệnh" style="width:100%; height:100%; object-fit:cover; display:none;">
+                                        <span id="detailNoImage" style="font-size:12px; color:var(--text-muted);">Không có ảnh</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:10px;">
+                                    <div style="background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border);">
+                                        <span style="font-size:11px; font-weight:700; color:var(--text-muted);">DỰ ĐOÁN BAN ĐẦU CỦA AI:</span>
+                                        <div style="font-weight:700; font-size:15px; color:var(--primary); margin-top:2px;" id="detailAiDisease">
+                                            Chưa rõ
+                                        </div>
+                                        <div style="font-size:12px; color:var(--text-muted);" id="detailAiConfidence">
+                                            Độ tin cậy: --%
+                                        </div>
+                                    </div>
+                                    <div style="background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border);">
+                                        <span style="font-size:11px; font-weight:700; color:var(--text-muted);">TRIỆU CHỨNG MÔ TẢ TỪ NÔNG HỘ:</span>
+                                        <p style="font-size:13px; margin-top:4px; line-height:1.45;" id="detailSymptoms">
+                                            --
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Message & Consultation Thread -->
+                            <div style="margin-bottom:20px;">
+                                <div style="font-size:14px; font-weight:700; margin-bottom:8px; display:flex; justify-content:space-between;">
+                                    <span>Trao đổi với nông hộ</span>
+                                    <span style="font-size:12px; color:var(--text-muted);" id="threadCount">0 tin nhắn</span>
+                                </div>
+                                <div class="chat-thread-box" id="chatThread">
+                                    <div style="text-align:center; color:var(--text-muted); font-size:12.5px; padding:12px;">
+                                        Chưa có trao đổi nào trong ca này.
+                                    </div>
+                                </div>
+                                <!-- Chat Input -->
+                                <div style="display:flex; gap:8px; margin-top:10px;">
+                                    <input type="text" id="chatInput" placeholder="Nhập lời khuyên hoặc câu hỏi gửi nông hộ..." class="input" style="flex:1;" onkeydown="if(event.key==='Enter') sendChatMessage()">
+                                    <button class="btn-primary" onclick="sendChatMessage()">Gửi</button>
+                                </div>
+                            </div>
+
+                            <!-- Final Prescription & Resolution Box -->
+                            <div style="background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.25); border-radius:10px; padding:16px;">
+                                <h3 style="font-size:15px; font-weight:700; color:var(--primary); margin-bottom:8px;">
+                                    💊 Kê Phác Đồ Điều Trị Chuẩn IPM & Hoàn Tất Ca
+                                </h3>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
+                                    Đơn thuốc điện tử sẽ được chuyển thẳng về hồ sơ nông hộ, tự động tạo nhắc việc trong Lịch Canh Tác.
+                                </p>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Chẩn đoán chính xác (Bác sĩ xác nhận):</label>
+                                        <input type="text" id="rxDiseaseCorrection" placeholder="Ví dụ: Đốm mắt cua (Cercospora)" class="input" style="width:100%;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Thời gian cách ly an toàn (PHI - Ngày):</label>
+                                        <input type="number" id="rxPhiDays" value="7" class="input" style="width:100%;">
+                                    </div>
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Hoạt chất & Liều lượng phun khuyến nghị:</label>
+                                    <input type="text" id="rxChemicals" placeholder="Ví dụ: Difenoconazole 150g/l + Azoxystrobin 250g/l (pha 20ml / bình 25L)" class="input" style="width:100%;">
+                                </div>
+                                <div style="margin-bottom:12px;">
+                                    <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Hướng dẫn kỹ thuật & Biện pháp canh tác kết hợp:</label>
+                                    <textarea id="rxNotes" rows="3" placeholder="Ví dụ: Tỉa thông thoáng gốc, ngừng bón đạm, phun ướt đều 2 mặt lá vào sáng sớm..." class="input" style="width:100%;"></textarea>
+                                </div>
+                                <button class="btn-primary" style="width:100%; justify-content:center;" onclick="resolveCurrentCase()">
+                                    ✅ Xác Nhận Hoàn Tất Ca & Ký Số Phác Đồ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Application Modal -->
+    <div id="applyModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+        <div class="card" style="width:90%; max-width:540px; max-height:90vh; overflow-y:auto; padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="font-size:18px; font-weight:700;">Đăng Ký Chuyên Gia Nông Nghiệp GARI</h3>
+                <button onclick="closeApplyModal()" style="border:none; background:none; font-size:20px; cursor:pointer;">&times;</button>
+            </div>
+            <form id="applyExpertForm" onsubmit="submitExpertApplication(event)">
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Họ và tên chuyên gia *</label>
+                        <input type="text" id="appFullName" required class="input" style="width:100%; margin-top:4px;" placeholder="Ví dụ: KS. Nguyễn Văn Bình">
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label style="font-size:12px; font-weight:600;">Số điện thoại liên hệ *</label>
+                            <input type="tel" id="appPhone" required class="input" style="width:100%; margin-top:4px;" placeholder="09xxxxxxxx">
+                        </div>
+                        <div>
+                            <label style="font-size:12px; font-weight:600;">Số năm kinh nghiệm</label>
+                            <input type="number" id="appYears" value="3" min="1" class="input" style="width:100%; margin-top:4px;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Học vị / Chức danh chuyên môn</label>
+                        <input type="text" id="appTitle" class="input" style="width:100%; margin-top:4px;" placeholder="Kỹ sư BVTV / ThS. Nông nghiệp">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Đơn vị công tác / Viện / Doanh nghiệp</label>
+                        <input type="text" id="appOrg" class="input" style="width:100%; margin-top:4px;" placeholder="Viện BVTV / Trạm Khuyến Nông / Tự do">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Chuyên môn cây trồng thế mạnh (phân cách bằng dấu phẩy)</label>
+                        <input type="text" id="appSpecialties" class="input" style="width:100%; margin-top:4px;" placeholder="Lúa, Cà chua, Sầu riêng, Tiêu, Cà phê">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600;">Chi tiết bằng cấp / Chứng chỉ hành nghề</label>
+                        <textarea id="appDegree" rows="2" class="input" style="width:100%; margin-top:4px;" placeholder="Cử nhân Nông học - ĐH Nông Lâm TP.HCM (2018)..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top:8px; justify-content:center;">Gửi Đơn Thẩm Định</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { setupSaaSShell, toast } from '/static/frontend2/app.js?v=20261104_stable';
+
+        let currentFilter = 'all';
+        let allCases = [];
+        let selectedCaseId = null;
+        let currentUser = null;
+
+        window.onload = async () => {
+            const shell = setupSaaSShell('expert', 'Cổng Chuyên gia');
+            await checkAuthAndLoad();
+        };
+
+        async function checkAuthAndLoad() {
+            try {
+                const token = localStorage.getItem('gari_token') || localStorage.getItem('gari_host_token');
+                const headers = { 'Accept': 'application/json' };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
+                // 1. Verify user status
+                const res = await fetch('/api/auth/me', { headers, credentials: 'include' });
+                if (!res.ok) {
+                    window.location.href = '/frontend2/login.html?returnUrl=/frontend2/expert-portal.html';
+                    return;
+                }
+                const authData = await res.json();
+                currentUser = authData.user;
+
+                // 2. Check expert status
+                const profRes = await fetch('/api/expert/my-profile', { headers, credentials: 'include' });
+                const profData = await profRes.json();
+
+                const isExpert = authData.user.is_expert || authData.user.is_host_admin;
+                if (!isExpert) {
+                    document.getElementById('expertWorkspace').style.display = 'none';
+                    document.getElementById('unauthorizedBanner').style.display = 'block';
+                    document.getElementById('btnOpenApplyModal').style.display = 'inline-flex';
+                    if (profData.latest_application) {
+                        const app = profData.latest_application;
+                        document.getElementById('unauthDesc').innerHTML = `
+                            <strong>Bạn đã gửi đơn thẩm định (Mã: #${app.id}) lúc ${new Date(app.created_at).toLocaleString('vi-VN')}.</strong><br>
+                            Trạng thái hiện tại: <span class="pill pill-${app.status === 'approved' ? 'success' : (app.status === 'pending' ? 'warning' : 'danger')}">${app.status.toUpperCase()}</span>.
+                            Ban Cố vấn Nông nghiệp GARI đang tiến hành xác minh bằng cấp và liên hệ qua số điện thoại của bạn.
+                        `;
+                    }
+                    return;
+                }
+
+                document.getElementById('expertWorkspace').style.display = 'grid';
+                document.getElementById('unauthorizedBanner').style.display = 'none';
+                loadPortalCases();
+
+            } catch (err) {
+                console.error(err);
+                toast('Lỗi xác thực người dùng.');
+            }
+        }
+
+        window.loadPortalCases = async function() {
+            try {
+                const token = localStorage.getItem('gari_token') || localStorage.getItem('gari_host_token');
+                const headers = { 'Accept': 'application/json' };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
+                const res = await fetch(`/api/expert/portal/cases?filter_type=${currentFilter}`, {
+                    headers, credentials: 'include'
+                });
+                const d = await res.json();
+                if (d.success) {
+                    allCases = d.cases || [];
+                    renderCasesList();
+                }
+            } catch (err) {
+                console.error(err);
+                toast('Không thể tải ca bệnh.');
+            }
+        };
+
+        window.setCaseFilter = function(filter) {
+            currentFilter = filter;
+            ['all', 'assigned', 'unassigned', 'resolved'].forEach(f => {
+                const btn = document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1));
+                if (btn) {
+                    if (f === filter || (f === 'assigned' && filter === 'assigned_to_me')) {
+                        btn.className = 'pill pill-primary';
+                    } else {
+                        btn.className = 'pill pill-neutral';
+                    }
+                }
+            });
+            loadPortalCases();
+        };
+
+        function renderCasesList() {
+            const container = document.getElementById('casesContainer');
+            document.getElementById('caseCountBadge').textContent = `${allCases.length} ca`;
+
+            if (allCases.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px 10px; color:var(--text-muted); font-size:13px;">Không có ca bệnh nào trong mục này.</div>`;
+                return;
+            }
+
+            container.innerHTML = allCases.map(c => {
+                const isActive = c.id === selectedCaseId;
+                const isClaimed = !!c.assigned_expert_id;
+                const statusPill = c.status === 'Resolved' || c.status === 'Đã tư vấn' ?
+                    '<span class="pill pill-success" style="font-size:11px;">Đã xong</span>' :
+                    (isClaimed ? '<span class="pill pill-primary" style="font-size:11px;">Đang xử lý</span>' : '<span class="pill pill-warning" style="font-size:11px;">Chờ nhận</span>');
+
+                return `
+                <div class="expert-case-item ${isActive ? 'active' : ''}" onclick="selectCase(${c.id})">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span style="font-weight:700; font-size:14px;">${escapeHtml(c.crop || 'Cây trồng')}</span>
+                        ${statusPill}
+                    </div>
+                    <div style="font-size:12.5px; color:var(--text); margin-bottom:4px; font-weight:500;">
+                        ${escapeHtml(c.ai_disease_predicted || 'Chờ phân tích')}
+                    </div>
+                    <div style="font-size:11.5px; color:var(--text-muted); display:flex; justify-content:space-between;">
+                        <span>Nông hộ: #${c.user_id || '--'}</span>
+                        <span>${c.created_at ? new Date(c.created_at).toLocaleDateString('vi-VN') : ''}</span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        window.selectCase = async function(caseId) {
+            selectedCaseId = caseId;
+            renderCasesList();
+
+            const c = allCases.find(item => item.id === caseId);
+            if (!c) return;
+
+            document.getElementById('noCaseSelected').style.display = 'none';
+            document.getElementById('caseDetailContent').style.display = 'block';
+
+            document.getElementById('detailCrop').textContent = c.crop || 'Cây trồng';
+            document.getElementById('detailStatus').textContent = c.status || 'Chờ tiếp nhận';
+            document.getElementById('detailMeta').textContent = `Mã hồ sơ: #${c.id} • Nông hộ ID: ${c.user_id} • Thời gian: ${new Date(c.created_at).toLocaleString('vi-VN')}`;
+            document.getElementById('detailAiDisease').textContent = c.ai_disease_predicted || 'Chưa có dự đoán AI';
+            document.getElementById('detailAiConfidence').textContent = `Độ tin cậy AI: ${Math.round((c.ai_confidence || 0) * 100)}%`;
+            document.getElementById('detailSymptoms').textContent = c.symptoms_description || c.notes || 'Không có mô tả thêm.';
+
+            // Claim button visibility
+            const claimBtn = document.getElementById('btnClaimCase');
+            if (!c.assigned_expert_id) {
+                claimBtn.style.display = 'inline-flex';
+                claimBtn.textContent = '🎯 Tiếp nhận ca bệnh này';
+            } else if (c.assigned_expert_id === currentUser.id) {
+                claimBtn.style.display = 'inline-flex';
+                claimBtn.textContent = '👤 Ca đã được bạn tiếp nhận';
+                claimBtn.disabled = true;
+            } else {
+                claimBtn.style.display = 'none';
+            }
+
+            // Image
+            const imgEl = document.getElementById('detailImage');
+            const noImgEl = document.getElementById('detailNoImage');
+            if (c.image_url) {
+                imgEl.src = c.image_url;
+                imgEl.style.display = 'block';
+                noImgEl.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                noImgEl.style.display = 'block';
+            }
+
+            // Load Chat Messages
+            loadCaseMessages(caseId);
+        };
+
+        window.claimCurrentCase = async function() {
+            if (!selectedCaseId) return;
+            try {
+                const token = localStorage.getItem('gari_token') || localStorage.getItem('gari_host_token');
+                const res = await fetch(`/api/expert/cases/${selectedCaseId}/claim`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                const d = await res.json();
+                if (d.success) {
+                    toast('Đã tiếp nhận ca thành công!');
+                    loadPortalCases();
+                    selectCase(selectedCaseId);
+                } else {
+                    toast(d.detail || 'Không thể tiếp nhận ca.');
+                }
+            } catch (err) {
+                toast('Lỗi kết nối.');
+            }
+        };
+
+        async function loadCaseMessages(caseId) {
+            try {
+                const token = localStorage.getItem('gari_token') || localStorage.getItem('gari_host_token');
+                const res = await fetch(`/api/expert/cases/${caseId}/messages`, {
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    credentials: 'include'
+                });
+                const d = await res.json();
+                const container = document.getElementById('chatThread');
+                if (d.success && d.messages) {
+                    document.getElementById('threadCount').textContent = `${d.messages.length} trao đổi`;
+                    if (d.messages.length === 0) {
+                        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:12.5px; padding:12px;">Chưa có trao đổi nào. Hãy nhập lời khuyên đầu tiên bên dưới.</div>`;
+                    } else {
+                        container.innerHTML = d.messages.map(m => {
+                            const isExp = m.sender_role === 'expert';
+                            return `
+                            <div class="chat-bubble ${isExp ? 'expert' : 'farmer'}">
+                                ${m.is_prescription ? '<span class="prescription-badge">📜 PHÁC ĐỒ / ĐƠN THUỐC</span><br>' : ''}
+                                <div>${escapeHtml(m.message)}</div>
+                                <div style="font-size:10px; opacity:0.8; margin-top:4px; text-align:right;">
+                                    ${new Date(m.created_at).toLocaleTimeString('vi-VN')}
+                                </div>
+                            </div>
+                            `;
+                        }).join('');
+                        container.scrollTop = container.scrollHeight;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        window.sendChatMessage = async function() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !selectedCaseId) return;
+
+            try {
+                const token = localStorage.getItem('gari_token') || localStorage.getItem('gari_host_token');
+                const res = await fetch(`/api/expert/cases/${selectedCaseId}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    credentials: 'include',
+                    body: JSON.stringify({ message: text })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    input.value = '';
+                    loadCaseMessages(selectedCaseId);
+                } else {
+                    toast(d.detail || 'Không gửi được tin nhắn.');
+                }
+            } catch (err) {
+                toast('Lỗi gửi tin nhắn.');
+            }
+        };
+
+        window.resolveCurrentCase = async function() {
+            if (!selectedCaseId) return;
+            const correction = document.getElementById('rxDiseaseCorrection').value.trim();
+            const notes = document.getElementById('rxNotes').value.trim();
+            const chemicals = document.getElementById('rxChemicals').value.trim();
+            const phi = parseInt(document.getElementById('rxPhiDays').value) || 7;
+
+            if (!notes) {
+                toast('Vui lòng nhập hướng dẫn kỹ thuật trước khi hoàn tất.');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('gari_token') || localStorage.getItem('gari_host_token');
+                const res = await fetch(`/api/expert/cases/${selectedCaseId}/resolve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        resolution_notes: notes,
+                        diagnosis_correction: correction,
+                        prescription_data: {
+                            chemicals: chemicals,
+                            phi_days: phi,
+                            issued_at: new Date().toISOString()
+                        }
+                    })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    toast('Đã hoàn tất tư vấn và gửi phác đồ tới nông hộ!');
+                    loadPortalCases();
+                    selectCase(selectedCaseId);
+                } else {
+                    toast(d.detail || 'Không thể hoàn tất ca.');
+                }
+            } catch (err) {
+                toast('Lỗi cập nhật.');
+            }
+        };
+
+        // Application Modal Handlers
+        window.openApplyModal = () => document.getElementById('applyModal').style.display = 'flex';
+        window.closeApplyModal = () => document.getElementById('applyModal').style.display = 'none';
+
+        window.submitExpertApplication = async function(e) {
+            e.preventDefault();
+            const payload = {
+                full_name: document.getElementById('appFullName').value.trim(),
+                phone: document.getElementById('appPhone').value.trim(),
+                years_experience: parseInt(document.getElementById('appYears').value) || 0,
+                title: document.getElementById('appTitle').value.trim(),
+                organization: document.getElementById('appOrg').value.trim(),
+                specialties: document.getElementById('appSpecialties').value.split(',').map(s => s.trim()).filter(Boolean),
+                degree_details: document.getElementById('appDegree').value.trim()
+            };
+
+            try {
+                const token = localStorage.getItem('gari_token') || localStorage.getItem('gari_host_token');
+                const res = await fetch('/api/expert/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if (d.success) {
+                    toast('Đơn đã được gửi thành công!');
+                    closeApplyModal();
+                    checkAuthAndLoad();
+                } else {
+                    toast(d.detail || 'Không thể gửi đơn.');
+                }
+            } catch (err) {
+                toast('Lỗi nộp đơn.');
+            }
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>

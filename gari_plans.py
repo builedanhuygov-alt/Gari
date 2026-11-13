@@ -26,8 +26,8 @@ _PLANS_LOCK = threading.Lock()
 
 import gari_config
 
-# Environment flag: Only allow developer pro header bypass in non-production environments
-ALLOW_DEV_PRO_BYPASS = gari_config.ALLOW_DEV_PRO_BYPASS
+# Production Security: All developer bypasses are permanently disabled.
+ALLOW_DEV_PRO_BYPASS = False
 
 
 # -----------------------------------------------------------------------------
@@ -311,13 +311,17 @@ PLAN_ALIASES: Dict[str, str] = {
 }
 
 def get_plan_definition(plan_id: str) -> Dict[str, Any]:
-    """Retrieve verified plan specification."""
-    pid = (plan_id or "").lower().strip()
-    canonical_id = PLAN_ALIASES.get(pid, pid)
-    plan = PRODUCT_PLANS.get(canonical_id)
-    if not plan:
-        plan = PRODUCT_PLANS.get(pid, PRODUCT_PLANS["free"])
-    return dict(plan)
+    """Retrieve verified plan specification from centralized database engine."""
+    try:
+        import gari_entitlements
+        return gari_entitlements.get_plan_definition(plan_id)
+    except Exception:
+        pid = (plan_id or "").lower().strip()
+        canonical_id = PLAN_ALIASES.get(pid, pid)
+        plan = PRODUCT_PLANS.get(canonical_id)
+        if not plan:
+            plan = PRODUCT_PLANS.get(pid, PRODUCT_PLANS["free"])
+        return dict(plan)
 
 
 def list_active_plans() -> List[Dict[str, Any]]:
@@ -342,38 +346,21 @@ def get_user_subscription(user_id: int) -> Optional[Dict[str, Any]]:
         return dict(row) if row else None
 
 
-def resolve_user_entitlement(
+def _resolve_user_entitlement_raw(
     user: Optional[Dict[str, Any]],
     org_id: Optional[int] = None,
     allow_dev_header: bool = False
 ) -> Dict[str, Any]:
     """
     Authoritative resolution of a user's capabilities, quota, and VIP model access:
-    1. Checks if developer header is active AND allowed by environment.
-    2. Checks if operating under an Organization with a Team or Enterprise plan.
-    3. Checks user's personal subscription table.
-    4. Falls back to Free Plan.
+    1. Checks if operating under an Organization with an active Team or Enterprise plan.
+    2. Checks user's authoritative personal subscription table.
+    3. Falls back to Free Plan.
+    Development header bypasses are permanently disabled for production security.
     """
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
-    # 1. Dev Pro Header (Security gate: only when ALLOW_DEV_PRO_BYPASS is explicitly True)
-    if allow_dev_header and ALLOW_DEV_PRO_BYPASS:
-        pro_plan = PRODUCT_PLANS["pro"]
-        return {
-            "source": "dev_pro_header",
-            "plan_id": "pro",
-            "plan_name": pro_plan["display_name"],
-            "has_vip_models": True,
-            "has_api_access": False,
-            "is_unlimited_quota": False,
-            "quota_limit": pro_plan["quota_limit"],
-            "allowed_models": pro_plan["allowed_models"],
-            "allowed_features": pro_plan["allowed_features"],
-            "subscription_status": "dev_override",
-            "is_organization_sponsored": False
-        }
-
-    # 2. Guest / Unauthenticated
+    # 1. Guest / Unauthenticated
     if not user:
         guest_plan = PRODUCT_PLANS["guest"]
         return {
@@ -387,7 +374,9 @@ def resolve_user_entitlement(
             "allowed_models": guest_plan["allowed_models"],
             "allowed_features": guest_plan["allowed_features"],
             "subscription_status": "trial",
-            "is_organization_sponsored": False
+            "is_organization_sponsored": False,
+            "is_pro": False,
+            "can_create_organization": False
         }
 
     user_id = user["id"]
@@ -670,6 +659,80 @@ def resolve_user_entitlement(
         "subscription_status": "active",
         "is_organization_sponsored": False
     }
+
+
+def can_user_create_organization(user: Optional[Dict[str, Any]]) -> Tuple[bool, str]:
+    """
+    Checks if user is entitled to create a new organization.
+    Free tier personal accounts cannot create organizations without upgrading to Pro or Enterprise.
+    Platform admins and Pro/Team/Enterprise active users can create organizations.
+    Enforces maximum organizations allowed per tier:
+      - free: 0
+      - pro / personal: 1
+      - team / business: 3
+      - enterprise: 100
+    """
+    if not user:
+        return False, "Yêu cầu đăng nhập để khởi tạo tổ chức."
+    if user.get("is_admin") or user.get("role") in ("admin", "host_admin"):
+        return True, "Quản trị viên có toàn quyền khởi tạo tổ chức."
+    entitlement = _resolve_user_entitlement_raw(user)
+    plan_id = entitlement.get("plan_id", "free")
+    sub_status = entitlement.get("subscription_status", "expired")
+    allowed_plans = {"pro", "personal", "ultra", "team", "business", "organization", "enterprise"}
+    if plan_id not in allowed_plans or sub_status not in (
+        "active", "pilot_active", "trial", "trialing", "cancel_at_period_end"
+    ):
+        return False, "Tạo Hợp tác xã hoặc Doanh nghiệp yêu cầu tài khoản nâng cấp gói Pro hoặc Doanh nghiệp. Vui lòng nâng cấp gói để tiếp tục."
+
+    # Tier-based limit check on owned organizations
+    plan_org_limits = {
+        "pro": 1,
+        "personal": 1,
+        "ultra": 2,
+        "team": 3,
+        "business": 3,
+        "organization": 10,
+        "enterprise": 100,
+    }
+    max_orgs = plan_org_limits.get(plan_id, 1)
+
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT COUNT(*) FROM organization_members
+                WHERE user_id = ? AND role = 'owner'
+            """, (user["id"],))
+            row = cursor.fetchone()
+            owned_count = row[0] if row else 0
+
+            if owned_count >= max_orgs:
+                plan_name = entitlement.get("plan_name", plan_id.upper())
+                return False, f"Gói {plan_name} chỉ cho phép sở hữu tối đa {max_orgs} tổ chức. Bạn hiện đã sở hữu {owned_count} tổ chức. Vui lòng nâng cấp gói Doanh nghiệp để quản lý thêm tổ chức."
+    except Exception as e:
+        logger.warning(f"Error checking user owned organizations count: {e}")
+
+    return True, f"Gói {entitlement.get('plan_name')} có quyền khởi tạo tổ chức."
+
+
+def resolve_user_entitlement(
+    user: Optional[Dict[str, Any]],
+    org_id: Optional[int] = None,
+    allow_dev_header: bool = False
+) -> Dict[str, Any]:
+    """
+    Authoritative resolution of a user's capabilities, quota, and VIP model access:
+    1. Checks if operating under an Organization with an active Team or Enterprise plan.
+    2. Checks user's authoritative personal subscription table.
+    3. Falls back to Free Plan.
+    Always includes `can_create_organization` and `is_pro` status flags.
+    """
+    res = _resolve_user_entitlement_raw(user, org_id=org_id, allow_dev_header=False)
+    can_create, _ = can_user_create_organization(user)
+    res["can_create_organization"] = can_create
+    res["is_pro"] = bool(res.get("has_vip_models"))
+    return res
 
 
 # -----------------------------------------------------------------------------

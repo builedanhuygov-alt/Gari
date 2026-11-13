@@ -87,11 +87,12 @@ def is_vip_account(
     """
     Authoritative VIP verification using unified product entitlement engine.
     Checks user personal subscription, org plan, and legacy VIP markers.
+    Developer headers are permanently disabled for production security.
     """
     entitlement = gari_plans.resolve_user_entitlement(
         user, 
         org_id=org_id, 
-        allow_dev_header=dev_pro_header
+        allow_dev_header=False
     )
     return bool(entitlement.get("has_vip_models", False))
 

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trợ lý chuyên gia • Gari AI Lab</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -31,7 +31,7 @@
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:20px; align-items:start;">
+                <div class="support-layout-grid">
                     <!-- Cases List -->
                     <div class="card">
                         <div class="card-header">
@@ -75,6 +75,13 @@
                                     <textarea class="textarea" id="caseQuestion" rows="4" required placeholder="Mô tả tuổi cây, mật độ vết bệnh, thời tiết gần đây hoặc hoạt chất đã sử dụng..."></textarea>
                                 </div>
 
+                                <div class="form-group" style="margin:10px 0;">
+                                    <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; cursor:pointer;">
+                                        <input type="checkbox" id="consentShareFarm" checked style="accent-color:#10b981;" />
+                                        <span>Đồng ý chia sẻ dữ liệu nông trại & liên hệ cho chuyên gia</span>
+                                    </label>
+                                </div>
+
                                 <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">
                                     Gửi yêu cầu tham vấn chuyên gia
                                 </button>
@@ -87,6 +94,19 @@
                                 Mọi hồ sơ gửi đi sẽ được chuyển tới bác sĩ cây trồng thuộc viện nghiên cứu nông nghiệp đối tác. Kết quả kiểm tra mẫu vi sinh và phác đồ phun phòng sinh học sẽ được cập nhật trực tiếp tại đây.
                             </p>
                         </div>
+
+                        <div class="card" style="border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.04);">
+                            <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
+                                <span style="font-size:20px;">👨‍🔬</span>
+                                <h4 style="font-size:13.5px; font-weight:700; color:var(--primary); margin:0;">Bạn là Kỹ sư / Chuyên gia Nông nghiệp?</h4>
+                            </div>
+                            <p style="font-size:12px; color:var(--text-secondary); line-height:1.4; margin-bottom:12px;">
+                                Tham gia Mạng lưới Chuyên gia GARI để nhận các ca tư vấn thực địa, kê đơn thuốc và hỗ trợ kỹ thuật số cho hàng ngàn bà con nông dân.
+                            </p>
+                            <a href="/frontend2/expert-portal.html" class="btn btn-outline" style="width:100%; text-align:center; display:block; text-decoration:none; font-size:12.5px;">
+                                Truy cập Cổng Chuyên Gia & Ứng Tuyển &rarr;
+                            </a>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -96,12 +116,23 @@
     <div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js';
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js?v=20261104_stable';
 
         function init() {
             setupSaaSShell('support', 'Trợ lý chuyên gia');
             loadCases();
-            loadFarms();
+            loadFarms().then(() => {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('crop')) {
+                    document.getElementById('caseCrop').value = params.get('crop');
+                }
+                if (params.get('notes')) {
+                    document.getElementById('caseQuestion').value = params.get('notes');
+                }
+                if (params.get('farm_id')) {
+                    document.getElementById('farmSelect').value = params.get('farm_id');
+                }
+            });
             setupForm();
         }
 
@@ -180,16 +211,21 @@
         function setupForm() {
             document.getElementById('expertForm').onsubmit = async e => {
                 e.preventDefault();
+                const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
                 const payload = {
                     farm_id: parseInt(document.getElementById('farmSelect').value) || null,
-                    crop: document.getElementById('caseCrop').value.trim(),
-                    notes: document.getElementById('caseQuestion').value.trim()
+                    crop_name: document.getElementById('caseCrop').value.trim(),
+                    symptoms_description: document.getElementById('caseQuestion').value.trim(),
+                    consent_share_farm_data: document.getElementById('consentShareFarm') ? (document.getElementById('consentShareFarm').checked ? 1 : 0) : 1
                 };
 
                 try {
                     const res = await fetch('/api/expert/cases', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: headers,
                         body: JSON.stringify(payload)
                     });
                     const d = await res.json();

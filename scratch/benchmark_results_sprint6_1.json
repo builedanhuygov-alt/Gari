@@ -1,0 +1,47 @@
+{
+  "gate1": {
+    "median_ms": 2.93,
+    "p95_ms": 5.7,
+    "valid_leaf_status": "LEAF_VALID",
+    "non_leaf_status": "NOT_A_LEAF",
+    "blurry_leaf_status": "IMAGE_QUALITY_LOW"
+  },
+  "models": {
+    "Tomato": {
+      "load_time_sec": 0.801,
+      "ram_delta_mb": 386.06,
+      "total_ram_mb": 738.15,
+      "cold_latency_ms": 207.61,
+      "warm_median_ms": 131.72,
+      "warm_p95_ms": 159.77,
+      "warm_mean_ms": 135.02
+    },
+    "Maize": {
+      "load_time_sec": 0.801,
+      "ram_delta_mb": 344.34,
+      "total_ram_mb": 916.26,
+      "cold_latency_ms": 121.08,
+      "warm_median_ms": 129.03,
+      "warm_p95_ms": 152.73,
+      "warm_mean_ms": 134.47
+    },
+    "detectors/original": {
+      "load_time_sec": 0.871,
+      "ram_delta_mb": 370.79,
+      "total_ram_mb": 1139.68,
+      "cold_latency_ms": 116.63,
+      "warm_median_ms": 129.04,
+      "warm_p95_ms": 138.2,
+      "warm_mean_ms": 128.81
+    }
+  },
+  "dual_gate_e2e": {
+    "median_ms": 348.1,
+    "p95_ms": 566.06
+  },
+  "ram": {
+    "initial_mb": 340.45,
+    "final_mb": 1055.51,
+    "delta_mb": 715.07
+  }
+}

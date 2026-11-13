@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giám sát nguy cơ • Gari AI Lab</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_risk_opt">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -15,7 +15,7 @@
         }
     </script>
 </head>
-<body>
+<body class="risk-page">
     <div class="app-shell">
         <aside class="app-sidebar" id="appSidebar"></aside>
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -24,92 +24,94 @@
             <header class="app-topbar" id="appTopbar"></header>
 
             <main class="content-body">
-                <div class="page-head">
+                <div class="risk-head">
                     <div>
-                        <h1 class="page-head-title">Giám sát nguy cơ & Dịch tễ nông nghiệp</h1>
-                        <p class="page-head-sub">Dự báo sớm nguy cơ bùng phát dịch hại dựa trên dữ liệu quan trắc vi khí hậu liên tục.</p>
+                        <h1 class="risk-head-title">Giám sát nguy cơ & Dịch tễ nông nghiệp</h1>
+                        <p class="risk-head-sub">Dự báo sớm nguy cơ bùng phát dịch hại dựa trên dữ liệu quan trắc vi khí hậu liên tục.</p>
                     </div>
-                    <div class="page-head-actions">
+                    <div>
                         <span class="pill pill-success">Cảm biến IoT Trực tuyến</span>
                     </div>
                 </div>
 
-                <!-- Weather Telemetry Bar -->
-                <div class="card" style="margin-bottom:20px; border-left:3.5px solid var(--primary);">
-                    <div class="card-header">
-                        <div class="card-title-group">
-                            <h2 class="card-title">Trạm quan trắc khí quyển & vi khí hậu thời gian thực</h2>
-                            <div class="card-subtitle" id="stationName">Đang nhận dữ liệu trạm quan trắc...</div>
+                <!-- Weather Telemetry Bar (Compact Strip) -->
+                <div class="risk-weather-card">
+                    <div class="risk-weather-head">
+                        <div>
+                            <h2 class="risk-weather-title">Trạm quan trắc khí quyển & vi khí hậu thời gian thực</h2>
+                            <div class="risk-weather-sub" id="stationName">Đang nhận dữ liệu trạm quan trắc...</div>
                         </div>
                         <span class="pill pill-neutral" id="stationCondition">Mưa rào rải rác</span>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px;">
-                        <div style="padding:14px; background:var(--surface-muted); border-radius:var(--radius-md);">
-                            <span style="font-size:12px; color:var(--text-secondary);">Nhiệt độ không khí</span>
-                            <div style="font-size:22px; font-weight:700; color:var(--text-main);" id="wTemp">24.5°C</div>
-                            <span style="font-size:11px; color:var(--primary);">Cửa sổ bào tử phát tán</span>
+                    <div class="risk-weather-grid">
+                        <div class="risk-weather-item">
+                            <span class="risk-weather-label">Nhiệt độ không khí</span>
+                            <div class="risk-weather-val" id="wTemp">24.5°C</div>
+                            <span class="risk-weather-note" style="color:var(--primary);">Cửa sổ bào tử phát tán</span>
                         </div>
-                        <div style="padding:14px; background:var(--surface-muted); border-radius:var(--radius-md);">
-                            <span style="font-size:12px; color:var(--text-secondary);">Độ ẩm tương đối (RH)</span>
-                            <div style="font-size:22px; font-weight:700; color:var(--danger);" id="wHumidity">82%</div>
-                            <span style="font-size:11px; color:var(--danger);">Ngưỡng nấm bệnh (>80%)</span>
+                        <div class="risk-weather-item">
+                            <span class="risk-weather-label">Độ ẩm tương đối (RH)</span>
+                            <div class="risk-weather-val" id="wHumidity" style="color:var(--danger);">82%</div>
+                            <span class="risk-weather-note" style="color:var(--danger);">Ngưỡng nấm bệnh (&gt;80%)</span>
                         </div>
-                        <div style="padding:14px; background:var(--surface-muted); border-radius:var(--radius-md);">
-                            <span style="font-size:12px; color:var(--text-secondary);">Lượng mưa tích lũy</span>
-                            <div style="font-size:22px; font-weight:700; color:var(--text-main);" id="wRain">4.5 mm</div>
-                            <span style="font-size:11px; color:var(--text-muted);">Độ ẩm bề mặt phiến lá</span>
+                        <div class="risk-weather-item">
+                            <span class="risk-weather-label">Lượng mưa tích lũy</span>
+                            <div class="risk-weather-val" id="wRain">4.5 mm</div>
+                            <span class="risk-weather-note" style="color:var(--text-muted);">Độ ẩm bề mặt phiến lá</span>
                         </div>
-                        <div style="padding:14px; background:var(--surface-muted); border-radius:var(--radius-md);">
-                            <span style="font-size:12px; color:var(--text-secondary);">Tốc độ gió</span>
-                            <div style="font-size:22px; font-weight:700; color:var(--text-main);" id="wWind">12.0 km/h</div>
-                            <span style="font-size:11px; color:var(--text-muted);">Gió nhẹ</span>
+                        <div class="risk-weather-item">
+                            <span class="risk-weather-label">Tốc độ gió</span>
+                            <div class="risk-weather-val" id="wWind">12.0 km/h</div>
+                            <span class="risk-weather-note" style="color:var(--text-muted);">Gió nhẹ</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 2-Col Grid: Alerts & Methodology -->
-                <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:20px; align-items:start;">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title-group">
-                                <h3 class="card-title">Cảnh báo dịch hại đang hoạt động</h3>
-                                <div class="card-subtitle">Khuyến nghị hành động nông học giảm thiểu lây lan mầm bệnh</div>
+                <div class="risk-layout-grid">
+                    <div class="risk-card">
+                        <div class="risk-card-head">
+                            <div>
+                                <h3 class="risk-card-title">Cảnh báo dịch hại đang hoạt động</h3>
+                                <div class="risk-card-sub">Khuyến nghị hành động nông học giảm thiểu lây lan mầm bệnh</div>
                             </div>
                         </div>
 
-                        <div class="alerts-list" id="alertsList">
-                            <div style="padding:24px 0;"><span class="skeleton" style="width:70%; height:20px;"></span></div>
+                        <div class="risk-alerts-list" id="alertsList">
+                            <div style="padding:16px 0;"><span class="skeleton" style="width:70%; height:20px;"></span></div>
                         </div>
                     </div>
 
-                    <div style="display:flex; flex-direction:column; gap:18px;">
-                        <div class="card">
-                            <h3 class="card-title" style="margin-bottom:12px;">Phương pháp luận giám sát</h3>
-                            <div style="display:flex; flex-direction:column; gap:10px; font-size:12.5px; line-height:1.4;">
-                                <div style="padding:10px; background:var(--surface-muted); border-radius:var(--radius-md);">
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <div class="risk-card">
+                            <h3 class="risk-card-title" style="margin-bottom:8px;">Phương pháp luận giám sát</h3>
+                            <div class="methodology-items">
+                                <div class="methodology-item">
                                     <strong style="color:var(--primary);">1. Cảm biến mặt đất thực địa</strong>
-                                    <p style="color:var(--text-secondary); margin-top:2px;">Cảm biến vi khí hậu thời gian thực gắn tại các lô khảo nghiệm nông nghiệp.</p>
+                                    <p>Cảm biến vi khí hậu thời gian thực gắn tại các lô khảo nghiệm nông nghiệp.</p>
                                 </div>
-                                <div style="padding:10px; background:var(--surface-muted); border-radius:var(--radius-md);">
+                                <div class="methodology-item">
                                     <strong style="color:var(--warning);">2. Quy tắc dịch tễ học thực vật</strong>
-                                    <p style="color:var(--text-secondary); margin-top:2px;">Tương quan độ ẩm RH > 85% kéo dài 12h với nhiệt độ ủ bệnh nấm mốc.</p>
+                                    <p>Tương quan độ ẩm RH &gt; 85% kéo dài 12h với nhiệt độ ủ bệnh nấm mốc.</p>
                                 </div>
-                                <div style="padding:10px; background:var(--surface-muted); border-radius:var(--radius-md);">
+                                <div class="methodology-item">
                                     <strong style="color:var(--info);">3. Mô hình dự báo chuỗi thời gian AI</strong>
-                                    <p style="color:var(--text-secondary); margin-top:2px;">Phân tích xu hướng vi khí hậu dự báo trước rủi ro 3–5 ngày.</p>
+                                    <p>Phân tích xu hướng vi khí hậu dự báo trước rủi ro 3–5 ngày.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card">
-                            <h4 style="font-size:13.5px; font-weight:700; color:var(--text-main); margin-bottom:6px;">Quản lý dịch hại tổng hợp (IPM)</h4>
-                            <p style="font-size:12px; color:var(--text-secondary); line-height:1.4; margin-bottom:12px;">
-                                Khi cảnh báo chuyển sang mức Nguy cơ cao (Đỏ), hãy kiểm tra tầng lá dưới lúc rạng đông và tham khảo ý kiến chuyên gia trước khi dùng thuốc bảo vệ thực vật.
-                            </p>
-                            <a href="/frontend2/support.html" class="btn btn-secondary btn-sm" style="width:100%;">
-                                Yêu cầu chuyên gia tư vấn →
-                            </a>
+                        <div class="risk-card">
+                            <div class="risk-ipm-box">
+                                <h4 class="risk-card-title">Quản lý dịch hại tổng hợp (IPM)</h4>
+                                <p class="risk-ipm-desc">
+                                    Khi cảnh báo chuyển sang mức Nguy cơ cao (Đỏ), hãy kiểm tra tầng lá dưới lúc rạng đông và tham khảo ý kiến chuyên gia trước khi dùng thuốc bảo vệ thực vật.
+                                </p>
+                                <a href="/frontend2/support.html" class="btn btn-secondary btn-sm" style="width:100%;">
+                                    Yêu cầu chuyên gia tư vấn →
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -117,10 +119,51 @@
         </div>
     </div>
 
+    <!-- Risk Field Observation Modal -->
+    <div id="riskObservationModal" class="modal-backdrop" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(3px); opacity:1; pointer-events:auto;">
+        <div class="card" style="max-width:480px; width:92%; background:var(--surface); border:1px solid var(--border-color); border-radius:12px; padding:20px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+                <div>
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--text-main);">Ghi nhận quan sát thực địa</h3>
+                    <p style="margin:2px 0 0 0; font-size:12px; color:var(--text-secondary);" id="riskModalSubtitle">Đối chiếu cảnh báo dịch tễ với tình trạng thực tế tại nông hộ</p>
+                </div>
+                <button type="button" id="btnCloseRiskModal" style="background:transparent; border:none; font-size:20px; color:var(--text-muted); cursor:pointer;">✕</button>
+            </div>
+            <form id="formRiskObservation">
+                <input type="hidden" id="obsAlertId" value="" />
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" style="font-size:12px; font-weight:700;">Tình trạng quan sát tại vườn</label>
+                    <select class="select" id="obsStatus">
+                        <option value="inspecting">🔍 Đang theo dõi, chưa phát hiện mầm bệnh</option>
+                        <option value="confirmed_pest">⚠️ Phát hiện triệu chứng rải rác trên tán lá</option>
+                        <option value="no_pest_found">✅ Đã kiểm tra kỹ, cây sinh trưởng an toàn</option>
+                        <option value="treated">🛡️ Đã phun phòng/xử lý nông học theo khuyến nghị</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" style="font-size:12px; font-weight:700;">Mức độ ảnh hưởng quan sát được</label>
+                    <select class="select" id="obsSeverity">
+                        <option value="Thấp">Thấp (dưới 5% số cây/diện tích)</option>
+                        <option value="Trung bình">Trung bình (5% - 20% số cây/diện tích)</option>
+                        <option value="Cao">Cao (trên 20% số cây/diện tích)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label class="form-label" style="font-size:12px; font-weight:700;">Ghi chú thực địa của nông hộ</label>
+                    <textarea class="textarea" id="obsNotes" rows="3" placeholder="VD: Đã đi kiểm tra luống 1 và 2 lúc sáng sớm, lá có đốm vàng nhẹ, đã ngắt bỏ lá già..."></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCancelRiskModal">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Lưu quan sát thực địa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js';
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js?v=20261104_stable';
 
         function init() {
             setupSaaSShell('risk', 'Giám sát nguy cơ');
@@ -155,28 +198,88 @@
                     return;
                 }
 
-                container.innerHTML = alerts.map(a => `
-                    <div class="alert-card ${a.risk_level || 'Moderate'}">
-                        <div class="alert-card-head">
-                            <span class="alert-title">${a.region}</span>
-                            <span class="pill ${a.risk_level === 'High' ? 'pill-danger' : 'pill-warning'}">${a.risk_level === 'High' ? 'Nguy cơ cao' : 'Cảnh báo'}</span>
+                container.innerHTML = alerts.map(a => {
+                    const isHigh = a.risk_level === 'High';
+                    const pillClass = isHigh ? 'pill-danger' : 'pill-warning';
+                    const levelLabel = isHigh ? 'Nguy cơ cao' : 'Cảnh báo';
+                    return `
+                        <div class="alert-card ${a.risk_level || 'Moderate'}">
+                            <div class="alert-card-head">
+                                <div class="alert-meta-group">
+                                    <span class="alert-title">${a.region}</span>
+                                    <span class="alert-threat-inline">${a.disease_threat} (${a.crop})</span>
+                                </div>
+                                <span class="pill ${pillClass}">${levelLabel}</span>
+                            </div>
+                            <p class="alert-desc">${a.recommendation}</p>
+                            <div class="alert-weather-metrics">
+                                <span>🌡️ Nhiệt độ: <strong>${a.temperature_c}°C</strong></span>
+                                <span>💧 Độ ẩm: <strong>${a.humidity_pct}%</strong></span>
+                                <span>🌧️ Lượng mưa: <strong>${a.rainfall_mm} mm</strong></span>
+                            </div>
+                            <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border-color); display:flex; justify-content:flex-end;">
+                                <button type="button" class="btn btn-secondary btn-sm btn-ack-risk" data-alert-id="${a.id}" data-threat="${a.disease_threat}" data-crop="${a.crop}">
+                                    📝 Ghi nhận quan sát thực địa
+                                </button>
+                            </div>
                         </div>
-                        <div style="font-size:12px; font-weight:600; color:var(--primary); margin:3px 0;">
-                            ${a.disease_threat} (${a.crop})
-                        </div>
-                        <p class="alert-desc">${a.recommendation}</p>
-                        <div style="font-size:11px; color:var(--text-muted); margin-top:6px; display:flex; gap:12px;">
-                            <span>Nhiệt độ: ${a.temperature_c}°C</span>
-                            <span>Độ ẩm: ${a.humidity_pct}%</span>
-                            <span>Mưa: ${a.rainfall_mm} mm</span>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
+
+                container.querySelectorAll('.btn-ack-risk').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const alertId = e.currentTarget.dataset.alertId;
+                        const threat = e.currentTarget.dataset.threat;
+                        const crop = e.currentTarget.dataset.crop;
+                        document.getElementById('obsAlertId').value = alertId;
+                        document.getElementById('riskModalSubtitle').textContent = `Đối chiếu cảnh báo: ${threat} (${crop}) với thực tế tại nông hộ`;
+                        const m = document.getElementById('riskObservationModal');
+                        m.style.display = 'flex';
+                        m.classList.add('show');
+                    });
+                });
 
             } catch (err) {
                 toast('Lỗi khi tải dữ liệu giám sát vi khí hậu.');
             }
         }
+
+        // Modal Handlers
+        const obsModal = document.getElementById('riskObservationModal');
+        const hideObsModal = () => {
+            if (obsModal) {
+                obsModal.style.display = 'none';
+                obsModal.classList.remove('show');
+            }
+        };
+        document.getElementById('btnCloseRiskModal')?.addEventListener('click', hideObsModal);
+        document.getElementById('btnCancelRiskModal')?.addEventListener('click', hideObsModal);
+        obsModal?.addEventListener('click', (e) => { if (e.target === obsModal) hideObsModal(); });
+
+        document.getElementById('formRiskObservation')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const alertId = document.getElementById('obsAlertId').value;
+            const status = document.getElementById('obsStatus').value;
+            const severity = document.getElementById('obsSeverity').value;
+            const notes = document.getElementById('obsNotes').value.trim();
+
+            try {
+                await fetchJSON(`/api/risk/alerts/${alertId}/acknowledge`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        status: status,
+                        severity_observed: severity,
+                        user_observation: notes
+                    })
+                });
+
+                obsModal.style.display = 'none';
+                document.getElementById('formRiskObservation').reset();
+                toast('Đã ghi nhận quan sát thực địa vào hồ sơ trang trại thành công!');
+            } catch (err) {
+                toast('Không thể lưu quan sát thực địa.');
+            }
+        });
     </script>
 </body>
 </html>

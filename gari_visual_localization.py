@@ -31,12 +31,15 @@ def compute_gradcam(
     image: Image.Image,
     target_class_idx: Optional[int] = None,
     device: Optional[torch.device] = None,
-) -> Tuple[np.ndarray, Image.Image]:
+    preprocessed_tensor: Optional[torch.Tensor] = None,
+    return_logits: bool = False,
+) -> Any:
     """
     Computes Grad-CAM attention heatmap for ConvNeXt classification models.
     Backpropagates gradient of target class into final feature stage (stages[3].blocks[-1]).
+    Freezes model parameters so backward pass only computes activation gradients.
     Returns:
-        (cam_normalized_0_1, pil_overlay_image)
+        (cam_normalized_0_1, pil_overlay_image) or (cam_normalized_0_1, pil_overlay_image, logits)
     """
     if device is None:
         device = next(net.parameters()).device
@@ -63,52 +66,68 @@ def compute_gradcam(
     if target_layer is None:
         # Fallback if layer cannot be hooked
         blank = np.zeros((img_h, img_w), dtype=np.float32)
+        if return_logits:
+            return blank, image.copy(), None
         return blank, image.copy()
 
     h_fwd = target_layer.register_forward_hook(forward_hook)
     h_bwd = target_layer.register_full_backward_hook(backward_hook)
+    logits = None
+    try:
+        net.eval()
+        # Grad-CAM needs activation gradients, not parameter gradients. Keeping
+        # weights frozen prevents a full model-gradient allocation per request.
+        for p in net.parameters():
+            p.requires_grad_(False)
 
-    net.eval()
-    tensor = entry.preprocess(image).to(device)
-    tensor.requires_grad = True
+        tensor = (preprocessed_tensor.to(device) if preprocessed_tensor is not None else entry.preprocess(image).to(device))
+        if tensor.ndim != 4 or tensor.shape[0] != 1:
+            raise ValueError(f"Grad-CAM expected a single NCHW tensor, received {tuple(tensor.shape)}")
+        tensor = tensor.detach().requires_grad_(True)
 
-    net.zero_grad()
-    logits = net(tensor)
+        net.zero_grad(set_to_none=True)
+        output = net(tensor)
+        logits = output.logits if hasattr(output, "logits") else output
+        if not isinstance(logits, torch.Tensor) or logits.ndim != 2 or logits.shape[0] != 1:
+            raise ValueError("Grad-CAM model output must be a single classification-logit tensor.")
 
-    if target_class_idx is None:
-        target_class_idx = int(torch.argmax(logits, dim=1).item())
+        if target_class_idx is None:
+            target_class_idx = int(torch.argmax(logits, dim=1).item())
+        if not 0 <= int(target_class_idx) < logits.shape[1]:
+            raise ValueError(f"Grad-CAM target class {target_class_idx} is outside model output range.")
 
-    score = logits[0, target_class_idx]
-    score.backward()
+        logits[0, int(target_class_idx)].backward()
+        if not activations or not gradients:
+            raise RuntimeError("Grad-CAM target layer produced no activation gradients.")
 
-    h_fwd.remove()
-    h_bwd.remove()
+        activation = activations[0]
+        gradient = gradients[0]
+        if not isinstance(activation, torch.Tensor) or not isinstance(gradient, torch.Tensor):
+            raise RuntimeError("Grad-CAM target layer did not return tensors.")
+        act = activation.detach().cpu().numpy()[0]  # [C, H, W]
+        grad = gradient.detach().cpu().numpy()[0]   # [C, H, W]
+        if act.ndim != 3 or grad.shape != act.shape:
+            raise RuntimeError("Grad-CAM activation and gradient shapes do not match.")
+        weights = np.mean(grad, axis=(1, 2))
+        cam = np.maximum(np.einsum("c,chw->hw", weights, act), 0)
+        if cam.max() > 0:
+            cam = cam / cam.max()
 
-    if not activations or not gradients:
-        blank = np.zeros((img_h, img_w), dtype=np.float32)
-        return blank, image.copy()
-
-    act = activations[0].detach().cpu().numpy()[0]  # [C, H, W]
-    grad = gradients[0].detach().cpu().numpy()[0]   # [C, H, W]
-    weights = np.mean(grad, axis=(1, 2))            # [C]
-
-    cam = np.zeros(act.shape[1:], dtype=np.float32)
-    for i, w in enumerate(weights):
-        cam += w * act[i]
-
-    cam = np.maximum(cam, 0)
-    if cam.max() > 0:
-        cam = cam / cam.max()
-
-    cam_resized = cv2.resize(cam, (img_w, img_h), interpolation=cv2.INTER_LINEAR)
-    heatmap_bgr = cv2.applyColorMap(np.uint8(255 * cam_resized), cv2.COLORMAP_JET)
-    heatmap_rgb = cv2.cvtColor(heatmap_bgr, cv2.COLOR_BGR2RGB)
-
-    orig_np = np.array(image.convert("RGB"))
-    blended = np.uint8(0.52 * orig_np + 0.48 * heatmap_rgb)
-    pil_overlay = Image.fromarray(blended)
-
-    return cam_resized, pil_overlay
+        cam_resized = cv2.resize(cam, (img_w, img_h), interpolation=cv2.INTER_LINEAR)
+        heatmap_bgr = cv2.applyColorMap(np.uint8(255 * cam_resized), cv2.COLORMAP_JET)
+        heatmap_rgb = cv2.cvtColor(heatmap_bgr, cv2.COLOR_BGR2RGB)
+        blended = np.uint8(0.52 * np.array(image.convert("RGB")) + 0.48 * heatmap_rgb)
+        pil_overlay = Image.fromarray(blended)
+        if return_logits:
+            return cam_resized, pil_overlay, logits.detach()
+        return cam_resized, pil_overlay
+    finally:
+        # Hooks must be removed even when an unsupported architecture or image
+        # causes an exception; otherwise every retry retains another hook and
+        # progressively slows / exhausts the inference process.
+        h_fwd.remove()
+        h_bwd.remove()
+        net.zero_grad(set_to_none=True)
 
 
 def extract_pathology_regions(
@@ -271,39 +290,45 @@ def generate_visual_localization_bundle(
     attention_path = output_dir / attention_filename
     overlay_path = output_dir / overlay_filename
 
-    # 1. Grad-CAM (if CNN model available)
+    # 1. Grad-CAM (only for a verified compatible CNN target layer).  Do not
+    # substitute the source image: that would look like a valid heatmap.
+    attention_url = None
+    localization_message_vi = None
     try:
         if net is not None and entry is not None and hasattr(net, "stages"):
             _, cam_overlay = compute_gradcam(
                 net, entry, image, target_class_idx=target_class_idx, device=device
             )
-            cam_overlay.save(attention_path, format="PNG")
+            cam_overlay.save(attention_path, format="PNG", compress_level=1)
             has_cam = True
         else:
-            # ViT or non-CNN fallback: produce a clean copy
-            image.save(attention_path, format="PNG")
             has_cam = False
+            localization_message_vi = "Mô hình hiện tại không hỗ trợ Grad-CAM cho ảnh này."
     except Exception as exc:
         logger.warning("Grad-CAM generation failed: %s", exc)
-        image.save(attention_path, format="PNG")
         has_cam = False
+        localization_message_vi = "Không thể tạo vùng giải thích trực quan cho ảnh này."
+    if has_cam:
+        attention_url = f"/uploads/{attention_filename}"
 
     # 2. Pathology Lesion Extraction
     try:
         regions, lesion_overlay = extract_pathology_regions(image)
-        lesion_overlay.save(overlay_path, format="PNG")
+        lesion_overlay.save(overlay_path, format="PNG", compress_level=1)
     except Exception as exc:
         logger.warning("Pathology region extraction failed: %s", exc)
         regions = []
-        image.save(overlay_path, format="PNG")
+        overlay_path = None
 
     return {
         "success": True,
+        "status": "available" if has_cam else "unavailable",
         "method": "gradcam_and_pathology_regions",
         "has_attention_map": has_cam,
+        "message_vi": localization_message_vi,
         "disclaimer_vi": ATTENTION_DISCLAIMER_VI,
-        "attention_image_url": f"/uploads/{attention_filename}",
-        "overlay_image_url": f"/uploads/{overlay_filename}",
+        "attention_image_url": attention_url,
+        "overlay_image_url": f"/uploads/{overlay_filename}" if overlay_path else None,
         "regions_count": len(regions),
         "regions": regions,
         "image_dimensions": {"width": img_w, "height": img_h},

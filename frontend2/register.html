@@ -255,7 +255,35 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import '/frontend2/firebase-client.js';
+
+        // Check if already authenticated
+        (async function checkExistingAuth() {
+            try {
+                if (window.gariAuth) {
+                    await window.gariAuth.init();
+                    if (window.gariAuth.currentUser) {
+                        window.location.href = '/frontend2/index.html';
+                        return;
+                    }
+                }
+            } catch (_) {}
+
+            const token = localStorage.getItem('gari_token');
+            if (token) {
+                try {
+                    const res = await fetch('/api/auth/me', {
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        credentials: 'include'
+                    });
+                    if (res.ok) {
+                        window.location.href = '/frontend2/index.html';
+                    }
+                } catch (_) {}
+            }
+        })();
+
         // Account type card selector
         const typeCards = document.querySelectorAll('.account-type-card');
         const hiddenTypeInput = document.getElementById('regAccountType');
@@ -274,16 +302,32 @@
             alert.style.display = 'flex';
         }
 
-        // Handle Register Submission
+        // Handle Register Submission with State Safety & Duplicate Prevention
+        let isSubmitting = false;
+
         document.getElementById('registerForm').onsubmit = async (e) => {
             e.preventDefault();
+            if (isSubmitting) return;
+
             const fullName = document.getElementById('regFullName').value.trim();
             const email = document.getElementById('regEmail').value.trim().toLowerCase();
             const phone = document.getElementById('regPhone').value.trim();
             const accountType = hiddenTypeInput.value;
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const termsAgreed = document.getElementById('termsCheck').checked;
+            const marketingOptIn = document.getElementById('marketingCheck') ? document.getElementById('marketingCheck').checked : false;
             const btnSubmit = document.getElementById('btnRegSubmit');
+
+            if (!fullName) {
+                showAlert('Vui lòng nhập họ và tên của bạn.', 'error');
+                return;
+            }
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showAlert('Địa chỉ email không đúng định dạng.', 'error');
+                return;
+            }
 
             if (password !== confirmPassword) {
                 showAlert('Mật khẩu và xác nhận mật khẩu không trùng khớp.', 'error');
@@ -295,47 +339,76 @@
                 return;
             }
 
+            if (!termsAgreed) {
+                showAlert('Bạn cần đồng ý với Điều khoản dịch vụ và Chính sách bảo mật để tiếp tục.', 'error');
+                return;
+            }
+
+            isSubmitting = true;
             btnSubmit.disabled = true;
             btnSubmit.textContent = 'Đang khởi tạo tài khoản...';
 
+            let registrationSucceeded = false;
             try {
-                const res = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        full_name: fullName,
-                        email: email,
-                        phone: phone || null,
-                        account_type: accountType,
-                        password: password,
-                        confirm_password: confirmPassword,
-                        terms_agreed: true,
-                        marketing_opt_in: document.getElementById('marketingCheck').checked
-                    })
-                });
-
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    if (data.token) {
-                        localStorage.setItem('gari_token', data.token);
+                if (window.gariAuth) {
+                    await window.gariAuth.init();
+                    const result = await window.gariAuth.register(
+                        fullName,
+                        email,
+                        password,
+                        phone,
+                        'Lâm Đồng',
+                        accountType,
+                        marketingOptIn
+                    );
+                    if (result && result.success) {
+                        registrationSucceeded = true;
+                        showAlert('Đăng ký tài khoản thành công! Đang chuyển đến không gian làm việc...', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/frontend2/index.html';
+                        }, 400);
+                        return;
                     }
-                    if (data.user) {
-                        localStorage.setItem('gari_user', JSON.stringify(data.user));
-                    }
-                    showAlert('Đăng ký tài khoản thành công! Đang chuyển đến không gian làm việc...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/frontend2/index.html';
-                    }, 500);
+                    showAlert('Không thể đăng ký tài khoản. Vui lòng thử lại.', 'error');
                 } else {
+                    // Native direct fallback
+                    const res = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: AbortSignal.timeout(10000),
+                        body: JSON.stringify({
+                            full_name: fullName,
+                            email: email,
+                            phone: phone || null,
+                            account_type: accountType,
+                            password: password,
+                            confirm_password: confirmPassword,
+                            terms_agreed: true,
+                            marketing_opt_in: marketingOptIn
+                        })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        registrationSucceeded = true;
+                        if (data.token) localStorage.setItem('gari_token', data.token);
+                        if (data.user) localStorage.setItem('gari_user', JSON.stringify(data.user));
+                        showAlert('Đăng ký tài khoản thành công! Đang chuyển đến không gian làm việc...', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/frontend2/index.html';
+                        }, 400);
+                        return;
+                    }
                     showAlert(data.detail || data.message || 'Không thể đăng ký tài khoản. Vui lòng thử lại.', 'error');
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = 'Tạo tài khoản nông trại';
                 }
             } catch (err) {
-                showAlert('Lỗi kết nối máy chủ. Vui lòng kiểm tra lại.', 'error');
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = 'Tạo tài khoản nông trại';
+                const message = err.userMessage || err.message || 'Không thể kết nối máy chủ. Vui lòng thử lại sau.';
+                showAlert(message, 'error');
+            } finally {
+                if (!registrationSucceeded) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Tạo tài khoản nông trại';
+                    isSubmitting = false;
+                }
             }
         };
     </script>

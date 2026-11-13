@@ -7,7 +7,15 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from contextlib import contextmanager
+import threading
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
+
+from gari_model_lifecycle import (
+    ModelLifecycleManager,
+    ModelLifecycleState,
+    get_current_rss_mb,
+)
 
 import numpy as np
 import torch
@@ -203,10 +211,11 @@ PRIORITY_CROPS: Dict[str, Dict[str, Any]] = {
         "id": "chili",
         "name_vi": "Ớt",
         "name_en": "Chili",
-        "has_disease_model": False,
-        "disease_model_dir": None,
-        "arch": None,
-        "aliases": ["chili", "chilli", "ớt", "ot", "pepper_bell", "pepper,_bell"]
+        "has_disease_model": True,
+        "disease_model_dir": "Model tong",
+        "arch": "vit_base",
+        "classes": ["Pepper,_bell___Bacterial_spot", "Pepper,_bell___healthy"],
+        "aliases": ["chili", "chilli", "ớt", "ot", "bell pepper", "bell_pepper", "pepper_bell", "pepper,_bell", "chili pepper", "ớt cay", "ớt ngọt", "ớt chuông"]
     },
     "maize": {
         "id": "maize",
@@ -272,6 +281,51 @@ def resolve_priority_crop(crop_input: Optional[str]) -> Optional[Dict[str, Any]]
     return None
 
 
+def normalize_crop_input(crop_input: Optional[str]) -> Optional[str]:
+    """Normalizes any crop input (Vietnamese name, English name, or alias) to standard crop id."""
+    resolved = resolve_priority_crop(crop_input)
+    if resolved:
+        return resolved["id"]
+    if crop_input:
+        return crop_input.strip().lower()
+    return None
+
+
+def categorize_confidence(conf_val: float, status: str = "OK") -> Dict[str, Any]:
+    """
+    Categorizes model confidence score into High (>=0.70), Medium (>=0.45), Low (<0.45).
+    Provides structured Vietnamese explanation and uncertainty flags.
+    """
+    conf = float(conf_val or 0.0)
+    CONF_THRESH_HIGH = 0.70
+    CONF_THRESH_MEDIUM = 0.45
+
+    if conf >= CONF_THRESH_HIGH:
+        return {
+            "level": "high",
+            "level_vi": "Cao",
+            "is_uncertain": False,
+            "uncertainty_explanation_vi": None,
+            "threshold": CONF_THRESH_HIGH
+        }
+    elif conf >= CONF_THRESH_MEDIUM:
+        return {
+            "level": "medium",
+            "level_vi": "Trung bình",
+            "is_uncertain": False,
+            "uncertainty_explanation_vi": "Độ tin cậy ở mức trung bình (45% - 70%). Khuyến nghị quan sát thêm triệu chứng trên các lá lân cận.",
+            "threshold": CONF_THRESH_MEDIUM
+        }
+    else:
+        return {
+            "level": "low",
+            "level_vi": "Thấp",
+            "is_uncertain": True,
+            "uncertainty_explanation_vi": "Độ tin cậy của mô hình dưới 45%. Kết quả mang tính tham khảo và chưa đủ cơ sở chắc chắn để khẳng định bệnh lý.",
+            "threshold": CONF_THRESH_MEDIUM
+        }
+
+
 
 def validate_leaf_gate(img: Image.Image) -> Dict[str, Any]:
     """
@@ -317,7 +371,15 @@ def validate_leaf_gate(img: Image.Image) -> Dict[str, Any]:
             "metrics": metrics
         }
 
-    arr = np.asarray(img.convert("RGB"), dtype=np.float32)
+    # Fast path: use an analysis copy downsampled to max 768px for optical metrics
+    # to avoid expensive 10M+ float operations on full-resolution camera photos.
+    if img.width > 768 or img.height > 768:
+        analysis_img = img.copy()
+        analysis_img.thumbnail((768, 768), Image.Resampling.BILINEAR)
+    else:
+        analysis_img = img
+
+    arr = np.asarray(analysis_img.convert("RGB"), dtype=np.float32)
     R, G, B = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
 
     # 2. Luminance & Exposure Check
@@ -330,16 +392,23 @@ def validate_leaf_gate(img: Image.Image) -> Dict[str, Any]:
     metrics["color_std"] = round(color_std, 2)
 
     # 4. Sharpness / Blur Check (Laplacian Variance)
-    gray = np.asarray(img.convert("L"), dtype=np.float32)
+    gray = np.asarray(analysis_img.convert("L"), dtype=np.float32)
     lap = gray[:-2, 1:-1] + gray[2:, 1:-1] + gray[1:-1, :-2] + gray[1:-1, 2:] - 4.0 * gray[1:-1, 1:-1]
     lap_var = float(lap.var())
     metrics["lap_var"] = round(lap_var, 2)
 
-    # Optical quality gate: blur, extreme darkness, severe blowout, or solid blank color
-    if mean_lum < 18.0 or mean_lum > 248.0 or lap_var < 12.0 or color_std < 5.0:
+    # Optical quality gate: extreme darkness, severe blowout, blur, or solid blank color
+    if mean_lum < 16.0 or mean_lum > 250.0 or lap_var < 8.0 or color_std < 5.0:
+        score = round(min(lap_var / 50.0, 0.35), 2)
+        decision_rule = f"optical_quality_low (lum={mean_lum:.1f}, lap={lap_var:.1f}, std={color_std:.1f})"
+        logger.info(
+            "[LEAF_GATE] input_shape=(%d, %d) | mean_lum=%.1f lap_var=%.1f color_std=%.1f | decision=IMAGE_QUALITY_LOW score=%.3f rule=%s",
+            img.width, img.height, mean_lum, lap_var, color_std, score, decision_rule
+        )
         return {
             "status": "IMAGE_QUALITY_LOW",
-            "score": round(min(lap_var / 50.0, 0.35), 2),
+            "score": score,
+            "decision_rule": decision_rule,
             "message_vi": "Ảnh chưa đủ rõ để kiểm tra. Hãy chụp gần hơn, đủ sáng và giữ lá trong khung hình.",
             "metrics": metrics
         }
@@ -361,18 +430,18 @@ def validate_leaf_gate(img: Image.Image) -> Dict[str, Any]:
     tot_rgb = R + G + B + 1e-6
     r_n, g_n, b_n = R / tot_rgb, G / tot_rgb, B / tot_rgb
 
-    # Band A: Green Foliage (Healthy or early-stage lesion)
-    green_mask = ((H >= 65.0) & (H <= 165.0) & (S >= 0.15)) | ((g_n > 0.36) & (2.0 * G - R - B > 5.0))
+    # Band A: Green Foliage (Healthy or early-stage lesion, Hue 55 to 165)
+    green_mask = ((H >= 55.0) & (H <= 165.0) & (S >= 0.10)) | ((g_n > 0.35) & (2.0 * G - R - B > 2.0))
     green_ratio = float(green_mask.mean())
     metrics["green_ratio"] = round(green_ratio, 4)
 
-    # Band B: Chlorotic Yellow Foliage (Vàng lá do nấm, virus hoặc thiếu vi lượng)
-    yellow_mask = (H >= 35.0) & (H < 65.0) & (S >= 0.20) & (b_n < 0.26) & (r_n > 0.34) & (g_n > 0.32)
+    # Band B: Chlorotic Yellow Foliage (Vàng lá do nấm, virus hoặc thiếu vi lượng, Hue 35 to 65)
+    yellow_mask = (H >= 35.0) & (H < 65.0) & (S >= 0.15) & (b_n < 0.28) & (r_n > 0.32) & (g_n > 0.30)
     yellow_ratio = float(yellow_mask.mean())
     metrics["yellow_ratio"] = round(yellow_ratio, 4)
 
-    # Band C: Brown Necrotic / Senescent Dry Leaf Tissue (Đốm nâu hoại tử, cháy lá, lá khô)
-    brown_mask = (H >= 15.0) & (H < 35.0) & (S >= 0.18) & (r_n > 0.40) & (g_n > 0.26) & (b_n < 0.22) & ((G - B) > 8.0)
+    # Band C: Brown Necrotic / Fungal Lesion / Dry Leaf Tissue (Hue 12 to 35)
+    brown_mask = (H >= 12.0) & (H < 35.0) & (S >= 0.15) & (r_n > 0.38) & (g_n > 0.24) & ((G - B) > 3.0)
     brown_ratio = float(brown_mask.mean())
     metrics["brown_ratio"] = round(brown_ratio, 4)
 
@@ -403,69 +472,117 @@ def validate_leaf_gate(img: Image.Image) -> Dict[str, Any]:
     # ---------------------------------------------------------
     # NOT_A_LEAF Rejection Rules:
     # ---------------------------------------------------------
-    # 1. Synthetic blue / cyan surfaces
-    if blue_ratio > 0.35:
+    # 1. Synthetic blue / cyan surfaces: only reject if no significant foliage is present
+    if blue_ratio > 0.40 and botanical_ratio < 0.08:
+        score = 0.02
+        decision_rule = f"synthetic_blue (blue={blue_ratio:.3f}, bot={botanical_ratio:.3f})"
+        logger.info(
+            "[LEAF_GATE] input_shape=(%d, %d) | green=%.4f yellow=%.4f brown=%.4f blue=%.4f skin=%.4f bot=%.4f | decision=NOT_A_LEAF score=%.3f rule=%s",
+            img.width, img.height, green_ratio, yellow_ratio, brown_ratio, blue_ratio, skin_ratio, botanical_ratio, score, decision_rule
+        )
         return {
             "status": "NOT_A_LEAF",
-            "score": 0.02,
+            "score": score,
+            "decision_rule": decision_rule,
             "message_vi": "Ảnh này không có lá cây phù hợp để chẩn đoán. Hãy tải ảnh chụp một chiếc lá.",
             "metrics": metrics
         }
 
-    # 2. Human skin dominance
-    if skin_ratio > 0.38 and botanical_ratio < 0.12:
+    # 2. Human skin dominance: only reject if skin dominates and foliage is absent
+    if skin_ratio > 0.38 and botanical_ratio < 0.08:
+        score = 0.04
+        decision_rule = f"human_skin (skin={skin_ratio:.3f}, bot={botanical_ratio:.3f})"
+        logger.info(
+            "[LEAF_GATE] input_shape=(%d, %d) | green=%.4f yellow=%.4f brown=%.4f blue=%.4f skin=%.4f bot=%.4f | decision=NOT_A_LEAF score=%.3f rule=%s",
+            img.width, img.height, green_ratio, yellow_ratio, brown_ratio, blue_ratio, skin_ratio, botanical_ratio, score, decision_rule
+        )
         return {
             "status": "NOT_A_LEAF",
-            "score": 0.04,
+            "score": score,
+            "decision_rule": decision_rule,
             "message_vi": "Ảnh này không có lá cây phù hợp để chẩn đoán. Hãy tải ảnh chụp một chiếc lá.",
             "metrics": metrics
         }
 
     # 3. Non-plant object / strong negative ExG
-    if mean_exg < -18.0 and botanical_ratio < 0.15:
+    if mean_exg < -18.0 and botanical_ratio < 0.06:
+        score = 0.05
+        decision_rule = f"negative_exg (exg={mean_exg:.1f}, bot={botanical_ratio:.3f})"
+        logger.info(
+            "[LEAF_GATE] input_shape=(%d, %d) | green=%.4f yellow=%.4f brown=%.4f blue=%.4f skin=%.4f bot=%.4f | decision=NOT_A_LEAF score=%.3f rule=%s",
+            img.width, img.height, green_ratio, yellow_ratio, brown_ratio, blue_ratio, skin_ratio, botanical_ratio, score, decision_rule
+        )
         return {
             "status": "NOT_A_LEAF",
-            "score": 0.05,
+            "score": score,
+            "decision_rule": decision_rule,
             "message_vi": "Ảnh này không có lá cây phù hợp để chẩn đoán. Hãy tải ảnh chụp một chiếc lá.",
             "metrics": metrics
         }
 
-    # 4. Total lack of botanical plant tissue (< 10%)
-    if botanical_ratio < 0.10:
+    # 4. Total lack of botanical plant tissue (< 6%)
+    if botanical_ratio < 0.06:
+        score = round(botanical_ratio, 3)
+        decision_rule = f"lack_of_botanical_tissue (bot={botanical_ratio:.3f})"
+        logger.info(
+            "[LEAF_GATE] input_shape=(%d, %d) | green=%.4f yellow=%.4f brown=%.4f blue=%.4f skin=%.4f bot=%.4f | decision=NOT_A_LEAF score=%.3f rule=%s",
+            img.width, img.height, green_ratio, yellow_ratio, brown_ratio, blue_ratio, skin_ratio, botanical_ratio, score, decision_rule
+        )
         return {
             "status": "NOT_A_LEAF",
-            "score": round(botanical_ratio, 3),
+            "score": score,
+            "decision_rule": decision_rule,
             "message_vi": "Ảnh này không có lá cây phù hợp để chẩn đoán. Hãy tải ảnh chụp một chiếc lá.",
             "metrics": metrics
         }
 
     # 5. Complete absence of photosynthetic pigments (Green & Yellow < 2%)
     if green_ratio < 0.02 and yellow_ratio < 0.02:
+        score = round(max(green_ratio, yellow_ratio), 3)
+        decision_rule = f"absence_of_pigments (g={green_ratio:.4f}, y={yellow_ratio:.4f})"
+        logger.info(
+            "[LEAF_GATE] input_shape=(%d, %d) | green=%.4f yellow=%.4f brown=%.4f blue=%.4f skin=%.4f bot=%.4f | decision=NOT_A_LEAF score=%.3f rule=%s",
+            img.width, img.height, green_ratio, yellow_ratio, brown_ratio, blue_ratio, skin_ratio, botanical_ratio, score, decision_rule
+        )
         return {
             "status": "NOT_A_LEAF",
-            "score": round(max(green_ratio, yellow_ratio), 3),
+            "score": score,
+            "decision_rule": decision_rule,
             "message_vi": "Ảnh này không có lá cây phù hợp để chẩn đoán. Hãy tải ảnh chụp một chiếc lá.",
             "metrics": metrics
         }
 
     # ---------------------------------------------------------
-    # UNCERTAIN Rules: Ambiguous foliage or marginal ratio
+    # UNCERTAIN Rules: Truly marginal foliage
     # ---------------------------------------------------------
-    if botanical_ratio < 0.20 or (lap_var < 24.0 and botanical_ratio < 0.30):
+    if botanical_ratio < 0.08 or (lap_var < 10.0 and botanical_ratio < 0.12):
+        score = round(0.40 + botanical_ratio * 0.5, 2)
+        decision_rule = f"marginal_foliage (bot={botanical_ratio:.3f}, lap={lap_var:.1f})"
+        logger.info(
+            "[LEAF_GATE] input_shape=(%d, %d) | green=%.4f yellow=%.4f brown=%.4f blue=%.4f skin=%.4f bot=%.4f | decision=UNCERTAIN score=%.3f rule=%s",
+            img.width, img.height, green_ratio, yellow_ratio, brown_ratio, blue_ratio, skin_ratio, botanical_ratio, score, decision_rule
+        )
         return {
             "status": "UNCERTAIN",
-            "score": round(0.40 + botanical_ratio * 0.5, 2),
+            "score": score,
+            "decision_rule": decision_rule,
             "message_vi": "Gari chưa xác định được đây có phải ảnh lá cây hay không. Hãy chụp rõ một chiếc lá.",
             "metrics": metrics
         }
 
     # ---------------------------------------------------------
-    # LEAF_VALID: Sufficient plant foliage (green, yellow, or brown)
+    # LEAF_VALID: Sufficient plant foliage
     # ---------------------------------------------------------
     confidence = min(0.99, max(0.65, 0.50 + botanical_ratio * 0.35 + min(lap_var / 500.0, 0.15)))
+    decision_rule = f"leaf_valid (bot={botanical_ratio:.3f}, score={confidence:.3f})"
+    logger.info(
+        "[LEAF_GATE] input_shape=(%d, %d) | lum=%.1f lap=%.1f | green=%.4f yellow=%.4f brown=%.4f blue=%.4f skin=%.4f bot=%.4f | decision=LEAF_VALID score=%.3f rule=%s",
+        img.width, img.height, mean_lum, lap_var, green_ratio, yellow_ratio, brown_ratio, blue_ratio, skin_ratio, botanical_ratio, confidence, decision_rule
+    )
     return {
         "status": "LEAF_VALID",
         "score": round(confidence, 3),
+        "decision_rule": decision_rule,
         "message_vi": None,
         "metrics": metrics
     }
@@ -556,9 +673,16 @@ class GariInferenceEngine:
         self.models_dir = models_dir
         self.max_cached = max_cached
         self.device = DEVICE
+        self._lock = threading.Lock()
         self.registry: Dict[str, ModelEntry] = {}
-        # Cache: crop_id -> {"model": torch.nn.Module, "last_used": float}
+        # Synchronized cache dictionary mapping: crop_id -> {"model": torch.nn.Module, "last_used": float}
         self.cache: Dict[str, Dict[str, Any]] = {}
+        self.lifecycle = ModelLifecycleManager(
+            idle_timeout_seconds=float(os.getenv("MODEL_IDLE_TIMEOUT_SECONDS", "300")),
+            max_cached=self.max_cached,
+            auto_unload_enabled=os.getenv("MODEL_AUTO_UNLOAD_ENABLED", "true").lower() in ("true", "1", "yes"),
+            preload_enabled=os.getenv("MODEL_PRELOAD_ENABLED", "false").lower() in ("true", "1", "yes"),
+        )
         self.discover_models()
 
     def discover_models(self) -> int:
@@ -669,11 +793,17 @@ class GariInferenceEngine:
         logger.info("Discovered %d valid models in %s (Device: %s)", len(self.registry), self.models_dir, self.device)
         return len(self.registry)
 
+    def is_model_loaded(self, crop_id: str) -> bool:
+        entry = self.get_model_entry(crop_id)
+        actual_id = entry.crop_id if entry else crop_id
+        slot = self.lifecycle.get_slot(actual_id)
+        return slot.model is not None and slot.state in (ModelLifecycleState.READY, ModelLifecycleState.INFERENCE_ACTIVE)
+
     def list_models(self) -> List[Dict[str, Any]]:
         results = []
         for crop_id, entry in sorted(self.registry.items()):
             d = entry.to_dict(include_classes=True)
-            d["is_loaded"] = crop_id in self.cache
+            d["is_loaded"] = self.is_model_loaded(crop_id)
             d["device"] = str(self.device)
             results.append(d)
         return results
@@ -691,38 +821,19 @@ class GariInferenceEngine:
                 return v
         return None
 
-    def load_model(self, crop_id: str) -> Tuple[torch.nn.Module, ModelEntry]:
-        entry = self.get_model_entry(crop_id)
-        if entry is None:
-            supported = [k for k, v in self.registry.items() if v.kind == "disease"]
-            raise ValueError(f"Unknown or unsupported crop '{crop_id}'. Supported crops: {', '.join(supported)}")
-
-        actual_id = entry.crop_id
-        now = time.time()
-
-        if actual_id in self.cache:
-            self.cache[actual_id]["last_used"] = now
-            return self.cache[actual_id]["model"], entry
-
-        # Evict least recently used model if cache is full
-        if len(self.cache) >= self.max_cached:
-            oldest_id = min(self.cache.keys(), key=lambda k: self.cache[k]["last_used"])
-            logger.info("Evicting model '%s' from cache (capacity: %d)", oldest_id, self.max_cached)
-            del self.cache[oldest_id]["model"]
-            del self.cache[oldest_id]
-            if self.device.type == "cuda":
-                torch.cuda.empty_cache()
-
-        logger.info("Loading model weights for '%s' (%s, %s MB) on %s...",
-                    actual_id, entry.arch, entry.weight_size_mb, self.device)
-        t0 = time.time()
-
-        try:
+    def _create_model_loader(self, entry: ModelEntry):
+        def _loader():
+            actual_id = entry.crop_id
+            logger.info("Loading model weights for '%s' (%s, %s MB) on %s...",
+                        actual_id, entry.arch, entry.weight_size_mb, self.device)
+            t0 = time.time()
             if getattr(entry, "framework", "timm") == "transformers" or entry.arch == "ViTForImageClassification":
                 from transformers import AutoModelForImageClassification
-                net = AutoModelForImageClassification.from_pretrained(str(entry.directory))
+                net = AutoModelForImageClassification.from_pretrained(str(entry.directory), local_files_only=True)
                 net.to(self.device)
                 net.eval()
+                for p in net.parameters():
+                    p.requires_grad = False
             else:
                 net = timm.create_model(entry.arch, pretrained=False, num_classes=len(entry.classes))
                 state_dict = load_file(str(entry.weight_path))
@@ -737,49 +848,77 @@ class GariInferenceEngine:
 
                 net.to(self.device)
                 net.eval()
-        except Exception as exc:
-            logger.error("Failed to load model '%s': %s", actual_id, exc)
-            raise RuntimeError(f"Failed to load weights for {actual_id}: {exc}") from exc
+                for p in net.parameters():
+                    p.requires_grad = False
 
-        load_ms = round((time.time() - t0) * 1000, 2)
-        logger.info("Model '%s' loaded successfully in %s ms", actual_id, load_ms)
+            load_ms = round((time.time() - t0) * 1000, 2)
+            logger.info("Model '%s' loaded successfully in %s ms", actual_id, load_ms)
+            return net, entry
+        return _loader
 
-        self.cache[actual_id] = {
-            "model": net,
-            "last_used": now,
-            "load_time_ms": load_ms,
-        }
+    def load_model(self, crop_id: str) -> Tuple[torch.nn.Module, ModelEntry]:
+        entry = self.get_model_entry(crop_id)
+        if entry is None:
+            supported = [k for k, v in self.registry.items() if v.kind == "disease"]
+            raise ValueError(f"Unknown or unsupported crop '{crop_id}'. Supported crops: {', '.join(supported)}")
+
+        actual_id = entry.crop_id
+        loader = self._create_model_loader(entry)
+        net, entry = self.lifecycle.acquire_model(actual_id, loader, entry)
+        with self._lock:
+            slot = self.lifecycle.get_slot(actual_id)
+            self.cache[actual_id] = {
+                "model": net,
+                "last_used": slot.last_used,
+                "load_time_ms": slot.load_time_ms,
+            }
         return net, entry
 
-    def unload_model(self, crop_id: str) -> bool:
+    @contextmanager
+    def use_model(self, crop_id: str) -> Iterator[Tuple[torch.nn.Module, ModelEntry]]:
+        entry = self.get_model_entry(crop_id)
+        if entry is None:
+            supported = [k for k, v in self.registry.items() if v.kind == "disease"]
+            raise ValueError(f"Unknown or unsupported crop '{crop_id}'. Supported crops: {', '.join(supported)}")
+
+        actual_id = entry.crop_id
+        loader = self._create_model_loader(entry)
+        with self.lifecycle.use_model(actual_id, loader, entry) as (net, entry):
+            with self._lock:
+                slot = self.lifecycle.get_slot(actual_id)
+                self.cache[actual_id] = {
+                    "model": net,
+                    "last_used": slot.last_used,
+                    "load_time_ms": slot.load_time_ms,
+                }
+            yield net, entry
+
+    def unload_model(self, crop_id: str, reason: str = "explicit", force: bool = False) -> bool:
         entry = self.get_model_entry(crop_id)
         actual_id = entry.crop_id if entry else crop_id
-        if actual_id in self.cache:
-            del self.cache[actual_id]["model"]
-            del self.cache[actual_id]
-            if self.device.type == "cuda":
-                torch.cuda.empty_cache()
-            logger.info("Unloaded model '%s'", actual_id)
-            return True
-        return False
+        unloaded = self.lifecycle.unload_model(actual_id, reason=reason, force=force)
+        with self._lock:
+            if actual_id in self.cache:
+                del self.cache[actual_id]
+        return unloaded
 
-    def unload_all(self) -> None:
-        self.cache.clear()
-        if self.device.type == "cuda":
-            torch.cuda.empty_cache()
-        logger.info("Unloaded all cached models")
+    def unload_all(self, reason: str = "explicit") -> int:
+        count = self.lifecycle.unload_all(reason=reason)
+        with self._lock:
+            self.cache.clear()
+        return count
 
     def _infer_detector_raw(self, detector_id: str, img: Image.Image) -> List[Tuple[str, float]]:
         entry = self.registry.get(detector_id)
         if not entry:
             return []
-        net, entry = self.load_model(detector_id)
-        tensor = entry.preprocess(img).to(self.device)
-        with torch.no_grad():
-            logits = net(tensor)
-            probs = torch.softmax(logits, dim=1)[0]
-        top_indices = torch.argsort(probs, descending=True)
-        return [(entry.classes[i], float(probs[i])) for i in top_indices]
+        with self.use_model(detector_id) as (net, entry):
+            tensor = entry.preprocess(img).to(self.device)
+            with torch.no_grad():
+                logits = net(tensor)
+                probs = torch.softmax(logits, dim=1)[0]
+            top_indices = torch.argsort(probs, descending=True)
+            return [(entry.classes[i], float(probs[i])) for i in top_indices]
 
     def evaluate_crop_validation_gate(self, img: Image.Image) -> Dict[str, Any]:
         """
@@ -983,43 +1122,13 @@ class GariInferenceEngine:
 
     def get_global_model(self):
         """Loads and caches the standard global PlantVillage ViT model in models/Model tong."""
-        if "global_vit" not in self.cache:
-            model_dir = self.models_dir / "Model tong"
-            logger.info("Loading standard global model 'Model tong' (ViT) from %s...", model_dir)
-            from transformers import AutoModelForImageClassification
-            vit = AutoModelForImageClassification.from_pretrained(str(model_dir))
-            vit.to(self.device)
-            vit.eval()
-            self.cache["global_vit"] = {
-                "model": vit,
-                "last_used": time.time(),
-                "load_time_ms": 0.0,
-                "model_dir": model_dir
-            }
-        self.cache["global_vit"]["last_used"] = time.time()
-        return self.cache["global_vit"]["model"]
+        net, _ = self.load_model("Model tong")
+        return net
 
     def get_pro_global_model(self):
         """Loads and caches the Pro global ViT model in models/Model tong 2 (vip)."""
-        if "pro_global_vit" not in self.cache:
-            p1 = self.models_dir / "Model tong 2 (vip)"
-            p2 = self.models_dir / "Model tong 2"
-            model_dir = p1 if p1.exists() else p2
-            if not model_dir.exists():
-                raise FileNotFoundError(f"Không tìm thấy thư mục mô hình Pro tại {p1} hoặc {p2}")
-            logger.info("Loading Pro global model 'Model tong 2' (ViT) from %s...", model_dir)
-            from transformers import AutoModelForImageClassification
-            vit = AutoModelForImageClassification.from_pretrained(str(model_dir))
-            vit.to(self.device)
-            vit.eval()
-            self.cache["pro_global_vit"] = {
-                "model": vit,
-                "last_used": time.time(),
-                "load_time_ms": 0.0,
-                "model_dir": model_dir
-            }
-        self.cache["pro_global_vit"]["last_used"] = time.time()
-        return self.cache["pro_global_vit"]["model"]
+        net, _ = self.load_model("Model tong 2")
+        return net
 
     def run_global_crop_identification(self, img: Image.Image) -> Dict[str, Any]:
         """
@@ -1028,7 +1137,28 @@ class GariInferenceEngine:
         Computes 38-class softmax distribution, aggregates marginal crop probabilities,
         and returns top 3 crop candidates with uncalibrated raw scores.
         """
-        vit_net = self.get_global_model()
+        t0 = time.perf_counter()
+        with self.use_model("Model tong") as (vit_net, _):
+            t_load = time.perf_counter()
+            
+            img_oriented = ImageOps.exif_transpose(img).convert("RGB")
+            img_resized = img_oriented.resize((224, 224), Image.BILINEAR)
+            mean_arr = np.array([0.5, 0.5, 0.5], dtype=np.float32)
+            std_arr = np.array([0.5, 0.5, 0.5], dtype=np.float32)
+            x = (np.asarray(img_resized, np.float32) / 255.0 - mean_arr) / std_arr
+            tensor = torch.from_numpy(x.transpose(2, 0, 1)).float().unsqueeze(0).to(self.device)
+            t_prep = time.perf_counter()
+
+            with torch.no_grad():
+                logits = vit_net(tensor).logits
+                probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
+            t_infer = time.perf_counter()
+            logger.debug("[PERF_TRACE] [ViT Global] load=%.2f ms, prep=%.2f ms, forward=%.2f ms", (t_load - t0) * 1000, (t_prep - t_load) * 1000, (t_infer - t_prep) * 1000)
+
+            # Aggregate probabilities by crop across the 38 classes
+            crop_scores: Dict[str, float] = {}
+            id2label = vit_net.config.id2label
+        t_load = time.perf_counter()
         
         img_oriented = ImageOps.exif_transpose(img).convert("RGB")
         img_resized = img_oriented.resize((224, 224), Image.BILINEAR)
@@ -1036,10 +1166,13 @@ class GariInferenceEngine:
         std_arr = np.array([0.5, 0.5, 0.5], dtype=np.float32)
         x = (np.asarray(img_resized, np.float32) / 255.0 - mean_arr) / std_arr
         tensor = torch.from_numpy(x.transpose(2, 0, 1)).float().unsqueeze(0).to(self.device)
+        t_prep = time.perf_counter()
 
         with torch.no_grad():
             logits = vit_net(tensor).logits
             probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
+        t_infer = time.perf_counter()
+        logger.debug("[PERF_TRACE] [ViT Global] load=%.2f ms, prep=%.2f ms, forward=%.2f ms", (t_load - t0) * 1000, (t_prep - t_load) * 1000, (t_infer - t_prep) * 1000)
 
         # Aggregate probabilities by crop across the 38 classes
         crop_scores: Dict[str, float] = {}
@@ -1082,6 +1215,13 @@ class GariInferenceEngine:
         elif len(candidates) > 1 and top_crop["score"] < 0.50 and (top_crop["score"] - candidates[1]["score"] < 0.08):
             is_uncertain = True
 
+        prep_ms = (t_prep - t_load) * 1000.0
+        infer_ms = (t_infer - t_prep) * 1000.0
+        logger.info(
+            "[GLOBAL_CROP_MODEL] loaded_model='Model tong' arch=vit_base input_shape=(1, 3, 224, 224) preprocessing='mean=[0.5,0.5,0.5],std=[0.5,0.5,0.5]' prep_ms=%.1f infer_ms=%.1f top_crop='%s' score=%.4f is_uncertain=%s",
+            prep_ms, infer_ms, top_crop["name_vi"] if top_crop else "None", top_crop["score"] if top_crop else 0.0, is_uncertain
+        )
+
         return {
             "top_crop": top_crop,
             "candidates": candidates,
@@ -1098,21 +1238,20 @@ class GariInferenceEngine:
         Computes 14,829-class distribution, identifies top species,
         and maps to priority crops when applicable.
         """
-        pro_net = self.get_pro_global_model()
-        
-        img_oriented = ImageOps.exif_transpose(img).convert("RGB")
-        img_resized = img_oriented.resize((224, 224), Image.BILINEAR)
-        mean_arr = np.array([0.5, 0.5, 0.5], dtype=np.float32)
-        std_arr = np.array([0.5, 0.5, 0.5], dtype=np.float32)
-        x = (np.asarray(img_resized, np.float32) / 255.0 - mean_arr) / std_arr
-        tensor = torch.from_numpy(x.transpose(2, 0, 1)).float().unsqueeze(0).to(self.device)
+        with self.use_model("Model tong 2") as (pro_net, _):
+            img_oriented = ImageOps.exif_transpose(img).convert("RGB")
+            img_resized = img_oriented.resize((224, 224), Image.BILINEAR)
+            mean_arr = np.array([0.5, 0.5, 0.5], dtype=np.float32)
+            std_arr = np.array([0.5, 0.5, 0.5], dtype=np.float32)
+            x = (np.asarray(img_resized, np.float32) / 255.0 - mean_arr) / std_arr
+            tensor = torch.from_numpy(x.transpose(2, 0, 1)).float().unsqueeze(0).to(self.device)
 
-        with torch.no_grad():
-            logits = pro_net(tensor).logits
-            probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
+            with torch.no_grad():
+                logits = pro_net(tensor).logits
+                probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
 
-        top_indices = np.argsort(probs)[::-1][:5]
-        id2label = pro_net.config.id2label
+            top_indices = np.argsort(probs)[::-1][:5]
+            id2label = pro_net.config.id2label
 
         top_predictions = []
         for idx in top_indices:
@@ -1160,20 +1299,115 @@ class GariInferenceEngine:
         Runs verified crop-specific disease model with exact ConvNeXt preprocessing
         (224x224 RGB, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]).
         Returns disease predictions in Vietnamese and Grad-CAM visual attention localization.
+        Optimized with single-pass forward & backward activation gradient execution.
         """
         entry = self.get_model_entry(model_dir_name)
         if not entry:
             raise ValueError(f"Không tìm thấy mô hình bệnh '{model_dir_name}' trong registry.")
         
+        t0 = time.perf_counter()
         net, entry = self.load_model(entry.crop_id)
+        t_load = time.perf_counter()
         tensor = entry.preprocess(img).to(self.device)
+        t_prep = time.perf_counter()
         
-        with torch.no_grad():
-            logits = net(tensor)
+        localization_bundle = None
+        if hasattr(net, "stages") and len(net.stages) > 0:
+            from gari_visual_localization import compute_gradcam, extract_pathology_regions, ATTENTION_DISCLAIMER_VI
+            cam_norm, cam_overlay, logits = compute_gradcam(
+                net=net,
+                entry=entry,
+                image=img,
+                target_class_idx=None,
+                device=self.device,
+                preprocessed_tensor=tensor,
+                return_logits=True
+            )
+            t_infer = time.perf_counter()
             probs = torch.softmax(logits, dim=1)[0]
-        
-        k = min(top_k, len(entry.classes))
-        top_vals, top_indices = torch.topk(probs, k=k)
+            k = min(top_k, len(entry.classes))
+            top_vals, top_indices = torch.topk(probs, k=k)
+
+            t_loc_start = time.perf_counter()
+            try:
+                uploads_dir = WORKSPACE_DIR / "database" / "uploads"
+                uploads_dir.mkdir(parents=True, exist_ok=True)
+                file_prefix = f"diag_{int(time.time()*1000)}"
+                attention_filename = f"{file_prefix}_attention.png"
+                overlay_filename = f"{file_prefix}_overlay.png"
+
+                cam_overlay.save(uploads_dir / attention_filename, format="PNG", compress_level=1)
+
+                regions, lesion_overlay = extract_pathology_regions(img)
+                lesion_overlay.save(uploads_dir / overlay_filename, format="PNG", compress_level=1)
+
+                localization_bundle = {
+                    "success": True,
+                    "status": "available",
+                    "method": "gradcam_and_pathology_regions",
+                    "has_attention_map": True,
+                    "message_vi": None,
+                    "disclaimer_vi": ATTENTION_DISCLAIMER_VI,
+                    "attention_image_url": f"/uploads/{attention_filename}",
+                    "overlay_image_url": f"/uploads/{overlay_filename}",
+                    "regions_count": len(regions),
+                    "regions": regions,
+                    "image_dimensions": {"width": img.width, "height": img.height},
+                }
+            except Exception as exc:
+                logger.warning("Visual localization bundle generation failed: %s", exc)
+                localization_bundle = {
+                    "success": False,
+                    "status": "unavailable",
+                    "method": "gradcam_and_pathology_regions",
+                    "has_attention_map": False,
+                    "message_vi": "Phân tích bệnh đã hoàn tất, nhưng chưa tạo được vùng giải thích trực quan.",
+                    "disclaimer_vi": ATTENTION_DISCLAIMER_VI,
+                    "attention_image_url": None,
+                    "overlay_image_url": None,
+                    "regions_count": 0,
+                    "regions": [],
+                    "image_dimensions": {"width": img.width, "height": img.height},
+                }
+            t_loc_end = time.perf_counter()
+        else:
+            with torch.no_grad():
+                out = net(tensor)
+                logits = out.logits if hasattr(out, "logits") else out
+                probs = torch.softmax(logits, dim=1)[0]
+            t_infer = time.perf_counter()
+            k = min(top_k, len(entry.classes))
+            top_vals, top_indices = torch.topk(probs, k=k)
+            t_loc_start = time.perf_counter()
+            best_idx = top_indices[0].item() if len(top_indices) > 0 else 0
+            try:
+                uploads_dir = WORKSPACE_DIR / "database" / "uploads"
+                file_prefix = f"diag_{int(time.time()*1000)}"
+                localization_bundle = generate_visual_localization_bundle(
+                    net=net,
+                    entry=entry,
+                    image=img,
+                    output_dir=uploads_dir,
+                    file_prefix=file_prefix,
+                    target_class_idx=best_idx,
+                    device=self.device
+                )
+            except Exception as exc:
+                logger.warning("Visual localization bundle generation failed: %s", exc)
+                localization_bundle = {
+                    "success": False,
+                    "status": "unavailable",
+                    "method": "pathology_regions_only",
+                    "has_attention_map": False,
+                    "message_vi": "Mô hình hiện tại không hỗ trợ Grad-CAM cho ảnh này.",
+                    "disclaimer_vi": ATTENTION_DISCLAIMER_VI,
+                    "attention_image_url": None,
+                    "overlay_image_url": None,
+                    "regions_count": 0,
+                    "regions": [],
+                    "image_dimensions": {"width": img.width, "height": img.height},
+                }
+            t_loc_end = time.perf_counter()
         
         top_predictions = []
         for idx, val in zip(top_indices.tolist(), top_vals.tolist()):
@@ -1192,24 +1426,18 @@ class GariInferenceEngine:
         best_class = best.get("class_id", "Unknown")
         best_conf = best.get("confidence", 0.0)
         best_name_vi = best.get("name_vi", "Chưa xác định")
-        
-        # Grad-CAM Visual Localization
-        localization_bundle = None
-        best_idx = top_indices[0].item() if len(top_indices) > 0 else 0
-        try:
-            uploads_dir = WORKSPACE_DIR / "database" / "uploads"
-            file_prefix = f"diag_{int(time.time()*1000)}"
-            localization_bundle = generate_visual_localization_bundle(
-                net=net,
-                entry=entry,
-                image=img,
-                output_dir=uploads_dir,
-                file_prefix=file_prefix,
-                target_class_idx=best_idx,
-                device=self.device
-            )
-        except Exception as exc:
-            logger.warning("Visual localization bundle generation failed: %s", exc)
+
+        logger.info(
+            "[DISEASE_MODEL] loaded_model='%s' arch='%s' input_shape=(1, 3, %d, %d) preprocessing='mean=%s,std=%s' prep_ms=%.1f infer_ms=%.1f disease='%s' score=%.4f",
+            model_dir_name, entry.arch, entry.image_size, entry.image_size,
+            str(entry.mean), str(entry.std),
+            (t_prep - t_load) * 1000.0, (t_infer - t_prep) * 1000.0,
+            best_class, best_conf
+        )
+        logger.debug(
+            "[PERF_TRACE] [Disease Model %s] load=%.2f ms, prep=%.2f ms, forward_gradcam=%.2f ms, loc_bundle=%.2f ms",
+            model_dir_name, (t_load - t0) * 1000, (t_prep - t_load) * 1000, (t_infer - t_prep) * 1000, (t_loc_end - t_loc_start) * 1000
+        )
             
         return {
             "disease_id": best_class,
@@ -1220,6 +1448,126 @@ class GariInferenceEngine:
             "model_id": f"ConvNeXt-Small ({model_dir_name})",
             "model_arch": entry.arch,
             "localization": localization_bundle,
+            "entry": entry
+        }
+
+    def run_chili_disease_model(self, img: Image.Image) -> Dict[str, Any]:
+        """
+        Runs PlantVillage Model tong specifically focused on Chili / Bell Pepper pathology:
+        - Pepper,_bell___Bacterial_spot (Bệnh đốm vi khuẩn trên ớt)
+        - Pepper,_bell___healthy (Lá ớt khỏe mạnh)
+        """
+        net, entry = self.load_model("Model tong")
+        tensor = entry.preprocess(img).to(self.device)
+        with torch.no_grad():
+            out = net(tensor)
+            logits = out.logits if hasattr(out, "logits") else out
+            
+        # Find indices for pepper classes
+        chili_indices = [i for i, c in enumerate(entry.classes) if "pepper" in c.lower()]
+        if not chili_indices:
+            probs = torch.softmax(logits, dim=1)[0]
+            best_idx = torch.argmax(probs).item()
+            best_class = entry.classes[best_idx]
+            best_score = float(probs[best_idx])
+            top_predictions = [{
+                "class_id": best_class,
+                "label": localize_disease(best_class),
+                "name_vi": localize_disease(best_class),
+                "confidence": round(best_score, 4),
+                "confidence_percent": round(best_score * 100, 2)
+            }]
+        else:
+            chili_logits = logits[0, chili_indices]
+            chili_probs = torch.softmax(chili_logits, dim=0)
+            best_local_idx = torch.argmax(chili_probs).item()
+            best_idx = chili_indices[best_local_idx]
+            best_class = entry.classes[best_idx]
+            best_score = float(chili_probs[best_local_idx])
+            top_predictions = []
+            for l_idx, p_val in enumerate(chili_probs.tolist()):
+                c_idx = chili_indices[l_idx]
+                c_name = entry.classes[c_idx]
+                c_label = localize_disease(c_name)
+                top_predictions.append({
+                    "class_id": c_name,
+                    "label": c_label,
+                    "name_vi": c_label,
+                    "confidence": round(p_val, 4),
+                    "confidence_percent": round(p_val * 100, 2)
+                })
+            top_predictions.sort(key=lambda x: x["confidence"], reverse=True)
+
+        name_vi = localize_disease(best_class)
+        return {
+            "disease_id": best_class,
+            "disease_name_vi": name_vi,
+            "disease_score": best_score,
+            "top_predictions": top_predictions,
+            "model_name": "Model tong (ViT PlantVillage - Chili/Pepper)",
+            "model_id": "Model tong (ViT PlantVillage)",
+            "model_arch": entry.arch,
+            "localization": None,
+            "entry": entry
+        }
+
+    def run_chili_disease_model(self, img: Image.Image) -> Dict[str, Any]:
+        """
+        Runs PlantVillage Model tong specifically focused on Chili / Bell Pepper pathology:
+        - Pepper,_bell___Bacterial_spot (Bệnh đốm vi khuẩn trên ớt)
+        - Pepper,_bell___healthy (Lá ớt khỏe mạnh)
+        """
+        net, entry = self.load_model("Model tong")
+        tensor = entry.preprocess(img).to(self.device)
+        with torch.no_grad():
+            out = net(tensor)
+            logits = out.logits if hasattr(out, "logits") else out
+            
+        # Find indices for pepper classes
+        chili_indices = [i for i, c in enumerate(entry.classes) if "pepper" in c.lower()]
+        if not chili_indices:
+            probs = torch.softmax(logits, dim=1)[0]
+            best_idx = torch.argmax(probs).item()
+            best_class = entry.classes[best_idx]
+            best_score = float(probs[best_idx])
+            top_predictions = [{
+                "class_id": best_class,
+                "label": localize_disease(best_class),
+                "name_vi": localize_disease(best_class),
+                "confidence": round(best_score, 4),
+                "confidence_percent": round(best_score * 100, 2)
+            }]
+        else:
+            chili_logits = logits[0, chili_indices]
+            chili_probs = torch.softmax(chili_logits, dim=0)
+            best_local_idx = torch.argmax(chili_probs).item()
+            best_idx = chili_indices[best_local_idx]
+            best_class = entry.classes[best_idx]
+            best_score = float(chili_probs[best_local_idx])
+            top_predictions = []
+            for l_idx, p_val in enumerate(chili_probs.tolist()):
+                c_idx = chili_indices[l_idx]
+                c_name = entry.classes[c_idx]
+                c_label = localize_disease(c_name)
+                top_predictions.append({
+                    "class_id": c_name,
+                    "label": c_label,
+                    "name_vi": c_label,
+                    "confidence": round(p_val, 4),
+                    "confidence_percent": round(p_val * 100, 2)
+                })
+            top_predictions.sort(key=lambda x: x["confidence"], reverse=True)
+
+        name_vi = localize_disease(best_class)
+        return {
+            "disease_id": best_class,
+            "disease_name_vi": name_vi,
+            "disease_score": best_score,
+            "top_predictions": top_predictions,
+            "model_name": "Model tong (ViT PlantVillage - Chili/Pepper)",
+            "model_id": "Model tong (ViT PlantVillage)",
+            "model_arch": entry.arch,
+            "localization": None,
             "entry": entry
         }
 
@@ -1272,6 +1620,7 @@ class GariInferenceEngine:
             raise ValueError(f"Unsupported image input type: {type(image_input)}")
 
         img = ImageOps.exif_transpose(img).convert("RGB")
+        logger.info("[INFERENCE_START] mode=%s crop_hint=%s input_dims=(%d, %d)", norm_mode, crop_id, img.width, img.height)
         
         # -------------------------------------------------------------
         # PART 1 — LEAF VALIDATION GATE (MUST RUN FIRST)
@@ -1285,6 +1634,10 @@ class GariInferenceEngine:
             # STOP INFERENCE IMMEDIATELY.
             # Do NOT run global crop model, Pro model, disease model, or Grad-CAM!
             elapsed_ms = round((time.perf_counter() - start_ts) * 1000.0, 2)
+            logger.info(
+                "[INFERENCE_GATE_STOP] gate_status=%s score=%.3f rule=%s elapsed_ms=%.2f",
+                validation_status, validation_score, gate_res.get("decision_rule"), elapsed_ms
+            )
             p_crop = resolve_priority_crop(crop_id)
             return {
                 "success": False,
@@ -1424,6 +1777,10 @@ class GariInferenceEngine:
             symptoms_list = symptom_profile.get("symptoms", ["Có dấu hiệu biến đổi sắc tố hoặc đốm bất thường trên phiến lá."])
             causes_list = symptom_profile.get("causes", ["Mầm bệnh phát triển trong điều kiện ẩm độ cao hoặc lây nhiễm qua vết thương."])
             recommendations_list = get_disease_recommendations(best_class)
+            logger.info(
+                "[INFERENCE_COMPLETE] mode=auto_standard crop=%s disease=%s confidence=%.4f total_ms=%.2f",
+                top_crop["crop_id"], diag_res["disease_id"], diag_res["disease_score"], elapsed_ms
+            )
             
             return {
                 "success": True,
@@ -1452,6 +1809,9 @@ class GariInferenceEngine:
                 "model_arch": diag_res["model_arch"],
                 "inference_time_ms": elapsed_ms,
                 "localization_type": "gradcam",
+                "localization_status": loc.get("status", "unavailable"),
+                "localization_message_vi": loc.get("message_vi"),
+                "has_attention_map": bool(loc.get("has_attention_map")),
                 "overlay_image_url": loc.get("overlay_image_url"),
                 "attention_image_url": loc.get("attention_image_url"),
                 "regions": loc.get("regions", []),
@@ -1541,6 +1901,9 @@ class GariInferenceEngine:
                     "model_arch": diag_res["model_arch"],
                     "inference_time_ms": elapsed_ms,
                     "localization_type": "gradcam",
+                    "localization_status": loc.get("status", "unavailable"),
+                    "localization_message_vi": loc.get("message_vi"),
+                    "has_attention_map": bool(loc.get("has_attention_map")),
                     "overlay_image_url": loc.get("overlay_image_url"),
                     "attention_image_url": loc.get("attention_image_url"),
                     "regions": loc.get("regions", []),
@@ -1655,9 +2018,12 @@ class GariInferenceEngine:
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
                 
-            # Crop has verified disease model (Coffee, Black_Pepper, Rice, Tomato, Maize)
-            disease_model_dir = p_meta["disease_model_dir"]
-            diag_res = self.run_crop_disease_model(img, disease_model_dir, top_k=top_k)
+            # Crop has verified disease model (Coffee, Black_Pepper, Rice, Tomato, Maize, Chili)
+            disease_model_dir = p_meta.get("disease_model_dir") or "Model tong"
+            if p_meta["id"] == "chili":
+                diag_res = self.run_chili_disease_model(img)
+            else:
+                diag_res = self.run_crop_disease_model(img, disease_model_dir, top_k=top_k)
             
             elapsed_ms = round((time.perf_counter() - start_ts) * 1000.0, 2)
             loc = diag_res.get("localization") or {}
@@ -1668,6 +2034,10 @@ class GariInferenceEngine:
             symptoms_list = symptom_profile.get("symptoms", ["Có dấu hiệu biến đổi sắc tố hoặc đốm bất thường trên phiến lá."])
             causes_list = symptom_profile.get("causes", ["Mầm bệnh phát triển trong điều kiện ẩm độ cao hoặc lây nhiễm qua vết thương."])
             recommendations_list = get_disease_recommendations(best_class)
+            logger.info(
+                "[INFERENCE_COMPLETE] mode=manual crop=%s disease=%s confidence=%.4f total_ms=%.2f",
+                p_meta["id"], diag_res["disease_id"], diag_res["disease_score"], elapsed_ms
+            )
             
             return {
                 "success": True,
@@ -1690,11 +2060,14 @@ class GariInferenceEngine:
                 "severity": "NORMAL" if is_healthy else ("HIGH" if diag_res["disease_score"] > 0.85 else "MEDIUM"),
                 "is_healthy": is_healthy,
                 "top_predictions": diag_res["top_predictions"],
-                "model_id": f"ConvNeXt-Small ({disease_model_dir})",
-                "model_name": f"ConvNeXt-Small ({disease_model_dir})",
+                "model_id": diag_res.get("model_id") or f"ConvNeXt-Small ({disease_model_dir})",
+                "model_name": diag_res.get("model_name") or f"ConvNeXt-Small ({disease_model_dir})",
                 "model_arch": diag_res["model_arch"],
                 "inference_time_ms": elapsed_ms,
                 "localization_type": "gradcam",
+                "localization_status": loc.get("status", "unavailable"),
+                "localization_message_vi": loc.get("message_vi"),
+                "has_attention_map": bool(loc.get("has_attention_map")),
                 "overlay_image_url": loc.get("overlay_image_url"),
                 "attention_image_url": loc.get("attention_image_url"),
                 "regions": loc.get("regions", []),
@@ -1705,7 +2078,31 @@ class GariInferenceEngine:
             }
 
 
+    def warmup(self):
+        """
+        Pre-warms the default global router model and the primary crop model (Tomato)
+        to eliminate first-request cold load delays IF MODEL_PRELOAD_ENABLED is True.
+        """
+        if not self.lifecycle.preload_enabled:
+            logger.info("Model preloading is disabled (MODEL_PRELOAD_ENABLED=false). On-demand loading active.")
+            return
+
+        t0 = time.perf_counter()
+        # 1. Warm global router model
+        try:
+            self.get_global_model()
+        except Exception as e:
+            logger.warning("Warmup get_global_model failed: %s", e)
+        # 2. Warm primary crop model
+        try:
+            self.load_model("Tomato")
+        except Exception as e:
+            logger.warning("Warmup load_model(Tomato) failed: %s", e)
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        logger.info("GARI inference engine warmup completed in %.2f ms", elapsed_ms)
+
     def health(self) -> Dict[str, Any]:
+        lifecycle_status = self.lifecycle.get_lifecycle_status()
         return {
             "status": "healthy",
             "brand": "GARI",
@@ -1713,9 +2110,11 @@ class GariInferenceEngine:
             "device": str(self.device),
             "cuda_available": torch.cuda.is_available(),
             "models_total": len(self.registry),
-            "models_cached": list(self.cache.keys()),
-            "cached_count": len(self.cache),
+            "models_cached": [m["model_id"] for m in lifecycle_status["loaded_models"]],
+            "cached_count": lifecycle_status["loaded_count"],
             "max_cached": self.max_cached,
+            "memory_rss_mb": lifecycle_status["memory_rss_mb"],
+            "lifecycle": lifecycle_status,
         }
 
 

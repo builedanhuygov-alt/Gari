@@ -86,10 +86,10 @@ def get_order_expiry_minutes() -> int:
         return 15
 
 def get_return_url() -> str:
-    return os.getenv("PAYMENT_RETURN_URL", "http://localhost:8000/frontend2/pricing.html?payment=success")
+    return os.getenv("PAYMENT_RETURN_URL", "/frontend2/pricing.html?payment=success")
 
 def get_cancel_url() -> str:
-    return os.getenv("PAYMENT_CANCEL_URL", "http://localhost:8000/frontend2/pricing.html?payment=cancel")
+    return os.getenv("PAYMENT_CANCEL_URL", "/frontend2/pricing.html?payment=cancel")
 
 
 # Valid Payment Statuses

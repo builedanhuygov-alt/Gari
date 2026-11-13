@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chính Sách Cookie & Lưu Trữ Cục Bộ — Gari AI Lab</title>
     <meta name="description" content="Chính sách minh bạch về việc sử dụng cookie và lưu trữ trình duyệt tại Gari AI Lab. Cam kết không dùng cookie quảng cáo theo dõi.">
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <style>
         .legal-container {
             max-width: 960px;
@@ -171,7 +171,7 @@
         <div class="legal-card">
             <h2>🔍 2. Danh Mục Kiểm Kê Toàn Bộ Cookie & LocalStorage Tại Gari</h2>
             <p>Dưới đây là danh sách đầy đủ, chính xác mọi mục lưu trữ mà Gari AI Lab sử dụng:</p>
-            <table class="data-table">
+            <div class="table-wrap"><table class="data-table">
                 <thead>
                     <tr>
                         <th>Tên mục lưu trữ</th>
@@ -225,7 +225,7 @@
                         <td><span class="pill pill-success">Bắt buộc</span></td>
                     </tr>
                 </tbody>
-            </table>
+            </table></div>
         </div>
 
         <!-- Section 3: Third Party Zero Tracking Commitment -->
@@ -253,7 +253,7 @@
     </div>
 
     <script type="module">
-        import { toast } from '/static/frontend2/app.js';
+        import { toast } from '/static/frontend2/app.js?v=20261104_stable';
 
         function updateStatus() {
             const el = document.getElementById('cookieCurrentStatus');

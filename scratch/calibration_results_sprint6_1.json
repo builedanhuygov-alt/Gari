@@ -1,0 +1,68 @@
+{
+  "confusion_matrix": {
+    "TP": 150,
+    "FP": 0,
+    "TN": 6,
+    "FN": 0
+  },
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1_score": 1.0,
+  "far": 0.0,
+  "frr": 0.0,
+  "per_crop": {
+    "Tomato": {
+      "total": 50,
+      "accepted": 50,
+      "rejected": 0
+    },
+    "Potato": {
+      "total": 50,
+      "accepted": 50,
+      "rejected": 0
+    },
+    "Pepper": {
+      "total": 50,
+      "accepted": 50,
+      "rejected": 0
+    }
+  },
+  "negatives": [
+    {
+      "file": "5_non_leaf.jpg",
+      "decision": "NOT_A_LEAF",
+      "score": 0.02,
+      "correctly_rejected": true
+    },
+    {
+      "file": "6_human_face.jpg",
+      "decision": "NOT_A_LEAF",
+      "score": 0.0,
+      "correctly_rejected": true
+    },
+    {
+      "file": "7_animal.jpg",
+      "decision": "NOT_A_LEAF",
+      "score": 0.0,
+      "correctly_rejected": true
+    },
+    {
+      "file": "8_general_object.jpg",
+      "decision": "NOT_A_LEAF",
+      "score": 0.05,
+      "correctly_rejected": true
+    },
+    {
+      "file": "9_blurry_leaf.jpg",
+      "decision": "IMAGE_QUALITY_LOW",
+      "score": 0.02,
+      "correctly_rejected": true
+    },
+    {
+      "file": "10_low_light_leaf.jpg",
+      "decision": "IMAGE_QUALITY_LOW",
+      "score": 0.22,
+      "correctly_rejected": true
+    }
+  ]
+}

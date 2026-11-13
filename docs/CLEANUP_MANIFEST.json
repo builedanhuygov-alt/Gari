@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-11-03T13:25:02.179720+00:00",
+  "database_file": "disease_detector.db",
+  "protected_records_preserved": {
+    "real_users": [
+      {
+        "id": 1,
+        "email": "danhuynh@gari.vn"
+      },
+      {
+        "id": 175,
+        "email": "huy175209@gmail.com"
+      }
+    ],
+    "uncertain_users": [
+      {
+        "id": 2,
+        "email": "user1@example.com"
+      },
+      {
+        "id": 3,
+        "email": "user2@example.com"
+      },
+      {
+        "id": 7,
+        "email": "nongdan.mau@gari.vn"
+      }
+    ],
+    "real_organizations": [
+      {
+        "id": 1,
+        "name": "Hợp Tác Xã Nông Nghiệp Ba Vì"
+      },
+      {
+        "id": 2,
+        "name": "Trang Trại Rau Sạch Nông Dân 7"
+      }
+    ],
+    "real_farms": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3
+      },
+      {
+        "id": 4
+      },
+      {
+        "id": 5
+      },
+      {
+        "id": 8
+      },
+      {
+        "id": 9
+      }
+    ]
+  },
+  "cleanup_targets_count": {
+    "organizations": 0,
+    "farms": 0,
+    "users": 0,
+    "diagnoses": 0,
+    "vouchers": 0,
+    "payment_orders": 0
+  },
+  "target_organization_ids": [],
+  "target_farm_ids": [],
+  "target_user_ids": [],
+  "target_diagnosis_ids": [],
+  "target_voucher_ids": [],
+  "target_payment_order_ids": [],
+  "target_payment_order_codes": []
+}

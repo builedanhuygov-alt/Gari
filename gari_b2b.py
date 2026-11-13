@@ -11,6 +11,7 @@ Supports:
 import hashlib
 import json
 import logging
+import os
 import re
 import secrets
 import sqlite3
@@ -53,6 +54,7 @@ ORG_TYPES = (
     "farm",
     "dealer",
     "agribusiness",
+    "business",
     "other",
 )
 
@@ -67,7 +69,17 @@ ORG_SCALES = (
 ORG_NEEDS = ("diagnosis", "member_management", "api", "pilot")
 COMMERCIAL_INTENTS = ("none", "pilot_interest", "signed_contract")
 
-INVITABLE_ROLES = ("admin", "manager", "member", "viewer")
+INVITABLE_ROLES = (
+    "admin",
+    "farm_manager",
+    "manager",
+    "agronomist",
+    "expert",
+    "field_worker",
+    "field_staff",
+    "member",
+    "viewer",
+)
 INVITATION_TTL_HOURS = 168  # 7 days
 INVITATION_RATE_LIMIT_PER_HOUR = 10
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
@@ -79,27 +91,66 @@ PAID_ORG_PLANS = {"pro", "team", "enterprise", "business", "personal"}
 
 ROLE_PERMISSIONS: Dict[str, set] = {
     "owner": {
+        "organization.read", "organization.update", "members.invite", "members.remove",
+        "farms.read", "farms.create", "farms.update", "farms.delete", "diagnosis.create", "tasks.manage", "billing.manage",
         "org.view", "org.profile.update", "org.status.manage", "org.audit.view",
         "members.view", "members.invite", "members.manage", "members.remove",
-        "members.role_assign", "members.owner_transfer",
+        "members.role_assign", "members.owner_transfer", "members.assignments_manage",
         "api_keys.view", "api_keys.manage", "usage.view",
         "onboarding.manage", "workflow.manage", "data.manage", "diagnosis.use",
+        "observations.manage", "recommendations.manage", "expert.review",
     },
     "admin": {
+        "organization.read", "organization.update", "members.invite", "members.remove",
+        "farms.read", "farms.create", "farms.update", "diagnosis.create", "tasks.manage", "billing.manage",
         "org.view", "org.profile.update", "org.audit.view",
         "members.view", "members.invite", "members.manage", "members.remove",
-        "members.role_assign",
+        "members.role_assign", "members.assignments_manage",
         "api_keys.view", "api_keys.manage", "usage.view",
         "onboarding.manage", "workflow.manage", "data.manage", "diagnosis.use",
+        "observations.manage", "recommendations.manage", "expert.review",
+    },
+    "farm_manager": {
+        "organization.read", "members.invite", "farms.read", "farms.create", "farms.update",
+        "diagnosis.create", "tasks.manage",
+        "org.view", "members.view", "members.assignments_manage", "usage.view",
+        "workflow.manage", "data.manage", "diagnosis.use",
+        "observations.manage", "recommendations.manage",
     },
     "manager": {
-        "org.view", "members.view", "usage.view",
+        "organization.read", "members.invite", "farms.read", "farms.create", "farms.update",
+        "diagnosis.create", "tasks.manage",
+        "org.view", "members.view", "members.assignments_manage", "usage.view",
         "workflow.manage", "data.manage", "diagnosis.use",
+        "observations.manage",
+    },
+    "agronomist": {
+        "organization.read", "farms.read", "diagnosis.create", "tasks.manage",
+        "org.view", "members.view", "usage.view", "data.manage", "diagnosis.use",
+        "observations.manage", "recommendations.manage", "expert.review",
+    },
+    "expert": {
+        "organization.read", "farms.read", "diagnosis.create", "tasks.manage",
+        "org.view", "members.view", "usage.view", "data.manage", "diagnosis.use",
+        "observations.manage", "recommendations.manage", "expert.review",
+    },
+    "field_worker": {
+        "organization.read", "farms.read", "diagnosis.create", "tasks.manage",
+        "org.view", "members.view", "data.manage", "diagnosis.use",
+        "observations.manage",
+    },
+    "field_staff": {
+        "organization.read", "farms.read", "diagnosis.create", "tasks.manage",
+        "org.view", "members.view", "data.manage", "diagnosis.use",
+        "observations.manage",
     },
     "member": {
+        "organization.read", "farms.read", "diagnosis.create", "tasks.manage",
         "org.view", "members.view", "usage.view", "data.manage", "diagnosis.use",
+        "observations.manage",
     },
     "viewer": {
+        "organization.read", "farms.read",
         "org.view", "members.view", "usage.view",
     },
 }
@@ -314,9 +365,14 @@ PLANS_CONFIG["business"] = dict(
 ROLES_HIERARCHY = {
     "owner": 5,
     "admin": 4,
+    "farm_manager": 4,
     "manager": 3,
+    "agronomist": 3,
+    "expert": 3,
+    "field_worker": 2,
+    "field_staff": 2,
     "member": 2,
-    "viewer": 1
+    "viewer": 1,
 }
 
 
@@ -574,9 +630,35 @@ def init_b2b_database() -> None:
             );
             """)
 
+            # 13. Module 05: Scoped Member Assignments (Farms, Zones, Plots)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS organization_member_assignments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                organization_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                farm_id INTEGER,
+                zone_id INTEGER,
+                plot_id INTEGER,
+                assigned_by_user_id INTEGER,
+                notes TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY (farm_id) REFERENCES farms (id) ON DELETE CASCADE,
+                FOREIGN KEY (zone_id) REFERENCES farm_zones (id) ON DELETE CASCADE,
+                FOREIGN KEY (plot_id) REFERENCES farm_plots (id) ON DELETE CASCADE
+            );
+            """)
+
+            # Invitation decline audit columns
+            _ensure_column(cursor, "organization_invitations", "declined_by_user_id", "INTEGER")
+            _ensure_column(cursor, "organization_invitations", "declined_at", "DATETIME")
+            _ensure_column(cursor, "organization_invitations", "decline_reason", "TEXT")
+
             # Indexing for high-performance multi-tenant isolation
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_org_members_user ON organization_members(user_id);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_org_members_org ON organization_members(organization_id);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_org_member_assignments ON organization_member_assignments(organization_id, user_id);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_org ON api_keys(organization_id);")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_usage_metering_org ON usage_metering(organization_id);")
@@ -704,14 +786,23 @@ def create_organization(
             if cursor.fetchone():
                 slug = f"{base_slug}-{secrets.token_hex(3)}"
 
+            is_test_flag = 1 if (
+                os.environ.get("APP_ENV") == "test"
+                or "test" in name.lower()
+                or "cô đơn" in name.lower()
+                or slug.startswith("test-")
+                or slug.startswith("audit-")
+                or slug.startswith("payment-")
+            ) else 0
+
             crops_json = json.dumps([str(c).strip()[:60] for c in (primary_crops or []) if str(c).strip()][:10], ensure_ascii=False)
             cursor.execute("""
             INSERT INTO organizations
                 (name, slug, owner_id, plan_id, status, contact_email, contact_phone, address,
-                 organization_type, region, primary_crops)
-            VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
+                 organization_type, region, primary_crops, is_test)
+            VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)
             """, (name, slug, owner_id, assigned_plan_id, contact_email, contact_phone, address,
-                  organization_type, region, crops_json))
+                  organization_type, region, crops_json, is_test_flag))
             org_id = cursor.lastrowid
 
             # Add owner member
@@ -749,18 +840,24 @@ def create_organization(
 
 
 
-def get_user_organizations(user_id: int) -> List[Dict[str, Any]]:
+def get_user_organizations(user_id: int, include_test: bool = False) -> List[Dict[str, Any]]:
     """List all organizations that a user belongs to, including role, plan and onboarding state."""
+    env = os.environ.get("APP_ENV", "production")
+    if env == "test":
+        include_test = True
+
+    where_test = "" if include_test else " AND (o.is_test = 0 OR o.is_test IS NULL)"
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(f"""
         SELECT o.*, m.role as user_role, m.joined_at, q.quota_limit, q.used_count, q.cycle_end,
                ob.current_step as onboarding_step, ob.status as onboarding_status
         FROM organizations o
         JOIN organization_members m ON o.id = m.organization_id
         LEFT JOIN organization_quotas q ON o.id = q.organization_id
         LEFT JOIN organization_onboarding ob ON o.id = ob.organization_id
-        WHERE m.user_id = ?
+        WHERE m.user_id = ? {where_test}
         ORDER BY (m.role = 'owner') DESC, o.created_at DESC
         """, (user_id,))
         rows = cursor.fetchall()
@@ -984,11 +1081,13 @@ def _validate_assignable_role(actor_role: str, new_role: str) -> str:
     """Validate role changes so no one can grant more authority than allowed."""
     new_role = (new_role or "").strip().lower()
     if new_role not in ROLES_HIERARCHY:
-        raise ValueError("Vai trò không hợp lệ (owner, admin, manager, member, viewer).")
+        raise ValueError("Vai trò không hợp lệ (owner, admin, farm_manager, manager, agronomist, expert, field_worker, member, viewer).")
     if new_role == "owner":
         raise ValueError("Không thể cấp vai trò owner trực tiếp. Hãy dùng luồng chuyển giao quyền sở hữu.")
-    if actor_role == "admin" and new_role == "admin":
-        raise OrganizationPermissionError("Chỉ Chủ sở hữu mới có quyền chỉ định Quản trị viên (Admin).")
+    if actor_role != "owner" and new_role in ("admin", "farm_manager"):
+        raise OrganizationPermissionError("Chỉ Chủ sở hữu mới có quyền chỉ định Quản trị viên hoặc Quản lý nông trại.")
+    if ROLES_HIERARCHY.get(actor_role, 0) < ROLES_HIERARCHY.get(new_role, 0):
+        raise OrganizationPermissionError("Bạn không thể cấp vai trò cao hơn quyền hạn hiện tại của mình.")
     return new_role
 
 
@@ -1414,9 +1513,9 @@ def create_invitation(
         raise ValueError("Địa chỉ email không đúng định dạng.")
     role = (role or "member").strip().lower()
     if role not in INVITABLE_ROLES:
-        raise ValueError("Vai trò được mời không hợp lệ (admin, manager, member, viewer).")
-    if role == "admin" and actor_role != "owner":
-        raise OrganizationPermissionError("Chỉ Chủ sở hữu mới có quyền mời Quản trị viên (Admin).")
+        raise ValueError(f"Vai trò được mời không hợp lệ ({', '.join(INVITABLE_ROLES)}).")
+    if role in ("admin", "farm_manager") and actor_role != "owner":
+        raise OrganizationPermissionError("Chỉ Chủ sở hữu mới có quyền mời Quản trị viên (Admin) hoặc Quản lý nông trại (Farm Manager).")
 
     now = now_utc()
     now_iso = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -1428,6 +1527,20 @@ def create_invitation(
     with _B2B_LOCK:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+
+            # Check Plan member limit before issuing invitation
+            cursor.execute("SELECT COUNT(*) FROM organization_members WHERE organization_id = ?", (org_id,))
+            member_count = cursor.fetchone()[0]
+            cursor.execute("SELECT plan_id FROM organizations WHERE id = ?", (org_id,))
+            org_row = cursor.fetchone()
+            org_plan_id = org_row[0] if org_row else PILOT_ORG_PLAN_ID
+            plan = PLANS_CONFIG.get(org_plan_id, PLANS_CONFIG.get(PILOT_ORG_PLAN_ID))
+            max_members = plan.get("max_members", 10) if plan else 10
+            if member_count >= max_members:
+                raise InvitationError(
+                    f"Tổ chức đã đạt giới hạn tối đa {max_members} thành viên của gói {plan.get('name_vi', org_plan_id) if plan else org_plan_id}. "
+                    f"Vui lòng nâng cấp gói dịch vụ để mời thêm thành viên."
+                )
 
             # Rate limit: per organization, last rolling hour.
             cursor.execute("""
@@ -1635,6 +1748,232 @@ def get_pending_invitations_for_email(email: str) -> List[Dict[str, Any]]:
             item["organization_status"] = normalize_org_status(item.get("organization_status"))
             result.append(item)
         return result
+
+
+def decline_invitation(raw_token: str, user: Dict[str, Any], reason: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Decline an invitation addressed to the authenticated user.
+    """
+    raw_token = (raw_token or "").strip()
+    if not raw_token:
+        raise InvitationError("Lời mời không hợp lệ hoặc đã hết hạn.")
+    user_id = user.get("id")
+    user_email = (user.get("email") or "").strip().lower()
+    token_hash = _hash_invitation_token(raw_token)
+    now_iso = now_utc().strftime("%Y-%m-%d %H:%M:%S")
+
+    with _B2B_LOCK:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT i.*, o.name as org_name
+                FROM organization_invitations i
+                JOIN organizations o ON i.organization_id = o.id
+                WHERE i.token_hash = ?
+            """, (token_hash,))
+            inv = cursor.fetchone()
+            if not inv:
+                raise InvitationError("Lời mời không hợp lệ hoặc đã hết hạn.")
+
+            invitation = dict(inv)
+            if invitation["status"] != "pending":
+                raise InvitationError("Lời mời đã được xử lý, bị thu hồi hoặc đã hết hạn.")
+            if invitation["expires_at"] <= now_iso:
+                cursor.execute(
+                    "UPDATE organization_invitations SET status = 'expired', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    (invitation["id"],),
+                )
+                conn.commit()
+                raise InvitationError("Lời mời đã hết hạn.")
+            if (invitation["email"] or "").strip().lower() != user_email:
+                raise InvitationError("Lời mời không hợp lệ với tài khoản đang đăng nhập.")
+
+            org_id = invitation["organization_id"]
+            cursor.execute("""
+                UPDATE organization_invitations
+                SET status = 'declined', declined_by_user_id = ?, declined_at = CURRENT_TIMESTAMP,
+                    decline_reason = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (user_id, reason or "Từ chối lời mời", invitation["id"]))
+
+            _write_audit(cursor, org_id, user_id, "invitation.declined", "invitation", invitation["id"],
+                         reason=reason or "Thành viên từ chối lời mời",
+                         metadata={"email": user_email, "role": invitation["role"]})
+            conn.commit()
+
+    return {
+        "organization_id": org_id,
+        "organization_name": invitation["org_name"],
+        "status": "declined",
+        "invitation_id": invitation["id"],
+    }
+
+
+def leave_organization(org_id: int, user_id: int) -> Dict[str, Any]:
+    """
+    Allow an authenticated member to voluntarily leave an organization.
+    Owners cannot leave directly; they must transfer ownership first.
+    """
+    with _B2B_LOCK:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT role FROM organization_members WHERE organization_id = ? AND user_id = ?",
+                (org_id, user_id),
+            )
+            row = cursor.fetchone()
+            if not row:
+                raise OrganizationPermissionError("Bạn không phải là thành viên của tổ chức này.")
+            role = row["role"]
+            if role == "owner":
+                raise OrganizationStateError(
+                    "Chủ sở hữu không thể tự rời tổ chức. Vui lòng chuyển giao quyền sở hữu cho thành viên khác trước khi rời."
+                )
+
+            # Remove member
+            cursor.execute(
+                "DELETE FROM organization_members WHERE organization_id = ? AND user_id = ?",
+                (org_id, user_id),
+            )
+
+            # Clean up member scoped assignments
+            cursor.execute(
+                "DELETE FROM organization_member_assignments WHERE organization_id = ? AND user_id = ?",
+                (org_id, user_id),
+            )
+
+            _write_audit(cursor, org_id, user_id, "member.left", "user", user_id,
+                         reason="Thành viên tự rời tổ chức",
+                         metadata={"previous_role": role})
+            conn.commit()
+
+    return {"success": True, "organization_id": org_id, "user_id": user_id, "left_role": role}
+
+
+def assign_member_scope(
+    org_id: int,
+    actor_user_id: int,
+    target_user_id: int,
+    farm_id: Optional[int] = None,
+    zone_id: Optional[int] = None,
+    plot_id: Optional[int] = None,
+    notes: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Assign a member to a specific farm, zone, or plot.
+    Requires actor to have members.manage or members.assignments_manage.
+    """
+    actor_role = require_permission(org_id, actor_user_id, "members.manage")
+    _ensure_organization_editable(org_id)
+
+    with _B2B_LOCK:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+
+            # Target user must be an active member of this organization
+            cursor.execute(
+                "SELECT role FROM organization_members WHERE organization_id = ? AND user_id = ?",
+                (org_id, target_user_id),
+            )
+            target_member = cursor.fetchone()
+            if not target_member:
+                raise ValueError("Người dùng không phải thành viên của tổ chức này.")
+
+            # Validate farm belongs to org if specified
+            if farm_id is not None:
+                cursor.execute("SELECT id, organization_id, name FROM farms WHERE id = ?", (farm_id,))
+                farm_row = cursor.fetchone()
+                if not farm_row:
+                    raise ValueError(f"Không tìm thấy nông trại #{farm_id}.")
+                if farm_row["organization_id"] != org_id:
+                    raise OrganizationPermissionError(f"Nông trại #{farm_id} không thuộc tổ chức #{org_id}.")
+
+            # Validate zone belongs to farm if specified
+            if zone_id is not None:
+                cursor.execute("SELECT id, farm_id FROM farm_zones WHERE id = ?", (zone_id,))
+                zone_row = cursor.fetchone()
+                if not zone_row:
+                    raise ValueError(f"Không tìm thấy phân khu #{zone_id}.")
+                if farm_id is not None and zone_row["farm_id"] != farm_id:
+                    raise ValueError(f"Phân khu #{zone_id} không thuộc nông trại #{farm_id}.")
+
+            # Validate plot belongs to zone if specified
+            if plot_id is not None:
+                cursor.execute("SELECT id, zone_id FROM farm_plots WHERE id = ?", (plot_id,))
+                plot_row = cursor.fetchone()
+                if not plot_row:
+                    raise ValueError(f"Không tìm thấy lô #{plot_id}.")
+                if zone_id is not None and plot_row["zone_id"] != zone_id:
+                    raise ValueError(f"Lô #{plot_id} không thuộc phân khu #{zone_id}.")
+
+            cursor.execute("""
+                INSERT INTO organization_member_assignments
+                    (organization_id, user_id, farm_id, zone_id, plot_id, assigned_by_user_id, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (org_id, target_user_id, farm_id, zone_id, plot_id, actor_user_id, notes))
+            assignment_id = cursor.lastrowid
+
+            _write_audit(cursor, org_id, actor_user_id, "member.assigned_scope", "member_assignment", assignment_id,
+                         reason=notes or "Phân công phụ trách nông trại/phân khu/lô",
+                         metadata={"target_user_id": target_user_id, "farm_id": farm_id,
+                                   "zone_id": zone_id, "plot_id": plot_id})
+            conn.commit()
+
+    return {
+        "id": assignment_id,
+        "organization_id": org_id,
+        "user_id": target_user_id,
+        "farm_id": farm_id,
+        "zone_id": zone_id,
+        "plot_id": plot_id,
+        "notes": notes,
+        "assigned_by_user_id": actor_user_id,
+    }
+
+
+def list_member_scopes(org_id: int, user_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    """List scoped farm/zone/plot assignments for an organization or specific member."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+            SELECT a.*, u.full_name as user_name, u.email as user_email,
+                   f.name as farm_name, z.name as zone_name, p.plot_name as plot_name
+            FROM organization_member_assignments a
+            JOIN users u ON a.user_id = u.id
+            LEFT JOIN farms f ON a.farm_id = f.id
+            LEFT JOIN farm_zones z ON a.zone_id = z.id
+            LEFT JOIN farm_plots p ON a.plot_id = p.id
+            WHERE a.organization_id = ?
+        """
+        params = [org_id]
+        if user_id is not None:
+            query += " AND a.user_id = ?"
+            params.append(user_id)
+        query += " ORDER BY a.created_at DESC"
+        cursor.execute(query, params)
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def remove_member_scope(org_id: int, actor_user_id: int, assignment_id: int) -> bool:
+    """Remove a scoped farm/zone/plot assignment."""
+    require_permission(org_id, actor_user_id, "members.manage")
+    _ensure_organization_editable(org_id)
+    with _B2B_LOCK:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM organization_member_assignments WHERE id = ? AND organization_id = ?",
+                (assignment_id, org_id),
+            )
+            row = cursor.fetchone()
+            if not row:
+                raise ValueError("Không tìm thấy phân công phạm vi này.")
+            cursor.execute("DELETE FROM organization_member_assignments WHERE id = ?", (assignment_id,))
+            _write_audit(cursor, org_id, actor_user_id, "member.removed_scope", "member_assignment", assignment_id,
+                         reason="Xóa phân công nông trại/lô",
+                         metadata={"target_user_id": row["user_id"], "farm_id": row["farm_id"]})
+            conn.commit()
+    return True
 
 
 # -----------------------------------------------------------------------------

@@ -21,6 +21,11 @@ logger = logging.getLogger("gari_seed_dev")
 
 
 def seed_development_environment():
+    app_env = os.getenv("APP_ENV", "development").lower()
+    if app_env in ("production", "prod"):
+        logger.error("CRITICAL SAFEGUARD: seed_dev.py cannot be executed in production environment!")
+        return
+
     logger.info("Checking development test accounts...")
     
     # 1. Primary Agronomist Test Account

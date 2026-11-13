@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cài đặt • Gari AI Lab</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -166,7 +166,7 @@
     <div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, logout, toast, formatAccountType } from '/static/frontend2/app.js';
+        import { setupSaaSShell, logout, toast, formatAccountType } from '/static/frontend2/app.js?v=20261104_stable';
 
         async function loadAccountTypeDetails() {
             const token = localStorage.getItem('gari_token') || sessionStorage.getItem('gari_token');

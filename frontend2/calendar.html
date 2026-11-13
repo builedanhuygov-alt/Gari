@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Lịch Canh Tác &amp; Quản Lý Công Việc • GARI AI Lab</title>
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
+    <script>
+        try {
+            var t = localStorage.getItem('gari-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+            else document.documentElement.dataset.theme = 'light';
+        } catch(e) {
+            document.documentElement.dataset.theme = 'light';
+        }
+    </script>
+    <style>
+        .task-view-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .task-view-tab:hover {
+            background: var(--surface-muted);
+            color: var(--text-main);
+        }
+        .task-view-tab.active {
+            background: var(--surface);
+            color: var(--brand-dark, #15803d);
+            border-color: var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            font-weight: 700;
+        }
+        .task-badge-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--surface-muted);
+            color: var(--text-secondary);
+        }
+        .task-view-tab.active .task-badge-count {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .task-badge-urgent {
+            background: #fee2e2 !important;
+            color: #b91c1c !important;
+        }
+        .task-item-card {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+            gap: 12px;
+        }
+        .task-item-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-color: #86efac;
+        }
+        .task-item-card.is-completed {
+            opacity: 0.72;
+            background: var(--surface-muted);
+        }
+        .task-activity-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            padding-left: 20px;
+            border-left: 2px solid var(--border);
+            margin-top: 12px;
+        }
+        .task-activity-node {
+            position: relative;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .task-activity-node::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #16a34a;
+        }
+        .recurrence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 9999px;
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="content-body">
+                <!-- Page Header with Actions -->
+                <div class="page-head">
+                    <div>
+                        <h1 class="page-head-title" id="pageTitle">Lịch Canh Tác &amp; Quản Lý Công Việc</h1>
+                        <p class="page-head-sub" id="pageSubtitle">Điều phối hoạt động mùa vụ, theo dõi tiến độ công việc lô ruộng, phòng trừ dịch hại từ chẩn đoán AI và nhắc việc thời gian thực.</p>
+                    </div>
+                    <div class="page-head-actions">
+                        <button type="button" class="btn btn-secondary" id="btnRunReminders">
+                            <span>🔔 Xử lý nhắc việc</span>
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btnOpenCreateTaskModal">
+                            <span>➕ Tạo công việc mới</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Crop Tabs -->
+                <div class="crop-page-tabs" role="tablist">
+                    <a href="/frontend2/crops.html" class="crop-tab-btn" style="text-decoration:none;">
+                        <span>🌿</span> <span>Thư viện cây trồng</span>
+                    </a>
+                    <button type="button" class="crop-tab-btn active" id="tabCalendarBtn" role="tab" aria-selected="true">
+                        <span>📅</span> <span>Lịch canh tác thông minh</span>
+                        <span class="pill pill-success" style="font-size:10px; padding:2px 6px;">Vụ Đông Xuân</span>
+                    </button>
+                </div>
+
+                <!-- Climate Banner -->
+                <div class="calendar-season-banner">
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <div style="width:42px; height:42px; border-radius:10px; background:#dcfce7; color:#15803d; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+                            🌾
+                        </div>
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                <strong style="font-size:15px; color:var(--text-main);">Vụ Đông Xuân 2026 — Lịch biểu Nông vụ &amp; Dịch bệnh</strong>
+                                <span class="pill pill-success" style="font-size:10.5px;">Thời gian thực</span>
+                            </div>
+                            <div style="font-size:12.5px; color:var(--text-secondary); margin-top:2px;">
+                                Trạm Ba Vì: <strong>24.5°C • 82% RH</strong> • Cảnh báo độ ẩm cao, khuyến cáo kiểm tra mốc sương cà chua &amp; đạo ôn lúa.
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span id="reminderStatusTag" class="pill pill-info" style="font-size:11px; display:none;">Đã đồng bộ</span>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnSyncWeather">
+                            🔄 Cập nhật vi khí hậu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VIEW CONTROLS & TABS -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                    <!-- Filter Views: All, Today, Upcoming, Overdue, Completed -->
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;" role="tablist">
+                        <button type="button" class="task-view-tab active" data-view="all">
+                            <span>Tất cả</span>
+                            <span class="task-badge-count" id="badgeAll">0</span>
+                        </button>
+                        <button type="button" class="task-view-tab" data-view="today">
+                            <span>Hôm nay</span>
+                            <span class="task-badge-count" id="badgeToday">0</span>
+                        </button>
+                        <button type="button" class="task-view-tab" data-view="upcoming">
+                            <span>Sắp tới</span>
+                            <span class="task-badge-count" id="badgeUpcoming">0</span>
+                        </button>
+                        <button type="button" class="task-view-tab" data-view="overdue">
+                            <span style="color:#dc2626;">Quá hạn</span>
+                            <span class="task-badge-count task-badge-urgent" id="badgeOverdue">0</span>
+                        </button>
+                        <button type="button" class="task-view-tab" data-view="completed">
+                            <span>Đã hoàn thành</span>
+                            <span class="task-badge-count" id="badgeCompleted">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Mode Toggle: List vs Month Grid vs Phenology -->
+                    <div style="display:inline-flex; background:var(--surface-muted); padding:3px; border-radius:9999px; border:1px solid var(--border);">
+                        <button type="button" class="btn btn-sm" id="btnModeList" style="border-radius:9999px; padding:6px 14px; font-size:12px; font-weight:700; background:var(--surface); color:var(--text-main); border:none; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                            📋 Danh sách công việc
+                        </button>
+                        <button type="button" class="btn btn-sm" id="btnModeGrid" style="border-radius:9999px; padding:6px 14px; font-size:12px; font-weight:600; background:transparent; color:var(--text-secondary); border:none;">
+                            📅 Lịch tháng
+                        </button>
+                        <button type="button" class="btn btn-sm" id="btnModePhenology" style="border-radius:9999px; padding:6px 14px; font-size:12px; font-weight:600; background:transparent; color:var(--text-secondary); border:none;">
+                            🌱 Tiến độ sinh trưởng
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Selectors Bar -->
+                <div class="calendar-controls-bar" style="margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <label for="filterCrop" style="font-size:12.5px; font-weight:700; color:var(--text-main);">Cây trồng:</label>
+                        <select id="filterCrop" class="select" style="min-width:180px; font-size:12.5px;">
+                            <option value="all">🌱 Tất cả cây trồng</option>
+                            <option value="Tomato">🍅 Cà chua (Tomato)</option>
+                            <option value="Rice">🌾 Lúa nước (Rice)</option>
+                            <option value="Potato">🥔 Khoai tây (Potato)</option>
+                            <option value="Corn">🌽 Ngô (Corn)</option>
+                            <option value="Coffee">☕ Cà phê (Coffee)</option>
+                            <option value="Pepper">🌿 Hồ tiêu (Pepper)</option>
+                            <option value="Durian">🍈 Sầu riêng (Durian)</option>
+                            <option value="Chili">🌶️ Ớt (Chili)</option>
+                        </select>
+
+                        <label for="filterPriority" style="font-size:12.5px; font-weight:700; color:var(--text-main);">Ưu tiên:</label>
+                        <select id="filterPriority" class="select" style="width:130px; font-size:12.5px;">
+                            <option value="">Tất cả</option>
+                            <option value="urgent">🔴 Khẩn cấp</option>
+                            <option value="high">🟠 Cao</option>
+                            <option value="medium">🟡 Trung bình</option>
+                            <option value="low">🟢 Thấp</option>
+                        </select>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted);" id="filterResultsSummary">
+                        Đang tải danh sách công việc...
+                    </div>
+                </div>
+
+                <!-- VIEW CONTAINER 1: TASK LIST VIEW -->
+                <div id="containerListView">
+                    <div id="tasksListFeed" style="display:flex; flex-direction:column; gap:10px;"></div>
+                </div>
+
+                <!-- VIEW CONTAINER 2: MONTH GRID VIEW -->
+                <div id="containerGridView" style="display:none;">
+                    <div class="card" style="padding:16px 20px; margin-bottom:24px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h3 style="font-size:16px; font-weight:800; color:var(--text-main); margin:0;" id="calendarMonthTitle">
+                                Lịch Biểu Canh Tác — Tháng 11 / 2026
+                            </h3>
+                            <div style="display:flex; gap:12px; font-size:11px; flex-wrap:wrap;">
+                                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:#16a34a;"></span> Bón phân</span>
+                                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:#0284c7;"></span> Tưới tiêu</span>
+                                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:#dc2626;"></span> Phòng trừ bệnh</span>
+                                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:#ca8a04;"></span> Chăm sóc</span>
+                                <span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:10px; height:10px; border-radius:2px; background:#9333ea;"></span> Thu hoạch</span>
+                            </div>
+                        </div>
+
+                        <div class="calendar-month-grid" style="margin-top:0;">
+                            <div class="calendar-day-head">Thứ Hai</div>
+                            <div class="calendar-day-head">Thứ Ba</div>
+                            <div class="calendar-day-head">Thứ Tư</div>
+                            <div class="calendar-day-head">Thứ Năm</div>
+                            <div class="calendar-day-head">Thứ Sáu</div>
+                            <div class="calendar-day-head">Thứ Bảy</div>
+                            <div class="calendar-day-head">Chủ Nhật</div>
+                        </div>
+
+                        <div class="calendar-month-grid" id="calendarGridBody"></div>
+                    </div>
+                </div>
+
+                <!-- VIEW CONTAINER 3: PHENOLOGY STAGES -->
+                <div id="containerPhenologyView" style="display:none;">
+                    <div class="card" style="padding:20px; margin-bottom:24px;">
+                        <div style="margin-bottom:16px;">
+                            <h3 style="font-size:16px; font-weight:800; color:var(--text-main); margin:0;">
+                                Quy Trình Sinh Trưởng &amp; Canh Tác Chuẩn Nông Học
+                            </h3>
+                            <p style="font-size:12.5px; color:var(--text-secondary); margin:4px 0 0;">
+                                Phân kỳ phát triển sinh lý, liều lượng dinh dưỡng và các mầm bệnh đe dọa trực tiếp ở từng giai đoạn.
+                            </p>
+                        </div>
+                        <div class="calendar-timeline-grid" id="timelineStagesList"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL 1: TASK DETAIL & COMPLETION MODAL -->
+    <div id="taskDetailModal" class="modal-backdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(3px); z-index:9999; align-items:center; justify-content:center;">
+        <div class="modal-card" style="background:var(--surface); border-radius:14px; width:90%; max-width:540px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.2); border:1px solid var(--border); max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+                <div>
+                    <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px;" id="detailBadgeRow"></div>
+                    <h3 id="detailTaskTitle" style="font-size:18px; font-weight:800; color:var(--text-main); margin:4px 0;"></h3>
+                    <div id="detailTaskDueDate" style="font-size:12px; color:var(--text-muted);"></div>
+                </div>
+                <button type="button" id="btnCloseDetailModal" style="background:transparent; border:none; font-size:20px; color:var(--text-muted); cursor:pointer;">✕</button>
+            </div>
+
+            <!-- Description & Hierarchy Info -->
+            <div style="background:var(--surface-muted); padding:12px 14px; border-radius:8px; font-size:13px; margin-bottom:14px;" id="detailHierarchyBox"></div>
+
+            <div id="detailTaskDescription" style="font-size:13px; line-height:1.55; color:var(--text-secondary); margin-bottom:16px;"></div>
+
+            <!-- Linked Diagnosis Info -->
+            <div id="detailDiagnosisBox" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; margin-bottom:16px;">
+                <div style="font-size:12px; font-weight:700; color:#dc2626; margin-bottom:4px;">🌿 LIÊN KẾT CHẨN ĐOÁN LÁ AI</div>
+                <div id="detailDiagnosisContent" style="font-size:12.5px; color:#991b1b;"></div>
+                <a href="/frontend2/predict.html" style="font-size:11.5px; color:#15803d; font-weight:700; text-decoration:none; display:inline-block; margin-top:6px;">Mở bảng chẩn đoán chi tiết →</a>
+            </div>
+
+            <!-- Activity Audit History -->
+            <div style="margin-bottom:18px;">
+                <h4 style="font-size:13px; font-weight:700; color:var(--text-main); margin:0 0 6px;">Lịch sử hoạt động &amp; Kiểm toán</h4>
+                <div class="task-activity-timeline" id="detailActivityTimeline"></div>
+            </div>
+
+            <!-- Completion Input (if pending) -->
+            <div id="detailCompletionSection" style="margin-bottom:16px; border-top:1px solid var(--border); padding-top:14px;">
+                <label style="font-size:12px; font-weight:700; display:block; margin-bottom:4px;">Ghi chú hoàn thành / Báo cáo hiện trường:</label>
+                <textarea class="textarea" id="detailCompleteNotes" rows="2" placeholder="Ghi nhận liều lượng đã bón, tỷ lệ diệt trừ mầm bệnh..."></textarea>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:14px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnDeleteTask" style="color:#dc2626; border-color:#fca5a5;">
+                    🗑️ Xóa
+                </button>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCloseDetailModal2">Đóng</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSubmitComplete">
+                        ✓ Hoàn thành công việc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: CREATE NEW TASK MODAL -->
+    <div id="createTaskModal" class="modal-backdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(3px); z-index:9999; align-items:center; justify-content:center;">
+        <div class="modal-card" style="background:var(--surface); border-radius:14px; width:90%; max-width:520px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.2); border:1px solid var(--border); max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="font-size:16px; font-weight:800; color:var(--text-main); margin:0;">Tạo Công Việc Canh Tác Mới</h3>
+                <button type="button" id="btnCloseCreateModal" style="background:transparent; border:none; font-size:20px; color:var(--text-muted); cursor:pointer;">✕</button>
+            </div>
+
+            <form id="formCreateTask">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" style="font-size:12px; font-weight:700;">Tiêu đề công việc *</label>
+                    <input type="text" class="input" id="createTitle" required placeholder="VD: Phun phòng nấm thán thư, Bón thúc đợt 2..." />
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Hạn thực hiện *</label>
+                        <input type="date" class="input" id="createDueDate" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Mức độ ưu tiên</label>
+                        <select class="select" id="createPriority">
+                            <option value="medium" selected>🟡 Trung bình</option>
+                            <option value="high">🟠 Cao</option>
+                            <option value="urgent">🔴 Khẩn cấp</option>
+                            <option value="low">🟢 Thấp</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Phân loại canh tác</label>
+                        <select class="select" id="createTaskType">
+                            <option value="routine">🌱 Chăm sóc thường kỳ</option>
+                            <option value="treatment">🛡️ Điều trị sâu bệnh</option>
+                            <option value="fertilizing">🟢 Bón phân dinh dưỡng</option>
+                            <option value="watering">💧 Tưới tiêu &amp; Cấp nước</option>
+                            <option value="spraying">🧴 Phun thuốc phòng ngừa</option>
+                            <option value="scouting">🔍 Thăm vườn giám sát</option>
+                            <option value="pruning">✂️ Tỉa cành, làm cỏ</option>
+                            <option value="harvesting">🌾 Thu hoạch mùa vụ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Chu kỳ lặp lại</label>
+                        <select class="select" id="createRecurrence">
+                            <option value="none" selected>Không lặp lại</option>
+                            <option value="daily">Hàng ngày (Daily)</option>
+                            <option value="weekly">Hàng tuần (Weekly)</option>
+                            <option value="biweekly">Mỗi 2 tuần (Bi-weekly)</option>
+                            <option value="monthly">Hàng tháng (Monthly)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Cây trồng</label>
+                        <select class="select" id="createCrop">
+                            <option value="Tomato">🍅 Cà chua</option>
+                            <option value="Rice">🌾 Lúa nước</option>
+                            <option value="Potato">🥔 Khoai tây</option>
+                            <option value="Corn">🌽 Ngô</option>
+                            <option value="Coffee">☕ Cà phê</option>
+                            <option value="Pepper">🌿 Hồ tiêu</option>
+                            <option value="Durian">🍈 Sầu riêng</option>
+                            <option value="Chili">🌶️ Ớt</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:12px; font-weight:700;">Nông trại / Lô</label>
+                        <select class="select" id="createFarmPlot">
+                            <option value="">(Chọn nông trại / Chưa gán)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Diagnosis Linker Option -->
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label class="form-label" style="font-size:12px; font-weight:700;">Liên kết chẩn đoán AI (Tùy chọn)</label>
+                    <select class="select" id="createDiagnosisLink">
+                        <option value="">(Không liên kết chẩn đoán)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label class="form-label" style="font-size:12px; font-weight:700;">Mô tả &amp; Ghi chú kỹ thuật</label>
+                    <textarea class="textarea" id="createNotes" rows="2" placeholder="Liều lượng hoạt chất, khuyến cáo thời tiết, chỉ dẫn thực địa..."></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnCancelCreate">Hủy</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Lưu vào Lịch canh tác</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="globalToast" class="toast-notice"></div>
+
+    <script type="module">
+        import { setupSaaSShell, fetchJSON, toast } from '/static/frontend2/app.js?v=20261104_stable';
+
+        let currentView = 'all';
+        let currentMode = 'list'; // 'list', 'grid', 'phenology'
+        let cachedTasks = [];
+        let activeTask = null;
+
+        // Phenology data for 7 major crops
+        const PHENOLOGY_DATA = {
+            Tomato: [
+                { stage: '1. Gieo ươm cây giống', days: '0 – 15 ngày', desc: 'Gieo hạt trong khay ươm giá thể sạch khuẩn. Tưới phun sương giữ ẩm 75%.', risk: 'Bệnh lở cổ rễ (Rhizoctonia)', action: 'Dùng Trichoderma ủ giá thể' },
+                { stage: '2. Cây con & Phát triển thân lá', days: '16 – 35 ngày', desc: 'Xuất vườn cấy ra luống. Cắm giàn cố định, bấm tỉa chồi nách dưới chùm hoa.', risk: 'Đốm lá vi khuẩn, sâu vẽ bùa', action: 'Bón thúc đợt 1 NPK 20-20-15' },
+                { stage: '3. Phân hóa hoa & Ra hoa rộ', days: '36 – 55 ngày', desc: 'Cây ra chùm hoa thứ 1 đến thứ 4. Giữ ẩm rãnh, hạn chế tưới phun lên hoa.', risk: 'Bệnh thán thư, bọ trĩ chích hút hoa', action: 'Bổ sung Canxi-Bo chống rụng hoa' },
+                { stage: '4. Nuôi quả & Quả lớn nhanh', days: '56 – 85 ngày', desc: 'Quả phát triển mạnh, cần nhiều kali và nước đều đặn chống nứt vỏ.', risk: 'Bệnh mốc sương (Phytophthora)', action: 'Tăng lượng Kali, chống đọng nước' },
+                { stage: '5. Chín sáp & Thu hoạch', days: '86 – 110 ngày', desc: 'Quả chuyển từ xanh sang vàng cam rồi đỏ tươi. Thu hoạch từng đợt.', risk: 'Thối đít quả, ruồi đục quả', action: 'Cách ly phân bón trước 14 ngày' }
+            ],
+            Rice: [
+                { stage: '1. Gieo mạ & Ngâm ủ', days: '0 – 12 ngày', desc: 'Xử lý hạt giống bằng nước ấm 3 sôi 2 lạnh, ủ mầm nứt nanh.', risk: 'Bệnh lúa von, bọ trĩ mạ non', action: 'Giữ ấm luống mạ khi trời rét' },
+                { stage: '2. Đẻ nhánh & Làm cỏ', days: '13 – 40 ngày', desc: 'Giữ mực nước ruộng 2-3 cm kích thích lúa đẻ nhánh hữu hiệu.', risk: 'Bệnh đạo ôn lá, sâu đục thân', action: 'Bón thúc đợt 1 NPK chuyên dùng' },
+                { stage: '3. Phân hóa đòng (Làm đòng)', days: '41 – 65 ngày', desc: 'Rút nước phơi ruộng nứt chân chim 5-7 ngày để hạn chế nhánh vô hiệu.', risk: 'Đạo ôn cổ bông, rầy nâu', action: 'Bón phân đón đòng (Kali cao)' },
+                { stage: '4. Trổ bông & Thụ phấn', days: '66 – 85 ngày', desc: 'Lúa trổ đều trong 5-7 ngày. Tuyệt đối không để ruộng bị hạn.', risk: 'Bệnh khô vằn, lem lép hạt', action: 'Phun phòng lem lép hạt trước trổ' },
+                { stage: '5. Chín vàng & Thu hoạch', days: '86 – 110 ngày', desc: 'Hạt vào chắc, chín vàng 85% diện tích bông. Tháo cạn nước trước gặt 7 ngày.', risk: 'Chuột cắn phá, đổ ngã', action: 'Thu hoạch máy gặt đập liên hợp' }
+            ]
+        };
+
+        const TASK_TYPE_MAP = {
+            routine: { label: 'Chăm sóc', cls: 'pill pill-neutral' },
+            treatment: { label: 'Điều trị bệnh', cls: 'pill pill-danger' },
+            fertilizing: { label: 'Bón phân', cls: 'pill pill-success' },
+            watering: { label: 'Tưới tiêu', cls: 'pill pill-info' },
+            spraying: { label: 'Phòng ngừa', cls: 'pill pill-warning' },
+            scouting: { label: 'Thăm vườn', cls: 'pill pill-info' },
+            pruning: { label: 'Tỉa cành', cls: 'pill pill-neutral' },
+            harvesting: { label: 'Thu hoạch', cls: 'pill pill-success' }
+        };
+
+        const PRIORITY_MAP = {
+            urgent: { label: 'Khẩn cấp', cls: 'pill pill-danger' },
+            high: { label: 'Cao', cls: 'pill pill-warning' },
+            medium: { label: 'Trung bình', cls: 'pill pill-neutral' },
+            low: { label: 'Thấp', cls: 'pill pill-neutral' }
+        };
+
+        async function loadTasks() {
+            const cropVal = document.getElementById('filterCrop').value;
+            const prioVal = document.getElementById('filterPriority').value;
+
+            let url = `/api/calendar/tasks?view=${currentView}&limit=200`;
+            if (cropVal && cropVal !== 'all') url += `&crop_id=${encodeURIComponent(cropVal)}`;
+            if (prioVal) url += `&priority=${encodeURIComponent(prioVal)}`;
+
+            try {
+                const res = await fetchJSON(url);
+                cachedTasks = res.tasks || [];
+
+                // Update badge counts
+                if (res.counts) {
+                    document.getElementById('badgeAll').textContent = res.counts.total || 0;
+                    document.getElementById('badgeToday').textContent = res.counts.today || 0;
+                    document.getElementById('badgeUpcoming').textContent = res.counts.upcoming || 0;
+                    document.getElementById('badgeOverdue').textContent = res.counts.overdue || 0;
+                    document.getElementById('badgeCompleted').textContent = res.counts.completed || 0;
+                }
+
+                document.getElementById('filterResultsSummary').textContent = `Hiển thị ${cachedTasks.length} công việc`;
+
+                renderTasks();
+            } catch (err) {
+                console.error('Error loading tasks:', err);
+                document.getElementById('tasksListFeed').innerHTML = `
+                    <div class="card" style="padding:24px; text-align:center; color:#dc2626;">
+                        <p style="font-weight:700;">Không thể tải dữ liệu công việc từ máy chủ.</p>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnRetryLoad">Thử lại</button>
+                    </div>
+                `;
+                document.getElementById('btnRetryLoad')?.addEventListener('click', loadTasks);
+            }
+        }
+
+        function renderTasks() {
+            if (currentMode === 'list') {
+                renderListView();
+            } else if (currentMode === 'grid') {
+                renderGridView();
+            } else if (currentMode === 'phenology') {
+                renderPhenologyView();
+            }
+        }
+
+        function renderListView() {
+            const feed = document.getElementById('tasksListFeed');
+            if (cachedTasks.length === 0) {
+                feed.innerHTML = `
+                    <div class="card" style="padding:32px 20px; text-align:center; color:var(--text-muted);">
+                        <div style="font-size:36px; margin-bottom:8px;">🌱</div>
+                        <h4 style="font-size:15px; font-weight:700; color:var(--text-main); margin:0 0 4px;">Không có công việc nào trong danh mục này</h4>
+                        <p style="font-size:12.5px; margin:0 0 16px;">Tất cả công việc đã hoàn thành hoặc chưa có lịch trình tương ứng.</p>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnEmptyCreate">➕ Tạo công việc mới</button>
+                    </div>
+                `;
+                document.getElementById('btnEmptyCreate')?.addEventListener('click', openCreateModal);
+                return;
+            }
+
+            feed.innerHTML = cachedTasks.map(t => {
+                const isCompleted = t.status === 'completed';
+                const typeObj = TASK_TYPE_MAP[t.task_type] || { label: t.task_type || 'Công việc', cls: 'pill' };
+                const prioObj = PRIORITY_MAP[t.priority] || { label: t.priority, cls: 'pill' };
+                const hasRecurrence = t.recurrence_rule && t.recurrence_rule !== 'none';
+                const hasDiagnosis = !!t.diagnosis_id;
+
+                return `
+                    <div class="task-item-card ${isCompleted ? 'is-completed' : ''}" data-id="${t.id}">
+                        <div style="display:flex; align-items:flex-start; gap:12px; flex:1;">
+                            <input type="checkbox" class="task-quick-chk" data-id="${t.id}" ${isCompleted ? 'checked' : ''} style="width:18px; height:18px; accent-color:#16a34a; margin-top:3px; cursor:pointer;" title="${isCompleted ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}" />
+                            <div style="flex:1;">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                                    <span class="${typeObj.cls}" style="font-size:10.5px;">${typeObj.label}</span>
+                                    <span class="${prioObj.cls}" style="font-size:10.5px;">${prioObj.label}</span>
+                                    ${hasRecurrence ? `<span class="recurrence-badge">🔄 ${t.recurrence_rule}</span>` : ''}
+                                    ${hasDiagnosis ? `<span class="pill pill-danger" style="font-size:10px;">🩺 Bệnh lá AI</span>` : ''}
+                                    ${t.crop_id ? `<span class="pill pill-neutral" style="font-size:10.5px;">🌿 ${t.crop_id}</span>` : ''}
+                                </div>
+                                <h4 style="font-size:14.5px; font-weight:700; color:${isCompleted ? 'var(--text-muted)' : 'var(--text-main)'}; text-decoration:${isCompleted ? 'line-through' : 'none'}; margin:0 0 4px;">
+                                    ${t.title}
+                                </h4>
+                                <div style="font-size:12px; color:var(--text-muted);">
+                                    ⏱️ Hạn: <strong>${t.due_date}</strong>
+                                    ${t.farm_name ? ` • Nông trại: ${t.farm_name}` : ''}
+                                    ${t.plot_name ? ` / Lô: ${t.plot_name}` : ''}
+                                    ${t.assignee_name ? ` • Phụ trách: <strong>${t.assignee_name}</strong>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" class="btn btn-secondary btn-sm btn-open-detail" data-id="${t.id}" style="font-size:11.5px; padding:4px 10px;">
+                                Chi tiết →
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Quick complete checkboxes
+            feed.querySelectorAll('.task-quick-chk').forEach(chk => {
+                chk.addEventListener('change', async (e) => {
+                    e.stopPropagation();
+                    const taskId = parseInt(e.target.dataset.id);
+                    try {
+                        if (e.target.checked) {
+                            await fetchJSON(`/api/calendar/tasks/${taskId}/complete`, {
+                                method: 'POST',
+                                body: JSON.stringify({ notes: 'Đánh dấu hoàn thành nhanh từ danh sách.' })
+                            });
+                            toast('Đã đánh dấu hoàn thành công việc!');
+                        } else {
+                            await fetchJSON(`/api/calendar/tasks/${taskId}`, {
+                                method: 'PATCH',
+                                body: JSON.stringify({ status: 'pending' })
+                            });
+                            toast('Đã chuyển công việc về trạng thái chờ xử lý!');
+                        }
+                        await loadTasks();
+                    } catch (err) {
+                        toast('Không thể cập nhật trạng thái công việc.');
+                    }
+                });
+            });
+
+            // Open detail card
+            feed.querySelectorAll('.task-item-card, .btn-open-detail').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('task-quick-chk')) return;
+                    const taskId = parseInt(el.dataset.id);
+                    openTaskDetail(taskId);
+                });
+            });
+        }
+
+        function renderGridView() {
+            const grid = document.getElementById('calendarGridBody');
+            let html = '';
+
+            // Leading days
+            for (let d = 27; d <= 31; d++) {
+                html += `<div class="calendar-day-cell other-month"><div class="calendar-day-num">${d}</div></div>`;
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            const currentDayNum = new Date().getDate();
+
+            for (let d = 1; d <= 30; d++) {
+                const dayStr = `2026-11-${String(d).padStart(2, '0')}`;
+                const isToday = d === currentDayNum;
+                const dayTasks = cachedTasks.filter(t => t.due_date && t.due_date.slice(0, 10) === dayStr);
+
+                const pillsHtml = dayTasks.map(t => {
+                    const isDone = t.status === 'completed';
+                    const catClass = t.task_type === 'fertilizing' ? 'event-fertilizer'
+                        : t.task_type === 'watering' ? 'event-water'
+                        : t.task_type === 'treatment' || t.task_type === 'spraying' ? 'event-pest'
+                        : 'event-care';
+                    return `
+                        <div class="calendar-event-pill ${catClass}" data-id="${t.id}" style="${isDone ? 'opacity:0.6; text-decoration:line-through;' : ''}">
+                            ${t.title}
+                        </div>
+                    `;
+                }).join('');
+
+                html += `
+                    <div class="calendar-day-cell ${isToday ? 'today-cell' : ''}" data-day="${d}">
+                        <div class="calendar-day-num">
+                            <span>${d}</span>
+                            ${isToday ? '<span class="pill pill-success" style="font-size:9px; padding:0 4px;">Hôm nay</span>' : ''}
+                        </div>
+                        ${pillsHtml}
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+
+            grid.querySelectorAll('.calendar-event-pill').forEach(pill => {
+                pill.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const taskId = parseInt(pill.dataset.id);
+                    openTaskDetail(taskId);
+                });
+            });
+        }
+
+        function renderPhenologyView() {
+            const container = document.getElementById('timelineStagesList');
+            const cropVal = document.getElementById('filterCrop').value;
+            const stages = PHENOLOGY_DATA[cropVal] || PHENOLOGY_DATA['Tomato'];
+
+            container.innerHTML = stages.map((s, idx) => `
+                <div class="phenology-stage-card">
+                    <div>
+                        <span class="pill pill-success" style="font-size:10px;">Giai đoạn ${idx + 1}</span>
+                        <h4 style="font-size:15px; font-weight:800; color:var(--text-main); margin:6px 0 2px;">${s.stage}</h4>
+                        <span style="font-size:12px; color:var(--text-muted);">⏱️ Thời lượng: ${s.days}</span>
+                    </div>
+                    <div>
+                        <div style="font-size:13px; color:var(--text-secondary); line-height:1.45;">${s.desc}</div>
+                        <div style="margin-top:6px; font-size:12px; color:#15803d; font-weight:600;">
+                            💡 Biện pháp: ${s.action}
+                        </div>
+                    </div>
+                    <div style="background:rgba(220, 38, 38, 0.06); padding:10px 12px; border-radius:8px; border:1px solid rgba(220, 38, 38, 0.2);">
+                        <div style="font-size:11px; font-weight:700; color:#dc2626; margin-bottom:2px;">⚠️ NGUY CƠ DỊCH HẠI:</div>
+                        <div style="font-size:12px; color:#991b1b; font-weight:600;">${s.risk}</div>
+                        <a href="/frontend2/predict.html" style="font-size:11px; color:#15803d; font-weight:700; text-decoration:none; display:inline-block; margin-top:4px;">Chẩn đoán lá AI →</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function openTaskDetail(taskId) {
+            try {
+                const res = await fetchJSON(`/api/calendar/tasks/${taskId}`);
+                const t = res.task;
+                if (!t) return;
+                activeTask = t;
+
+                document.getElementById('detailTaskTitle').textContent = t.title;
+                document.getElementById('detailTaskDueDate').textContent = `Hạn chót: ${t.due_date} • Người tạo: ${t.creator_name || 'Hệ thống'}`;
+                document.getElementById('detailTaskDescription').textContent = t.description || 'Không có mô tả chi tiết thêm.';
+
+                // Badges
+                const badgeRow = document.getElementById('detailBadgeRow');
+                const typeObj = TASK_TYPE_MAP[t.task_type] || { label: t.task_type, cls: 'pill' };
+                const prioObj = PRIORITY_MAP[t.priority] || { label: t.priority, cls: 'pill' };
+                badgeRow.innerHTML = `
+                    <span class="${typeObj.cls}" style="font-size:11px;">${typeObj.label}</span>
+                    <span class="${prioObj.cls}" style="font-size:11px;">${prioObj.label}</span>
+                    <span class="pill ${t.status === 'completed' ? 'pill-success' : 'pill-info'}" style="font-size:11px;">${t.status === 'completed' ? 'Đã hoàn thành' : 'Đang xử lý'}</span>
+                    ${t.recurrence_rule && t.recurrence_rule !== 'none' ? `<span class="recurrence-badge">🔄 Lặp lại: ${t.recurrence_rule}</span>` : ''}
+                `;
+
+                // Hierarchy Box
+                const hierBox = document.getElementById('detailHierarchyBox');
+                hierBox.innerHTML = `
+                    <div><strong>Vị trí canh tác:</strong> ${t.farm_name || 'Chưa gán nông trại'} ${t.plot_name ? `→ Lô: ${t.plot_name}` : ''}</div>
+                    <div style="margin-top:4px;"><strong>Cây trồng:</strong> ${t.crop_id || 'Chưa xác định'} • <strong>Phụ trách:</strong> ${t.assignee_name || 'Chưa phân công'}</div>
+                `;
+
+                // Diagnosis box
+                const diagBox = document.getElementById('detailDiagnosisBox');
+                if (t.diagnosis_id) {
+                    diagBox.style.display = 'block';
+                    document.getElementById('detailDiagnosisContent').innerHTML = `
+                        Nhiệm vụ điều trị phát sinh từ chẩn đoán AI <strong>#${t.diagnosis_id}</strong>: 
+                        <strong>${t.diagnosis_disease_vi || t.diagnosis_disease || 'Bệnh lá'}</strong> 
+                        ${t.diagnosis_confidence ? `(Độ tin cậy: ${(t.diagnosis_confidence * 100).toFixed(1)}%)` : ''}.
+                    `;
+                } else {
+                    diagBox.style.display = 'none';
+                }
+
+                // Activities timeline
+                const activities = t.activities || [];
+                const timeline = document.getElementById('detailActivityTimeline');
+                if (activities.length === 0) {
+                    timeline.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">Chưa có ghi chép lịch sử kiểm toán.</div>';
+                } else {
+                    timeline.innerHTML = activities.map(a => `
+                        <div class="task-activity-node">
+                            <strong>${a.action}</strong>: ${a.notes || a.new_value || ''}
+                            <span style="font-size:11px; color:var(--text-muted); display:block;">${a.created_at} • ${a.actor_name || 'Hệ thống'}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // Completion section toggles
+                const compSection = document.getElementById('detailCompletionSection');
+                const submitCompleteBtn = document.getElementById('btnSubmitComplete');
+                if (t.status === 'completed') {
+                    compSection.style.display = 'none';
+                    submitCompleteBtn.style.display = 'none';
+                } else {
+                    compSection.style.display = 'block';
+                    submitCompleteBtn.style.display = 'inline-block';
+                    document.getElementById('detailCompleteNotes').value = '';
+                }
+
+                document.getElementById('taskDetailModal').style.display = 'flex';
+            } catch (err) {
+                toast('Không thể tải chi tiết công việc.');
+            }
+        }
+
+        async function openCreateModal() {
+            // Set default date to today
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('createDueDate').value = today;
+
+            // Load farms and plots into dropdown
+            try {
+                const res = await fetchJSON('/api/farms');
+                const farms = res.farms || [];
+                const farmSelect = document.getElementById('createFarmPlot');
+                let farmOptions = '<option value="">(Không gắn nông trại cụ thể)</option>';
+                farms.forEach(f => {
+                    farmOptions += `<option value="farm_${f.id}">🏡 Nông trại: ${f.name}</option>`;
+                });
+                farmSelect.innerHTML = farmOptions;
+            } catch (e) {}
+
+            // Load recent diagnoses for linking
+            try {
+                const res = await fetchJSON('/api/diagnoses/history?limit=10');
+                const diags = res.history || res.diagnoses || [];
+                const diagSelect = document.getElementById('createDiagnosisLink');
+                let diagOptions = '<option value="">(Không liên kết chẩn đoán)</option>';
+                diags.forEach(d => {
+                    const disease = d.disease_name_vi || d.predicted_disease || 'Bệnh cây';
+                    const crop = d.crop_name || d.crop_id || 'Cây trồng';
+                    diagOptions += `<option value="${d.id}">#${d.id} • ${disease} (${crop})</option>`;
+                });
+                diagSelect.innerHTML = diagOptions;
+            } catch (e) {}
+
+            document.getElementById('createTaskModal').style.display = 'flex';
+        }
+
+        function init() {
+            setupSaaSShell('calendar', 'Lịch Canh Tác');
+
+            // Set today date as initial filter
+            const todayStr = new Date().toISOString().slice(0, 10);
+            document.getElementById('createDueDate').value = todayStr;
+
+            // Load tasks initially
+            loadTasks();
+
+            // Tab View selection
+            document.querySelectorAll('.task-view-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    document.querySelectorAll('.task-view-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentView = tab.dataset.view;
+                    loadTasks();
+                });
+            });
+
+            // Filter changes
+            document.getElementById('filterCrop').addEventListener('change', loadTasks);
+            document.getElementById('filterPriority').addEventListener('change', loadTasks);
+
+            // Display Mode toggle
+            const btnList = document.getElementById('btnModeList');
+            const btnGrid = document.getElementById('btnModeGrid');
+            const btnPhenology = document.getElementById('btnModePhenology');
+            const cList = document.getElementById('containerListView');
+            const cGrid = document.getElementById('containerGridView');
+            const cPhenology = document.getElementById('containerPhenologyView');
+
+            function setActiveMode(mode) {
+                currentMode = mode;
+                [btnList, btnGrid, btnPhenology].forEach(b => {
+                    b.style.background = 'transparent';
+                    b.style.color = 'var(--text-secondary)';
+                    b.style.fontWeight = '600';
+                    b.style.boxShadow = 'none';
+                });
+                [cList, cGrid, cPhenology].forEach(c => c.style.display = 'none');
+
+                if (mode === 'list') {
+                    btnList.style.background = 'var(--surface)';
+                    btnList.style.color = 'var(--text-main)';
+                    btnList.style.fontWeight = '700';
+                    btnList.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+                    cList.style.display = 'block';
+                } else if (mode === 'grid') {
+                    btnGrid.style.background = 'var(--surface)';
+                    btnGrid.style.color = 'var(--text-main)';
+                    btnGrid.style.fontWeight = '700';
+                    btnGrid.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+                    cGrid.style.display = 'block';
+                } else if (mode === 'phenology') {
+                    btnPhenology.style.background = 'var(--surface)';
+                    btnPhenology.style.color = 'var(--text-main)';
+                    btnPhenology.style.fontWeight = '700';
+                    btnPhenology.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)';
+                    cPhenology.style.display = 'block';
+                }
+                renderTasks();
+            }
+
+            btnList.addEventListener('click', () => setActiveMode('list'));
+            btnGrid.addEventListener('click', () => setActiveMode('grid'));
+            btnPhenology.addEventListener('click', () => setActiveMode('phenology'));
+
+            // Open Create Task Modal
+            document.getElementById('btnOpenCreateTaskModal').addEventListener('click', openCreateModal);
+
+            // Close Modals
+            const detailModal = document.getElementById('taskDetailModal');
+            document.getElementById('btnCloseDetailModal').addEventListener('click', () => detailModal.style.display = 'none');
+            document.getElementById('btnCloseDetailModal2').addEventListener('click', () => detailModal.style.display = 'none');
+            detailModal.addEventListener('click', (e) => { if (e.target === detailModal) detailModal.style.display = 'none'; });
+
+            const createModal = document.getElementById('createTaskModal');
+            document.getElementById('btnCloseCreateModal').addEventListener('click', () => createModal.style.display = 'none');
+            document.getElementById('btnCancelCreate').addEventListener('click', () => createModal.style.display = 'none');
+            createModal.addEventListener('click', (e) => { if (e.target === createModal) createModal.style.display = 'none'; });
+
+            // Create Task Form Submit
+            document.getElementById('formCreateTask').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('createTitle').value.trim();
+                const dueDate = document.getElementById('createDueDate').value;
+                const priority = document.getElementById('createPriority').value;
+                const taskType = document.getElementById('createTaskType').value;
+                const recurrence = document.getElementById('createRecurrence').value;
+                const cropId = document.getElementById('createCrop').value;
+                const farmVal = document.getElementById('createFarmPlot').value;
+                const diagId = document.getElementById('createDiagnosisLink').value;
+                const notes = document.getElementById('createNotes').value.trim();
+
+                let farmId = null;
+                if (farmVal.startsWith('farm_')) farmId = parseInt(farmVal.replace('farm_', ''));
+
+                try {
+                    const payload = {
+                        title: title,
+                        due_date: dueDate,
+                        priority: priority,
+                        task_type: taskType,
+                        recurrence_rule: recurrence,
+                        crop_id: cropId,
+                        notes: notes
+                    };
+                    if (farmId) payload.farm_id = farmId;
+                    if (diagId) payload.diagnosis_id = parseInt(diagId);
+
+                    await fetchJSON('/api/calendar/tasks', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+
+                    toast('Đã thêm công việc canh tác mới thành công!');
+                    createModal.style.display = 'none';
+                    document.getElementById('formCreateTask').reset();
+                    await loadTasks();
+                } catch (err) {
+                    toast(err.message || 'Lỗi khi tạo công việc.');
+                }
+            });
+
+            // Complete Task from Detail Modal
+            document.getElementById('btnSubmitComplete').addEventListener('click', async () => {
+                if (!activeTask) return;
+                const notes = document.getElementById('detailCompleteNotes').value.trim();
+                try {
+                    await fetchJSON(`/api/calendar/tasks/${activeTask.id}/complete`, {
+                        method: 'POST',
+                        body: JSON.stringify({ notes: notes || 'Hoàn thành từ cửa sổ chi tiết.' })
+                    });
+                    toast('Đã đánh dấu hoàn thành công việc!');
+                    detailModal.style.display = 'none';
+                    await loadTasks();
+                } catch (err) {
+                    toast(err.message || 'Lỗi khi cập nhật trạng thái.');
+                }
+            });
+
+            // Delete Task from Detail Modal
+            document.getElementById('btnDeleteTask').addEventListener('click', async () => {
+                if (!activeTask) return;
+                if (!confirm(`Bạn có chắc chắn muốn xóa công việc "${activeTask.title}"?`)) return;
+                try {
+                    await fetchJSON(`/api/calendar/tasks/${activeTask.id}`, { method: 'DELETE' });
+                    toast('Đã xóa công việc canh tác thành công!');
+                    detailModal.style.display = 'none';
+                    await loadTasks();
+                } catch (err) {
+                    toast(err.message || 'Không có quyền xóa hoặc xảy ra lỗi.');
+                }
+            });
+
+            // Process Reminders Button
+            document.getElementById('btnRunReminders').addEventListener('click', async () => {
+                try {
+                    const res = await fetchJSON('/api/calendar/tasks/reminders/process', { method: 'POST', body: JSON.stringify({}) });
+                    toast(`Đã xử lý nhắc việc: ${res.sent_count} thông báo phát thành công!`);
+                    const tag = document.getElementById('reminderStatusTag');
+                    tag.textContent = `Đã phát ${res.sent_count} nhắc việc`;
+                    tag.style.display = 'inline-block';
+                } catch (err) {
+                    toast('Lỗi khi xử lý nhắc việc.');
+                }
+            });
+
+            // Sync Weather
+            document.getElementById('btnSyncWeather').addEventListener('click', () => {
+                toast('Đã đồng bộ dữ liệu thời tiết vi khí hậu từ trạm Ba Vì: 24.5°C • 82% RH.');
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

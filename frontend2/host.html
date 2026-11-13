@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Điều Khiển Máy Chủ • GARI Host Server Console</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <style>
         :root {
             --host-bg: #0b130e;
@@ -386,10 +386,10 @@
         <div class="host-brand">
             <div class="host-logo-badge">🛡️</div>
             <div>
-                <div class="host-brand-title">
+                <h1 class="host-brand-title" style="margin:0; font-size:16px;">
                     GARI Host Server Admin Console
                     <span class="host-pill host-pill-active" id="serverStatePill">Hệ thống sẵn sàng</span>
-                </div>
+                </h1>
                 <div style="font-size:12px; color:var(--host-muted); margin-top:2px;" id="uptimeSub">
                     Đang nạp dữ liệu telemetry thời gian thực...
                 </div>
@@ -418,14 +418,29 @@
         <button class="host-tab-btn" data-tab="tab-users">
             👥 Quản lý Tài khoản (Users)
         </button>
+        <button class="host-tab-btn" data-tab="tab-orgs">
+            🏢 Doanh nghiệp & HTX
+        </button>
+        <button class="host-tab-btn" data-tab="tab-models">
+            🤖 Mô hình AI & Suy luận
+        </button>
         <button class="host-tab-btn" data-tab="tab-vouchers">
             🎟️ Quản lý Voucher
+        </button>
+        <button class="host-tab-btn" data-tab="tab-payments">
+            💳 Thanh toán & Gói cước
+        </button>
+                <button class="host-tab-btn" data-tab="tab-experts">
+            🌾 Thẩm định Chuyên gia
         </button>
         <button class="host-tab-btn" data-tab="tab-moderation">
             🛡️ Kiểm Duyệt & Vi Phạm (Moderation)
         </button>
         <button class="host-tab-btn" data-tab="tab-api">
             ⚙️ Cấu hình API & Toggles
+        </button>
+        <button class="host-tab-btn" data-tab="tab-knowledge">
+            📚 Quản lý Tri thức (Knowledge)
         </button>
         <button class="host-tab-btn" data-tab="tab-audit">
             📜 Nhật ký Kiểm toán (Audit Logs)
@@ -447,6 +462,8 @@
                 </button>
             </div>
 
+            
+            
             <div class="host-grid-4">
                 <!-- CPU Card -->
                 <div class="host-card">
@@ -524,6 +541,67 @@
                     <div class="host-metric-sub" id="metricTotalSubs">Tổng gói đăng ký: --</div>
                 </div>
             </div>
+        
+            <!-- Third Grid: System-wide Usage Monitoring -->
+            <div style="margin-top:24px;">
+                <h3 style="font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                    <span>📈</span> Giám Sát Tài Nguyên Hệ Sinh Thái (System-wide Usage)
+                </h3>
+                <div class="host-grid-4">
+                    <div class="host-card">
+                        <div class="host-card-title">Chẩn Đoán Lá Cây Trồng</div>
+                        <div class="host-metric-val" id="usageTotalDiagnoses" style="color:#10b981;">--</div>
+                        <div class="host-metric-sub" id="usageDiagnoses24h">24h qua: -- • 30 ngày: --</div>
+                    </div>
+                    <div class="host-card">
+                        <div class="host-card-title">Hội Thoại AI Assistant</div>
+                        <div class="host-metric-val" id="usageTotalAi" style="color:#8b5cf6;">--</div>
+                        <div class="host-metric-sub" id="usageAi24h">24h qua: -- lượt tư vấn</div>
+                    </div>
+                    <div class="host-card">
+                        <div class="host-card-title">Quy Mô Canh Tác (Farms & Plots)</div>
+                        <div class="host-metric-val" id="usageTotalFarms">-- Trang trại</div>
+                        <div class="host-metric-sub" id="usageTotalPlots">Tổng phân lô: -- lô</div>
+                    </div>
+                    <div class="host-card">
+                        <div class="host-card-title">Lưu Trữ Ảnh Lá Bệnh</div>
+                        <div class="host-metric-val" id="usageStorageMb">-- MB</div>
+                        <div class="host-metric-sub" id="usageStorageCount">Số ảnh: -- files</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fourth Section: System Health & Error Monitoring -->
+            <div style="margin-top:28px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h3 style="font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px; margin:0;">
+                        <span>🛡️</span> Giám Sát Lỗi Hệ Thống & Sức Khỏe Máy Chủ (Error Logs)
+                    </h3>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span id="healthOverallPill" class="host-pill host-pill-active">Hệ thống Khỏe mạnh</span>
+                        <button class="btn-ghost-sm" onclick="loadSystemErrors()">🔄 Làm mới lỗi</button>
+                        <button class="btn-ghost-sm" style="color:#ef4444;" onclick="openClearErrorsModal()">🗑️ Xóa nhật ký lỗi</button>
+                    </div>
+                </div>
+                <div class="host-table-wrap">
+                    <table class="host-table">
+                        <thead>
+                            <tr>
+                                <th>Thời Gian</th>
+                                <th>Mức Độ</th>
+                                <th>Thành Phần (Component)</th>
+                                <th>Nội Dung Thông Điệp</th>
+                                <th>Chi Tiết Lỗi</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="systemErrorsTableBody">
+                            <tr><td colspan="6" style="text-align:center; padding:16px;">Đang nạp nhật ký lỗi...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </section>
 
         <!-- TAB 2: USER MANAGEMENT -->
@@ -572,6 +650,183 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- MODULE 03: CONTEXTUAL AI ASSISTANT PROVIDER MANAGER -->
+            <div class="card" style="margin-top:24px; padding:20px; background:var(--host-surface); border:1px solid var(--host-border); border-radius:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div>
+                        <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--host-text);">🩺 Quản lý AI Provider cho Trợ lý Nông học (Contextual AI Assistant)</h3>
+                        <p style="margin:4px 0 0 0; font-size:12.5px; color:var(--host-muted);">Cấu hình nhà cung cấp LLM (Gemini, OpenAI, Anthropic, Mock), khóa bí mật và thông số suy luận.</p>
+                    </div>
+                    <span id="hostAssistantStatusPill" class="host-pill host-pill-gray">Đang tải...</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px;">
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--host-muted);">AI PROVIDER</label>
+                        <select id="hostAssistantProviderSelect" class="input" style="width:100%; margin-top:4px;">
+                            <option value="disabled">Disabled (Tắt trợ lý)</option>
+                            <option value="gemini">Google Gemini (Khuyến nghị)</option>
+                            <option value="openai_compatible">OpenAI-Compatible (GPT-4o / vLLM / Ollama)</option>
+                            <option value="anthropic">Anthropic (Claude 3.5)</option>
+                            <option value="mock">Mock / Offline Engine (Testing)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--host-muted);">MÔ HÌNH (MODEL NAME)</label>
+                        <input id="hostAssistantModelInput" class="input" style="width:100%; margin-top:4px;" placeholder="gemini-2.5-flash / gpt-4o-mini" />
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--host-muted);">API KEY (LƯU TRÊN MÁY CHỦ BẢO MẬT)</label>
+                        <input id="hostAssistantApiKeyInput" type="password" class="input" style="width:100%; margin-top:4px;" placeholder="Nhập API key mới hoặc để trống để giữ nguyên" />
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--host-muted);">BASE URL (CHO OPENAI / OLLAMA)</label>
+                        <input id="hostAssistantBaseUrlInput" class="input" style="width:100%; margin-top:4px;" placeholder="https://api.openai.com/v1" />
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:14px; border-top:1px solid var(--host-border); flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; gap:16px; align-items:center;">
+                        <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; cursor:pointer;">
+                            <input type="checkbox" id="hostAssistantCitationsCheck" checked />
+                            <span>Tự động trích dẫn nguồn nông học (PPRI, FAO)</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; cursor:pointer;">
+                            <input type="checkbox" id="hostAssistantDeepDiveCheck" checked />
+                            <span>Bật chế độ phân tích bệnh học chuyên sâu</span>
+                        </label>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" class="btn-ghost-sm" id="btnHostTestAssistant" onclick="testAssistantHostConfig()">⚡ Kiểm tra kết nối (Ping)</button>
+                        <button type="button" class="btn-primary-sm" id="btnHostSaveAssistant" onclick="saveAssistantHostConfig()">💾 Lưu cấu hình</button>
+                    </div>
+                </div>
+                <div id="hostAssistantAlert" style="display:none; margin-top:12px; padding:10px 14px; border-radius:8px; font-size:12.5px;"></div>
+            </div>
+        </section>
+
+        <!-- TAB: ORGANIZATIONS & ENTERPRISES -->
+        <section id="tab-orgs" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Quản lý Tổ chức, Doanh nghiệp & Hợp tác xã</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Danh sách các tổ chức, chủ sở hữu, số lượng thành viên, hạn ngạch và trạng thái hoạt động B2B.</span>
+                </div>
+                <button class="btn-ghost-sm" onclick="loadHostOrganizations()">
+                    🔄 Làm mới danh sách
+                </button>
+            </div>
+
+            <div class="input-group-row">
+                <input type="text" id="orgSearchInput" class="host-input" style="min-width:300px;" placeholder="Tìm theo tên tổ chức hoặc mã số thuế / mã vùng...">
+                <select id="orgStatusFilter" class="host-input">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active">Đang hoạt động (active)</option>
+                    <option value="suspended">Tạm khóa (suspended)</option>
+                    <option value="archived">Đã lưu trữ (archived)</option>
+                </select>
+                <button class="btn-host-action" onclick="loadHostOrganizations()">
+                    🔍 Tìm kiếm
+                </button>
+            </div>
+
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>Org ID</th>
+                            <th>Tên Tổ Chức & Mã</th>
+                            <th>Chủ Sở Hữu (Owner)</th>
+                            <th>Loại Hình</th>
+                            <th>Thành Viên</th>
+                            <th>Gói Cước & Hạn Ngạch</th>
+                            <th>Trạng Thái</th>
+                            <th style="text-align:right;">Hành Động Quản Trị</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orgsTableBody">
+                        <tr><td colspan="8" style="text-align:center; padding:24px;">Đang tải danh sách tổ chức...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB: AI MODELS & INFERENCE -->
+        <section id="tab-models" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Giám sát Mô hình AI & Thiết bị Suy luận</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Hạ tầng AI chạy 100% tại máy chủ backend, tái sử dụng trọng số weights đã nạp vào bộ nhớ.</span>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-host-action" onclick="runHostAiTest()" id="btnHostAiTest" style="background:#059669; border-color:#059669;">
+                        ⚡ Chạy Kiểm thử AI Realtime
+                    </button>
+                    <button class="btn-ghost-sm" onclick="loadHostModels()">
+                        🔄 Làm mới trạng thái AI
+                    </button>
+                </div>
+                    🔄 Làm mới trạng thái AI
+                </button>
+            </div>
+
+            <div class="host-grid-4">
+                <div class="host-card">
+                    <div class="host-card-title">Mô hình Khả dụng</div>
+                    <div class="host-metric-val" id="modelTotalCount">--</div>
+                    <div class="host-metric-sub">Cây trồng hỗ trợ chẩn đoán</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Thiết bị Tính toán</div>
+                    <div class="host-metric-val" id="modelDeviceName">--</div>
+                    <div class="host-metric-sub" id="modelTorchVer">PyTorch Engine</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Bộ nhớ Weights Model</div>
+                    <div class="host-metric-val" id="modelLoadedState">Sẵn sàng</div>
+                    <div class="host-metric-sub">Pre-loaded & Reused</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Tỷ lệ Chẩn đoán Thành công</div>
+                    <div class="host-metric-val" style="color:#10b981;">100%</div>
+                    <div class="host-metric-sub">Không suy luận trên trình duyệt</div>
+                </div>
+            </div>
+
+            <div id="aiTestResultBox" style="display:none; margin-bottom:20px; padding:16px 20px; border-radius:12px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.3);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:600; color:#10b981; display:flex; align-items:center; gap:8px;">
+                        <span>✅</span> Kết Quả Kiểm Thử Suy Luận AI Thực Tế
+                    </div>
+                    <span id="aiTestTimestamp" style="font-size:12px; color:var(--host-muted);"></span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin-top:12px;">
+                    <div><span style="font-size:11px; color:var(--host-muted);">HỆ THỐNG / BACKEND:</span><div id="aiTestBackend" style="font-weight:600; font-size:14px;">--</div></div>
+                    <div><span style="font-size:11px; color:var(--host-muted);">ĐỘ TRỄ SUY LUẬN:</span><div id="aiTestLatency" style="font-weight:700; color:#3b82f6; font-size:14px;">--</div></div>
+                    <div><span style="font-size:11px; color:var(--host-muted);">KẾT QUẢ TEST LEAF:</span><div id="aiTestTop" style="font-weight:600; font-size:14px;">--</div></div>
+                    <div><span style="font-size:11px; color:var(--host-muted);">ĐỘ TIN CẬY:</span><div id="aiTestConf" style="font-weight:700; color:#10b981; font-size:14px;">--</div></div>
+                    <div><span style="font-size:11px; color:var(--host-muted);">GEMINI ASSISTANT:</span><div id="aiTestGemini" style="font-weight:600; font-size:14px;">--</div></div>
+                </div>
+            </div>
+
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Cây Trồng</th>
+                            <th>Đường Dẫn Trọng Số (Weights File)</th>
+                            <th>Kích Thước</th>
+                            <th>Kiến Trúc Mạng</th>
+                            <th>Thiết Bị Suy Luận</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modelsTableBody">
+                        <tr><td colspan="6" style="text-align:center; padding:24px;">Đang tải danh mục mô hình AI...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <!-- TAB 3: VOUCHER MANAGEMENT -->
@@ -601,6 +856,71 @@
                     </thead>
                     <tbody id="vouchersTableBody">
                         <tr><td colspan="7" style="text-align:center; padding:24px;">Đang tải danh sách voucher...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB: PAYMENTS & SUBSCRIPTIONS -->
+        <section id="tab-payments" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Quản lý Giao dịch Thanh toán & Đơn hàng</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Đối soát dòng tiền thực tế, lịch sử kích hoạt gói dịch vụ và cổng thanh toán.</span>
+                </div>
+                <button class="btn-ghost-sm" onclick="loadHostPayments()">
+                    🔄 Làm mới dữ liệu thanh toán
+                </button>
+            </div>
+
+            
+            <!-- Subscription Plans Configuration Section -->
+            <div style="margin-bottom:32px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h3 style="font-size:16px; font-weight:700; margin:0; display:flex; align-items:center; gap:8px;">
+                        <span>⚙️</span> Cấu Hình Gói Dịch Vụ & Hạn Mức Động (Subscription & Entitlements)
+                    </h3>
+                    <button class="btn-ghost-sm" onclick="loadSubscriptionPlans()">
+                        🔄 Tải lại cấu hình gói
+                    </button>
+                </div>
+                <div class="host-table-wrap">
+                    <table class="host-table">
+                        <thead>
+                            <tr>
+                                <th>Mã Gói (Plan ID)</th>
+                                <th>Tên Hiển Thị</th>
+                                <th>Đơn Giá / Tháng</th>
+                                <th>Trang Trại</th>
+                                <th>Phân Lô</th>
+                                <th>Lượt AI</th>
+                                <th>Ca Chuyên Gia</th>
+                                <th>Số Ghế Org</th>
+                                <th style="text-align:right;">Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="plansConfigTableBody">
+                            <tr><td colspan="9" style="text-align:center; padding:16px;">Đang tải cấu hình gói cước...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Giao Dịch</th>
+                            <th>Người Thanh Toán</th>
+                            <th>Gói Dịch Vụ</th>
+                            <th>Số Tiền (VND)</th>
+                            <th>Cổng Thanh Toán</th>
+                            <th>Trạng Thái</th>
+                            <th>Thời Gian Khởi Tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTableBody">
+                        <tr><td colspan="7" style="text-align:center; padding:24px;">Đang tải dữ liệu giao dịch...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -637,7 +957,85 @@
         </section>
 
         <!-- TAB 5: AUDIT LOGS -->
-        <section id="tab-audit" class="tab-panel">
+                <!-- 11. Tab: Quản lý Tri thức & Bệnh cây (Knowledge Management) -->
+        <section id="tab-knowledge" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Quản lý Tri thức Nông học & Thư viện Cây trồng</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Dữ liệu cây trồng, danh mục bệnh lý và tài liệu hướng dẫn canh tác được đồng bộ vào hệ thống AI.</span>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-host-action" onclick="loadKnowledgeData()">
+                        🔄 Đồng bộ dữ liệu
+                    </button>
+                </div>
+            </div>
+
+            <div class="host-grid-4">
+                <div class="host-card">
+                    <div class="host-card-title">Cây trồng được bảo vệ</div>
+                    <div class="host-metric-val" id="kmCropCount">--</div>
+                    <div class="host-metric-sub">Danh mục cây trồng chính</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Bài viết & Hướng dẫn</div>
+                    <div class="host-metric-val" id="kmArticleCount">--</div>
+                    <div class="host-metric-sub">Bài viết kỹ thuật & xử lý bệnh</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Trạng thái Cơ sở tri thức</div>
+                    <div class="host-metric-val" style="color:var(--host-accent);">Hoạt động</div>
+                    <div class="host-metric-sub">Đồng bộ tự động cùng AI Engine</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Cập nhật lần cuối</div>
+                    <div class="host-metric-val" style="font-size:16px; margin-top:6px;" id="kmLastSync">Thời gian thực</div>
+                    <div class="host-metric-sub">Sẵn sàng phục vụ bà con</div>
+                </div>
+            </div>
+
+            <div class="section-header" style="margin-top:24px;">
+                <h3 class="section-title" style="font-size:15px;">Danh mục Cây trồng trong Hệ thống</h3>
+            </div>
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Cây</th>
+                            <th>Tên Cây Trồng</th>
+                            <th>Mô tả Nông học</th>
+                            <th>Mô hình AI Hỗ trợ</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kmCropsTableBody">
+                        <tr><td colspan="5" style="text-align:center; padding:24px; color:var(--host-muted);">Đang tải danh mục cây trồng...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-header" style="margin-top:28px;">
+                <h3 class="section-title" style="font-size:15px;">Tài liệu & Hướng dẫn Canh tác (Articles)</h3>
+            </div>
+            <div class="host-table-wrap">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tiêu đề Tài liệu</th>
+                            <th>Cây Trồng</th>
+                            <th>Ngày cập nhật</th>
+                            <th>Tác vụ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kmArticlesTableBody">
+                        <tr><td colspan="5" style="text-align:center; padding:24px; color:var(--host-muted);">Đang tải tài liệu tri thức...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+<section id="tab-audit" class="tab-panel">
             <div class="section-header">
                 <div>
                     <h2 class="section-title">Nhật ký Quản trị Máy chủ Bất biến (Audit Trail)</h2>
@@ -670,6 +1068,92 @@
         </section>
 
         <!-- TAB 6: MODERATION & VIOLATION MANAGEMENT -->
+                <!-- TAB: EXPERT NETWORK MANAGEMENT -->
+        <section id="tab-experts" class="tab-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">🌾 Quản trị Mạng lưới Chuyên gia Nông nghiệp</h2>
+                    <span style="font-size:13px; color:var(--host-muted);">Thẩm định hồ sơ năng lực, bằng cấp chuyên môn, cấp quyền tư vấn và giám sát phác đồ điều trị.</span>
+                </div>
+                <button class="btn-ghost-sm" onclick="loadHostExperts()">
+                    🔄 Làm mới danh sách
+                </button>
+            </div>
+
+            <div class="host-grid-4">
+                <div class="host-card">
+                    <div class="host-card-title">Chuyên Gia Đã Cấp Phép</div>
+                    <div class="host-metric-val" id="expertTotalActiveCount" style="color:#10b981;">0</div>
+                    <div class="host-metric-sub">Kỹ sư & Bác sĩ BVTV</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Đơn Chờ Thẩm Định</div>
+                    <div class="host-metric-val" id="expertPendingCount" style="color:#f59e0b;">0</div>
+                    <div class="host-metric-sub">Cần phê duyệt</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Ca Bệnh Đã Phản Hồi</div>
+                    <div class="host-metric-val" id="expertCasesAnsweredCount">0</div>
+                    <div class="host-metric-sub">Tư vấn qua hệ thống</div>
+                </div>
+                <div class="host-card">
+                    <div class="host-card-title">Thời Gian Phản Hồi TB</div>
+                    <div class="host-metric-val" style="color:#3b82f6;">&lt; 2h</div>
+                    <div class="host-metric-sub">Cam kết SLA nông hộ</div>
+                </div>
+            </div>
+
+            <!-- Pending Applications Table -->
+            <div style="margin-top:28px;">
+                <h3 style="font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                    <span>⏳</span> Đơn Đăng Ký Cần Xét Duyệt
+                </h3>
+                <div class="host-table-wrap">
+                    <table class="host-table">
+                        <thead>
+                            <tr>
+                                <th>Ứng Viên</th>
+                                <th>Chức Danh & Đơn Vị</th>
+                                <th>Chuyên Môn</th>
+                                <th>Kinh Nghiệm</th>
+                                <th>Liên Hệ</th>
+                                <th>Hồ Sơ & Minh Chứng</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expertApplicationsTableBody">
+                            <tr><td colspan="7" style="text-align:center; padding:24px;">Đang tải đơn đăng ký...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Active Experts Table -->
+            <div style="margin-top:36px;">
+                <h3 style="font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                    <span>👨‍🔬</span> Danh Sách Chuyên Gia Đang Hoạt Động
+                </h3>
+                <div class="host-table-wrap">
+                    <table class="host-table">
+                        <thead>
+                            <tr>
+                                <th>Chuyên Gia</th>
+                                <th>Học Vị / Chức Danh</th>
+                                <th>Chuyên Khoa Cây Trồng</th>
+                                <th>Ca Tư Vấn</th>
+                                <th>Đánh Giá</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activeExpertsTableBody">
+                            <tr><td colspan="7" style="text-align:center; padding:24px;">Đang tải danh sách chuyên gia...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
         <section id="tab-moderation" class="tab-panel">
             <div class="section-header">
                 <div>
@@ -1082,6 +1566,178 @@
         </div>
     </div>
 
+    <!-- MODAL: View Org Members -->
+    <div id="modalOrgMembers" class="host-modal-backdrop">
+        <div class="host-modal" style="max-width: 650px;">
+            <h3 class="host-modal-title" id="orgMembersModalTitle">Danh sách Thành viên Tổ chức</h3>
+            <p class="host-modal-sub" id="orgMembersModalSub">Phân cấp vai trò thành viên theo phân quyền tổ chức.</p>
+            
+            <div class="host-table-wrap" style="max-height: 350px; overflow-y: auto; margin-bottom: 16px;">
+                <table class="host-table">
+                    <thead>
+                        <tr>
+                            <th>UID</th>
+                            <th>Họ và Tên / Email</th>
+                            <th>Vai Trò (Role)</th>
+                            <th>Ngày Tham Gia</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orgMembersTableBody">
+                        <tr><td colspan="4" style="text-align:center; padding:16px;">Đang tải danh sách thành viên...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalOrgMembers')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Update Org Status & Plan -->
+    <div id="modalOrgStatus" class="host-modal-backdrop">
+        <div class="host-modal">
+            <h3 class="host-modal-title" id="orgStatusModalTitle">Cập nhật Trạng thái Tổ chức</h3>
+            <p class="host-modal-sub" id="orgStatusModalSub">Host can thiệp quản trị trạng thái và gói dịch vụ B2B.</p>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Trạng thái hoạt động:</label>
+                <select id="orgStatusSelect" class="host-input" style="width:100%;">
+                    <option value="active">Hoạt động bình thường (active)</option>
+                    <option value="suspended">Tạm khóa / Đình chỉ (suspended)</option>
+                    <option value="archived">Lưu trữ / Đóng (archived)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Gói cước phân bổ:</label>
+                <select id="orgPlanSelect" class="host-input" style="width:100%;">
+                    <option value="free">Miễn Phí (Free)</option>
+                    <option value="cooperative_pilot">Pilot Hợp Tác Xã (cooperative_pilot)</option>
+                    <option value="enterprise_annual">Doanh Nghiệp Tiêu Chuẩn (enterprise_annual)</option>
+                    <option value="enterprise_custom">Enterprise Quy Mô Lớn (enterprise_custom)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:13px; color:#cbd5e1; margin-bottom:6px;">Lý do quản trị (Bắt buộc kiểm toán):</label>
+                <textarea id="orgStatusReasonInput" class="host-input" style="width:100%; box-sizing:border-box; height:70px;" placeholder="Ví dụ: Kích hoạt gói thí điểm HTX hoặc tạm dừng do tranh chấp tài khoản..."></textarea>
+            </div>
+
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalOrgStatus')">Hủy bỏ</button>
+                <button class="btn-host-action" onclick="submitOrgStatus()">Xác Nhận Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- MODAL: User Details Inspector -->
+    <div id="modalUserDetails" class="host-modal-backdrop">
+        <div class="host-modal" style="max-width:650px;">
+            <h3 class="host-modal-title" id="userDetailTitle">Chi Tiết Hồ Sơ Người Dùng</h3>
+            <p class="host-modal-sub" id="userDetailSub">Thông tin cấu trúc tài nguyên, hoạt động thực tế và lịch sử kiểm toán.</p>
+            <div id="userDetailContent" style="font-size:13px; line-height:1.6; color:#e2e8f0; margin-bottom:20px;">
+                Đang nạp chi tiết...
+            </div>
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalUserDetails')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Reset Password with Confirmation -->
+    <div id="modalResetPassword" class="host-modal-backdrop">
+        <div class="host-modal" style="max-width:480px;">
+            <h3 class="host-modal-title" style="color:#ef4444;">🔑 Đặt Lại Mật Khẩu Người Dùng</h3>
+            <p class="host-modal-sub" id="resetPwdUserSub">Thao tác quản trị cấp cao. Phiên đăng nhập hiện tại của người dùng sẽ bị hủy.</p>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12.5px; color:#94a3b8; margin-bottom:6px;">Mật khẩu mới (tối thiểu 8 ký tự):</label>
+                <input type="text" id="adminNewPasswordInput" class="host-input" style="width:100%; box-sizing:border-box;" placeholder="Nhập mật khẩu mới an toàn...">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#f87171; cursor:pointer;">
+                    <input type="checkbox" id="confirmResetPwdCheckbox">
+                    <span>Tôi xác nhận thao tác đặt lại mật khẩu cho tài khoản này (Confirm).</span>
+                </label>
+            </div>
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalResetPassword')">Hủy bỏ</button>
+                <button class="btn-host-action" style="background:#dc2626;" onclick="submitAdminResetPassword()">Xác Nhận Đặt Lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Edit Dynamic Subscription Plan -->
+    <div id="modalEditPlan" class="host-modal-backdrop">
+        <div class="host-modal" style="max-width:540px;">
+            <h3 class="host-modal-title" id="editPlanTitle">Cập Nhật Hạn Ngạch Gói Cước</h3>
+            <p class="host-modal-sub">Thay đổi giới hạn tài nguyên và đơn giá sẽ áp dụng lập tức trên toàn hệ thống.</p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Tên hiển thị:</label>
+                    <input type="text" id="editPlanName" class="host-input" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Đơn giá (VND/tháng):</label>
+                    <input type="number" id="editPlanPrice" class="host-input" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Trang trại tối đa:</label>
+                    <input type="number" id="editPlanMaxFarms" class="host-input" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Phân lô tối đa:</label>
+                    <input type="number" id="editPlanMaxPlots" class="host-input" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Lượt AI tối đa:</label>
+                    <input type="number" id="editPlanAiLimit" class="host-input" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Ca Chuyên gia tối đa:</label>
+                    <input type="number" id="editPlanExpertLimit" class="host-input" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Số ghế Tổ chức:</label>
+                    <input type="number" id="editPlanSeats" class="host-input" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Dung lượng lưu trữ (MB):</label>
+                    <input type="number" id="editPlanStorage" class="host-input" style="width:100%; box-sizing:border-box;">
+                </div>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#fbbf24; cursor:pointer;">
+                    <input type="checkbox" id="confirmEditPlanCheckbox">
+                    <span>Xác nhận áp dụng thay đổi hạn ngạch dịch vụ này.</span>
+                </label>
+            </div>
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalEditPlan')">Hủy bỏ</button>
+                <button class="btn-host-action" onclick="submitEditPlan()">Lưu Hạn Ngạch Mới</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Clear System Errors -->
+    <div id="modalClearErrors" class="host-modal-backdrop">
+        <div class="host-modal" style="max-width:440px;">
+            <h3 class="host-modal-title" style="color:#ef4444;">🗑️ Xóa Nhật Ký Lỗi Hệ Thống</h3>
+            <p class="host-modal-sub">Toàn bộ bản ghi lỗi và cảnh báo sẽ được dọn sạch khỏi bảng system_logs.</p>
+            <div style="margin-bottom:16px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#f87171; cursor:pointer;">
+                    <input type="checkbox" id="confirmClearErrorsCheckbox">
+                    <span>Xác nhận xóa sạch nhật ký lỗi (Thao tác sẽ được ghi vào nhật ký kiểm toán).</span>
+                </label>
+            </div>
+            <div class="host-modal-footer">
+                <button class="btn-host-sec" onclick="closeModal('modalClearErrors')">Hủy bỏ</button>
+                <button class="btn-host-action" style="background:#dc2626;" onclick="submitClearErrors()">Xác Nhận Xóa</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notice -->
     <div id="hostToast" class="host-toast"></div>
 
@@ -1118,10 +1774,15 @@
 
                 // Trigger tab load
                 if (targetId === 'tab-overview') loadOverviewData();
+                else if (targetId === 'tab-experts') loadHostExperts();
                 else if (targetId === 'tab-users') loadUsersData();
+                else if (targetId === 'tab-orgs') loadHostOrganizations();
+                else if (targetId === 'tab-models') loadHostModels();
                 else if (targetId === 'tab-vouchers') loadVouchersData();
+                else if (targetId === 'tab-payments') loadHostPayments();
                 else if (targetId === 'tab-api') loadApiControls();
                 else if (targetId === 'tab-audit') loadAuditLogs();
+                else if (targetId === 'tab-knowledge') loadKnowledgeData();
                 else if (targetId === 'tab-moderation') loadModerationData();
             });
         });
@@ -1269,6 +1930,8 @@
                             </td>
                             <td style="text-align:right;">
                                 <div style="display:inline-flex; gap:6px;">
+                                    <button class="btn-host-sec" onclick="viewUserDetails(${u.id})">Chi tiết</button>
+                                    <button class="btn-host-sec" style="color:#f59e0b;" onclick="openResetPasswordModal(${u.id}, '${u.email}')">Reset MK</button>
                                     <button class="btn-host-sec" onclick="openAccountTypeModal(${u.id}, '${u.account_type || 'farmer'}')">
                                         Đổi vai trò
                                     </button>
@@ -1525,6 +2188,7 @@
 
         // 4. API Controls
         async function loadApiControls() {
+            loadAssistantHostConfig();
             const tbody = document.getElementById('apiConfigTableBody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px;">Đang tải cấu hình...</td></tr>';
 
@@ -1962,6 +2626,259 @@
             }
         }
 
+        // -------------------------------------------------------------
+        // HOST ORGANIZATIONS & ENTERPRISES
+        // -------------------------------------------------------------
+        let currentSelectedOrg = null;
+        let cachedOrgs = [];
+
+        async function loadHostOrganizations() {
+            const tbody = document.getElementById('orgsTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px;">Đang tải danh sách tổ chức...</td></tr>';
+
+            const search = document.getElementById('orgSearchInput').value.trim();
+            const status = document.getElementById('orgStatusFilter').value;
+
+            let url = `/api/host/organizations?limit=50&offset=0`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (status) url += `&status=${encodeURIComponent(status)}`;
+
+            try {
+                const res = await fetch(url, { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.organizations || d.organizations.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có tổ chức / hợp tác xã nào.</td></tr>';
+                    return;
+                }
+
+                cachedOrgs = d.organizations;
+                tbody.innerHTML = d.organizations.map(org => {
+                    const typeLabel = {
+                        'cooperative': 'Hợp Tác Xã',
+                        'enterprise': 'Doanh Nghiệp',
+                        'association': 'Hiệp Hội'
+                    }[org.org_type] || org.org_type || 'Tổ chức';
+
+                    let stBadge = '<span class="host-pill host-pill-active">Hoạt động</span>';
+                    if (org.status === 'suspended') stBadge = '<span class="host-pill host-pill-danger">Tạm khóa</span>';
+                    else if (org.status === 'archived') stBadge = '<span class="host-pill host-pill-warn">Lưu trữ</span>';
+
+                    const planLabel = (org.plan_id || 'free').toUpperCase();
+                    const quotaStr = org.monthly_quota ? `${org.monthly_quota.toLocaleString()} lượt/tháng` : 'Tiêu chuẩn';
+
+                    return `
+                        <tr>
+                            <td><strong style="font-family:monospace; color:#a7f3d0;">#${org.id}</strong></td>
+                            <td>
+                                <div style="font-weight:600; color:#fff;">${org.name}</div>
+                                <div style="font-size:11px; color:var(--host-muted);">Slug: ${org.slug || '--'}</div>
+                            </td>
+                            <td>
+                                <div style="color:#e2e8f0;">${org.owner_name || 'N/A'}</div>
+                                <div style="font-size:11px; color:var(--host-muted);">${org.owner_email || 'UID: ' + org.owner_id}</div>
+                            </td>
+                            <td><span class="host-pill" style="background:#1e293b; color:#94a3b8;">${typeLabel}</span></td>
+                            <td><strong style="color:#6ee7b7;">${org.member_count || 1}</strong> thành viên</td>
+                            <td>
+                                <div><span class="host-pill host-pill-active">${planLabel}</span></div>
+                                <div style="font-size:11px; color:var(--host-muted); margin-top:2px;">${quotaStr}</div>
+                            </td>
+                            <td>${stBadge}</td>
+                            <td style="text-align:right; white-space:nowrap;">
+                                <button class="btn-ghost-sm" onclick="viewOrgMembers(${org.id}, '${org.name.replace(/'/g, "\\'")}')">👥 Thành viên</button>
+                                <button class="btn-ghost-sm" onclick="openOrgStatusModal(${org.id})">⚙️ Quản lý</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:#f87171;">Lỗi nạp danh sách tổ chức.</td></tr>';
+            }
+        }
+
+        async function viewOrgMembers(orgId, orgName) {
+            document.getElementById('orgMembersModalTitle').textContent = `Thành viên: ${orgName}`;
+            const tbody = document.getElementById('orgMembersTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:16px;">Đang nạp thành viên...</td></tr>';
+            openModal('modalOrgMembers');
+
+            try {
+                const res = await fetch(`/api/host/organizations/${orgId}/members`, { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.members || d.members.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:16px; color:var(--host-muted);">Chưa có thành viên nào.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = d.members.map(m => {
+                    const roleBadge = {
+                        'owner': '<span class="host-pill host-pill-danger">Chủ sở hữu (Owner)</span>',
+                        'admin': '<span class="host-pill host-pill-warn">Quản trị viên (Admin)</span>',
+                        'member': '<span class="host-pill host-pill-active">Thành viên (Member)</span>',
+                        'viewer': '<span class="host-pill" style="background:#1e293b; color:#94a3b8;">Người xem (Viewer)</span>'
+                    }[m.role] || `<span class="host-pill">${m.role}</span>`;
+
+                    return `
+                        <tr>
+                            <td><strong style="font-family:monospace; color:#a7f3d0;">#${m.user_id}</strong></td>
+                            <td>
+                                <div style="font-weight:600; color:#fff;">${m.full_name || 'N/A'}</div>
+                                <div style="font-size:11px; color:var(--host-muted);">${m.email || ''}</div>
+                            </td>
+                            <td>${roleBadge}</td>
+                            <td style="font-size:12px; color:var(--host-muted);">${m.joined_at || '--'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:16px; color:#f87171;">Lỗi tải thành viên.</td></tr>';
+            }
+        }
+
+        function openOrgStatusModal(orgId) {
+            const org = cachedOrgs.find(o => o.id === orgId);
+            if (!org) return;
+            currentSelectedOrg = org;
+
+            document.getElementById('orgStatusModalTitle').textContent = `Quản trị: ${org.name}`;
+            document.getElementById('orgStatusSelect').value = org.status || 'active';
+            document.getElementById('orgPlanSelect').value = org.plan_id || 'free';
+            document.getElementById('orgStatusReasonInput').value = '';
+            openModal('modalOrgStatus');
+        }
+
+        async function submitOrgStatus() {
+            if (!currentSelectedOrg) return;
+            const newStatus = document.getElementById('orgStatusSelect').value;
+            const newPlan = document.getElementById('orgPlanSelect').value;
+            const reason = document.getElementById('orgStatusReasonInput').value.trim();
+
+            if (!reason) {
+                showToast('Vui lòng nhập lý do quản trị để lưu vết kiểm toán', false);
+                return;
+            }
+
+            try {
+                if (newStatus !== currentSelectedOrg.status) {
+                    const resSt = await fetch(`/api/host/organizations/${currentSelectedOrg.id}/status`, {
+                        method: 'PATCH',
+                        headers: getAuthHeaders(),
+                        credentials: 'include',
+                        body: JSON.stringify({ status: newStatus, reason: reason })
+                    });
+                    const dSt = await resSt.json();
+                    if (!resSt.ok || !dSt.success) {
+                        showToast(dSt.detail || 'Không thể cập nhật trạng thái', false);
+                        return;
+                    }
+                }
+
+                if (newPlan !== currentSelectedOrg.plan_id) {
+                    const resPl = await fetch(`/api/host/organizations/${currentSelectedOrg.id}/plan`, {
+                        method: 'PATCH',
+                        headers: getAuthHeaders(),
+                        credentials: 'include',
+                        body: JSON.stringify({ plan_id: newPlan, reason: reason })
+                    });
+                    const dPl = await resPl.json();
+                    if (!resPl.ok || !dPl.success) {
+                        showToast(dPl.detail || 'Không thể cập nhật gói cước', false);
+                        return;
+                    }
+                }
+
+                showToast(`Đã cập nhật tổ chức ${currentSelectedOrg.name} thành công`);
+                closeModal('modalOrgStatus');
+                loadHostOrganizations();
+            } catch (err) {
+                showToast('Lỗi mạng khi cập nhật tổ chức', false);
+            }
+        }
+
+        // -------------------------------------------------------------
+        // HOST AI MODELS & INFERENCE
+        // -------------------------------------------------------------
+        async function loadHostModels() {
+            const tbody = document.getElementById('modelsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px;">Đang quét danh mục mô hình máy chủ...</td></tr>';
+
+            try {
+                const res = await fetch('/api/host/models', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.models || d.models.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--host-muted);">Không tìm thấy mô hình AI nào.</td></tr>';
+                    return;
+                }
+
+                document.getElementById('modelTotalCount').textContent = `${d.total_models || d.models.length} Mô hình`;
+                document.getElementById('modelDeviceName').textContent = d.device || 'CPU';
+                document.getElementById('modelTorchVer').textContent = `PyTorch ${d.torch_version || '2.x'}`;
+
+                tbody.innerHTML = d.models.map(m => {
+                    const sizeMb = m.file_size_bytes ? (m.file_size_bytes / (1024 * 1024)).toFixed(1) + ' MB' : (m.size || '32.4 MB');
+                    const arch = m.architecture || 'ResNet / MobileNetV2';
+                    const dev = m.device || d.device || 'CPU';
+
+                    return `
+                        <tr>
+                            <td><strong style="color:#6ee7b7; font-family:monospace;">${m.crop_key || m.name || m.crop}</strong></td>
+                            <td style="font-family:monospace; font-size:12px; color:#cbd5e1; max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${m.path || m.file_path || ''}">
+                                ${m.path || m.file_path || m.name + '.pth'}
+                            </td>
+                            <td>${sizeMb}</td>
+                            <td><span class="host-pill" style="background:#1e293b; color:#94a3b8;">${arch}</span></td>
+                            <td><span class="host-pill host-pill-active">${dev}</span></td>
+                            <td><span class="host-pill host-pill-active">Đã nạp & Sẵn sàng</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:#f87171;">Lỗi tải dữ liệu mô hình AI.</td></tr>';
+            }
+        }
+
+        // -------------------------------------------------------------
+        // HOST PAYMENTS & REVENUE
+        // -------------------------------------------------------------
+        async function loadHostPayments() {
+            const tbody = document.getElementById('paymentsTableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px;">Đang tải lịch sử thanh toán...</td></tr>';
+
+            try {
+                const res = await fetch('/api/host/payments?limit=50', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.payments || d.payments.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có giao dịch thanh toán nào được ghi nhận.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = d.payments.map(p => {
+                    let stBadge = '<span class="host-pill host-pill-active">Thành công</span>';
+                    if (p.status === 'pending') stBadge = '<span class="host-pill host-pill-warn">Chờ xử lý</span>';
+                    else if (p.status === 'failed') stBadge = '<span class="host-pill host-pill-danger">Thất bại</span>';
+
+                    const amountStr = Number(p.amount || 0).toLocaleString('vi-VN') + ' đ';
+
+                    return `
+                        <tr>
+                            <td><strong style="font-family:monospace; color:#6ee7b7;">${p.order_id || '#' + p.id}</strong></td>
+                            <td>
+                                <div style="font-weight:600; color:#fff;">${p.user_email || 'UID: ' + p.user_id}</div>
+                                <div style="font-size:11px; color:var(--host-muted);">Mã KH: #${p.user_id}</div>
+                            </td>
+                            <td><span class="host-pill host-pill-active">${(p.plan_id || 'vip_pro').toUpperCase()}</span></td>
+                            <td><strong style="color:#10b981;">${amountStr}</strong></td>
+                            <td><span class="host-pill" style="background:#1e293b; color:#94a3b8;">${(p.gateway || 'sepay').toUpperCase()}</span></td>
+                            <td>${stBadge}</td>
+                            <td style="font-size:12px; color:var(--host-muted); white-space:nowrap;">${p.created_at || '--'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:#f87171;">Lỗi tải dữ liệu thanh toán.</td></tr>';
+            }
+        }
+
         // Logout
         document.getElementById('btnLogout').addEventListener('click', async () => {
             try {
@@ -1972,8 +2889,679 @@
             window.location.href = '/frontend2/host-login.html';
         });
 
+        
+        // =========================================================================
+        // MODULE 12: EXTENDED HOST CONSOLE APIS (PLANS, USAGE, ERRORS, USERS)
+        // =========================================================================
+        let currentTargetResetUserId = null;
+        let currentTargetEditPlanId = null;
+        let cachedPlans = {};
+
+        // --- Usage Summary ---
+        async function loadUsageSummary() {
+            try {
+                const res = await fetch('/api/host/usage/summary', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (d.success) {
+                    if (document.getElementById('usageTotalDiagnoses')) {
+                        document.getElementById('usageTotalDiagnoses').textContent = (d.diagnoses.total || 0).toLocaleString() + ' lượt';
+                        document.getElementById('usageDiagnoses24h').textContent = `24h qua: ${d.diagnoses.last_24h || 0} • 30 ngày: ${d.diagnoses.last_30d || 0}`;
+                        document.getElementById('usageTotalAi').textContent = (d.ai_assistant.total_queries || 0).toLocaleString() + ' câu';
+                        document.getElementById('usageAi24h').textContent = `24h qua: ${d.ai_assistant.last_24h || 0} lượt tư vấn`;
+                        document.getElementById('usageTotalFarms').textContent = `${d.agriculture.total_farms || 0} Trang trại`;
+                        document.getElementById('usageTotalPlots').textContent = `Tổng phân lô: ${d.agriculture.total_plots || 0} lô`;
+                        document.getElementById('usageStorageMb').textContent = `${d.storage.estimated_mb || 0} MB`;
+                        document.getElementById('usageStorageCount').textContent = `Số ảnh: ${d.storage.total_images || 0} files (${d.storage.estimated_gb || 0} GB)`;
+                    }
+                }
+            } catch (err) {
+                console.error("loadUsageSummary error:", err);
+            }
+        }
+
+        // --- System Health & Error Logs ---
+        async function loadSystemErrors() {
+            const tbody = document.getElementById('systemErrorsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px;">Đang tải nhật ký lỗi...</td></tr>';
+            try {
+                const [errRes, healthRes] = await Promise.all([
+                    fetch('/api/host/system/errors?limit=20', { headers: getAuthHeaders(), credentials: 'include' }),
+                    fetch('/api/host/system/health', { headers: getAuthHeaders(), credentials: 'include' })
+                ]);
+                const errData = await errRes.json();
+                const healthData = await healthRes.json();
+
+                if (healthData.success && document.getElementById('healthOverallPill')) {
+                    const pill = document.getElementById('healthOverallPill');
+                    if (healthData.status === 'healthy') {
+                        pill.className = 'host-pill host-pill-active';
+                        pill.textContent = `Khỏe mạnh (DB: ${healthData.database.latency_ms}ms)`;
+                    } else if (healthData.status === 'degraded') {
+                        pill.className = 'host-pill host-pill-warn';
+                        pill.textContent = `Tải cao (CPU: ${healthData.cpu.percent}%)`;
+                    } else {
+                        pill.className = 'host-pill host-pill-danger';
+                        pill.textContent = 'Cảnh báo Sự cố';
+                    }
+                }
+
+                if (!errData.success || !errData.logs || errData.logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px; color:#10b981;">✅ Không ghi nhận lỗi nào trong hệ thống.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = errData.logs.map(log => {
+                    const isCrit = log.log_level === 'CRITICAL' || log.log_level === 'ERROR';
+                    const lvlColor = isCrit ? '#ef4444' : '#f59e0b';
+                    return `
+                        <tr>
+                            <td style="font-size:12px; color:var(--host-muted); white-space:nowrap;">${log.created_at || '--'}</td>
+                            <td><span style="color:${lvlColor}; font-weight:700; font-size:11px;">${log.log_level}</span></td>
+                            <td><strong style="color:#6ee7b7; font-size:12px;">${escapeHtml(log.component || 'system')}</strong></td>
+                            <td style="font-size:12px; color:#fff;">${escapeHtml(log.message || '')}</td>
+                            <td style="font-size:11px; color:#cbd5e1; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(log.error_details || '')}">
+                                ${escapeHtml(log.error_details || '--')}
+                            </td>
+                            <td style="font-size:11px; color:var(--host-muted);">${escapeHtml(log.ip_address || 'local')}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px; color:#f87171;">Lỗi tải dữ liệu lỗi hệ thống.</td></tr>';
+            }
+        }
+
+        function openClearErrorsModal() {
+            document.getElementById('confirmClearErrorsCheckbox').checked = false;
+            openModal('modalClearErrors');
+        }
+
+        async function submitClearErrors() {
+            const confirmed = document.getElementById('confirmClearErrorsCheckbox').checked;
+            if (!confirmed) {
+                showToast('Vui lòng tích xác nhận để xóa nhật ký lỗi', false);
+                return;
+            }
+            try {
+                const res = await fetch('/api/host/system/errors/clear', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ confirm: true, reason: 'Quản trị viên dọn sạch lỗi' })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    showToast(d.message);
+                    closeModal('modalClearErrors');
+                    loadSystemErrors();
+                } else {
+                    showToast(d.detail || d.message || 'Lỗi xóa nhật ký', false);
+                }
+            } catch (e) {
+                showToast('Lỗi mạng: ' + e.message, false);
+            }
+        }
+
+        // --- Subscription & Entitlement Plans ---
+        async function loadSubscriptionPlans() {
+            const tbody = document.getElementById('plansConfigTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:16px;">Đang tải danh sách gói...</td></tr>';
+            try {
+                const res = await fetch('/api/host/subscriptions/plans', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.plans || d.plans.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:16px; color:var(--host-muted);">Chưa có gói dịch vụ nào.</td></tr>';
+                    return;
+                }
+
+                cachedPlans = {};
+                d.plans.forEach(p => { cachedPlans[p.id] = p; });
+
+                tbody.innerHTML = d.plans.map(p => {
+                    const priceFormatted = Number(p.price || 0).toLocaleString('vi-VN') + ' đ';
+                    const farmsStr = p.max_farms === -1 ? 'Vô hạn' : p.max_farms;
+                    const plotsStr = p.max_plots === -1 ? 'Vô hạn' : p.max_plots;
+                    const aiStr = p.ai_usage_limit === -1 ? 'Vô hạn' : p.ai_usage_limit;
+                    const expStr = p.expert_consultations_limit === -1 ? 'Vô hạn' : p.expert_consultations_limit;
+                    const seatsStr = p.max_seats === -1 ? 'Vô hạn' : (p.max_seats || 1);
+
+                    return `
+                        <tr>
+                            <td><strong style="color:#a7f3d0; font-family:monospace;">${p.id}</strong></td>
+                            <td style="font-weight:600; color:#fff;">${escapeHtml(p.name)}</td>
+                            <td><strong style="color:#10b981;">${priceFormatted}</strong></td>
+                            <td>${farmsStr}</td>
+                            <td>${plotsStr}</td>
+                            <td>${aiStr}</td>
+                            <td>${expStr}</td>
+                            <td>${seatsStr}</td>
+                            <td style="text-align:right;">
+                                <button class="btn-ghost-sm" onclick="openEditPlanModal('${p.id}')">⚙️ Sửa Hạn Ngạch</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:16px; color:#f87171;">Lỗi nạp cấu hình gói cước.</td></tr>';
+            }
+        }
+
+        function openEditPlanModal(planId) {
+            const p = cachedPlans[planId];
+            if (!p) return;
+            currentTargetEditPlanId = planId;
+            document.getElementById('editPlanTitle').textContent = `Cấu hình Hạn ngạch: ${p.name} (${planId})`;
+            document.getElementById('editPlanName').value = p.name || '';
+            document.getElementById('editPlanPrice').value = p.price || 0;
+            document.getElementById('editPlanMaxFarms').value = p.max_farms;
+            document.getElementById('editPlanMaxPlots').value = p.max_plots;
+            document.getElementById('editPlanAiLimit').value = p.ai_usage_limit;
+            document.getElementById('editPlanExpertLimit').value = p.expert_consultations_limit;
+            document.getElementById('editPlanSeats').value = p.max_seats || 1;
+            document.getElementById('editPlanStorage').value = p.storage_mb || 1024;
+            document.getElementById('confirmEditPlanCheckbox').checked = false;
+            openModal('modalEditPlan');
+        }
+
+        async function submitEditPlan() {
+            if (!currentTargetEditPlanId) return;
+            const confirmed = document.getElementById('confirmEditPlanCheckbox').checked;
+            if (!confirmed) {
+                showToast('Vui lòng tích xác nhận thay đổi hạn ngạch gói', false);
+                return;
+            }
+
+            const payload = {
+                name: document.getElementById('editPlanName').value.trim(),
+                price: parseInt(document.getElementById('editPlanPrice').value) || 0,
+                max_farms: parseInt(document.getElementById('editPlanMaxFarms').value),
+                max_plots: parseInt(document.getElementById('editPlanMaxPlots').value),
+                ai_usage_limit: parseInt(document.getElementById('editPlanAiLimit').value),
+                expert_consultations_limit: parseInt(document.getElementById('editPlanExpertLimit').value),
+                max_seats: parseInt(document.getElementById('editPlanSeats').value),
+                storage_mb: parseInt(document.getElementById('editPlanStorage').value),
+                confirm: true,
+                reason: 'Cập nhật từ Host Console Web'
+            };
+
+            try {
+                const res = await fetch(`/api/host/subscriptions/plans/${currentTargetEditPlanId}`, {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if (d.success) {
+                    showToast(`Đã lưu cấu hình gói ${currentTargetEditPlanId} thành công!`);
+                    closeModal('modalEditPlan');
+                    loadSubscriptionPlans();
+                } else {
+                    showToast(d.detail || d.message || 'Lỗi cập nhật gói', false);
+                }
+            } catch (err) {
+                showToast('Lỗi mạng: ' + err.message, false);
+            }
+        }
+
+        // --- User Inspector & Admin Password Reset ---
+        async function viewUserDetails(userId) {
+            openModal('modalUserDetails');
+            const cont = document.getElementById('userDetailContent');
+            cont.innerHTML = 'Đang tải thông tin chi tiết người dùng #' + userId + '...';
+            try {
+                const res = await fetch(`/api/host/users/${userId}`, { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (!d.success || !d.user) {
+                    cont.innerHTML = '<span style="color:#ef4444;">Không tìm thấy người dùng.</span>';
+                    return;
+                }
+                const u = d.user;
+                const s = d.stats;
+                const sub = d.subscription;
+                document.getElementById('userDetailTitle').textContent = `Hồ sơ #${u.id}: ${u.full_name}`;
+                cont.innerHTML = `
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; background:rgba(255,255,255,0.03); padding:12px; border-radius:8px;">
+                        <div><strong>Email:</strong> ${escapeHtml(u.email)}</div>
+                        <div><strong>Điện thoại:</strong> ${escapeHtml(u.phone || '--')}</div>
+                        <div><strong>Loại tài khoản:</strong> <span class="host-pill host-pill-active">${escapeHtml(u.account_type || 'farmer')}</span></div>
+                        <div><strong>Trạng thái:</strong> ${u.is_active ? '<span style="color:#10b981;">Đang hoạt động</span>' : '<span style="color:#ef4444;">Đang khóa</span>'}</div>
+                        <div><strong>Gói cước:</strong> <span style="color:#a7f3d0; font-weight:700;">${(sub.plan_id || 'free').toUpperCase()}</span> (${sub.status || 'active'})</div>
+                        <div><strong>Ngày tạo:</strong> ${u.created_at || '--'}</div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; text-align:center; margin-bottom:14px;">
+                        <div style="background:#1e293b; padding:10px; border-radius:6px;"><div style="font-size:18px; font-weight:700; color:#10b981;">${s.farm_count}</div><div style="font-size:11px; color:#94a3b8;">Trang trại</div></div>
+                        <div style="background:#1e293b; padding:10px; border-radius:6px;"><div style="font-size:18px; font-weight:700; color:#3b82f6;">${s.plot_count}</div><div style="font-size:11px; color:#94a3b8;">Phân lô</div></div>
+                        <div style="background:#1e293b; padding:10px; border-radius:6px;"><div style="font-size:18px; font-weight:700; color:#8b5cf6;">${s.diagnoses_count}</div><div style="font-size:11px; color:#94a3b8;">Lượt chẩn đoán</div></div>
+                        <div style="background:#1e293b; padding:10px; border-radius:6px;"><div style="font-size:18px; font-weight:700; color:#f59e0b;">${s.active_sessions}</div><div style="font-size:11px; color:#94a3b8;">Phiên đăng nhập</div></div>
+                    </div>
+                `;
+            } catch (err) {
+                cont.innerHTML = '<span style="color:#ef4444;">Lỗi tải dữ liệu người dùng.</span>';
+            }
+        }
+
+        function openResetPasswordModal(userId, email) {
+            currentTargetResetUserId = userId;
+            document.getElementById('resetPwdUserSub').textContent = `Tài khoản mục tiêu: #${userId} (${email})`;
+            document.getElementById('adminNewPasswordInput').value = '';
+            document.getElementById('confirmResetPwdCheckbox').checked = false;
+            openModal('modalResetPassword');
+        }
+
+        async function submitAdminResetPassword() {
+            if (!currentTargetResetUserId) return;
+            const confirmed = document.getElementById('confirmResetPwdCheckbox').checked;
+            const newPwd = document.getElementById('adminNewPasswordInput').value.trim();
+
+            if (!newPwd || newPwd.length < 8) {
+                showToast('Mật khẩu mới phải có tối thiểu 8 ký tự', false);
+                return;
+            }
+            if (!confirmed) {
+                showToast('Vui lòng tích xác nhận đặt lại mật khẩu', false);
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/host/users/${currentTargetResetUserId}/reset-password`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        new_password: newPwd,
+                        confirm: true,
+                        reason: 'Quản trị viên đặt lại mật khẩu thủ công'
+                    })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    showToast(d.message);
+                    closeModal('modalResetPassword');
+                } else {
+                    showToast(d.detail || d.message || 'Lỗi đặt lại mật khẩu', false);
+                }
+            } catch (e) {
+                showToast('Lỗi mạng: ' + e.message, false);
+            }
+        }
+
+
         // Initialize
         checkHostAuth();
+        loadUsageSummary();
+        loadSystemErrors();
+        loadSubscriptionPlans();
+    
+        // --- EXPERTS & AI REALTIME TESTING ---
+        async function runHostAiTest() {
+            const btn = document.getElementById('btnHostAiTest');
+            const box = document.getElementById('aiTestResultBox');
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang kiểm tra...'; }
+            try {
+                const res = await fetch('/api/host/ai/test', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include'
+                });
+                const d = await res.json();
+                if (d.success && d.diagnostics) {
+                    const diag = d.diagnostics;
+                    box.style.display = 'block';
+                    document.getElementById('aiTestTimestamp').textContent = new Date(diag.tested_at).toLocaleTimeString('vi-VN');
+                    document.getElementById('aiTestBackend').textContent = diag.active_backend + ' (' + diag.model_version + ')';
+                    document.getElementById('aiTestLatency').textContent = diag.latency_ms + ' ms';
+                    document.getElementById('aiTestTop').textContent = diag.top_prediction || 'N/A';
+                    document.getElementById('aiTestConf').textContent = Math.round((diag.confidence || 0) * 100) + '%';
+                    document.getElementById('aiTestGemini').textContent = diag.gemini_assistant_ready ? 'Sẵn sàng (Active)' : 'Chưa cấu hình API Key';
+                } else {
+                    alert('Lỗi kiểm thử AI: ' + (d.detail || 'Không xác định'));
+                }
+            } catch (err) {
+                alert('Lỗi kết nối máy chủ AI: ' + err.message);
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = '⚡ Chạy Kiểm thử AI Realtime'; }
+            }
+        }
+
+        async function loadHostExperts() {
+            try {
+                const [appsRes, expertsRes] = await Promise.all([
+                    fetch('/api/host/experts/applications', { credentials: 'include', headers: getAuthHeaders() }),
+                    fetch('/api/host/experts?active_only=false', { credentials: 'include', headers: getAuthHeaders() })
+                ]);
+                
+                const appsData = await appsRes.json();
+                const expertsData = await expertsRes.json();
+
+                const apps = (appsData.success && appsData.applications) ? appsData.applications : [];
+                const experts = (expertsData.success && expertsData.experts) ? expertsData.experts : [];
+
+                const pending = apps.filter(a => a.status === 'pending' || a.status === 'submitted');
+                document.getElementById('expertPendingCount').textContent = pending.length;
+                document.getElementById('expertTotalActiveCount').textContent = experts.filter(e => e.is_active).length;
+
+                // Render pending apps
+                const appBody = document.getElementById('expertApplicationsTableBody');
+                if (apps.length === 0) {
+                    appBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có đơn đăng ký chuyên gia nào.</td></tr>';
+                } else {
+                    appBody.innerHTML = apps.map(a => {
+                        const isPending = a.status === 'pending' || a.status === 'submitted';
+                        const badgeColor = isPending ? '#f59e0b' : (a.status === 'approved' ? '#10b981' : '#ef4444');
+                        return `
+                        <tr>
+                            <td>
+                                <div style="font-weight:600;">${escapeHtml(a.full_name)}</div>
+                                <div style="font-size:12px; color:var(--host-muted);">${escapeHtml(a.email || '')}</div>
+                            </td>
+                            <td>
+                                <div>${escapeHtml(a.title || a.specialization || 'Kỹ sư Nông học')}</div>
+                                <div style="font-size:12px; color:var(--host-muted);">${escapeHtml(a.institution || a.organization || 'Tự do')}</div>
+                            </td>
+                            <td>
+                                <span style="font-size:12px; background:rgba(16,185,129,0.1); color:#10b981; padding:2px 8px; border-radius:10px;">
+                                    ${escapeHtml((a.primary_crops || a.specialties || []).join(', ') || 'Chung')}
+                                </span>
+                            </td>
+                            <td>${a.years_experience || 5} năm</td>
+                            <td>${escapeHtml(a.phone || '--')}</td>
+                            <td>
+                                <div style="font-size:12px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(a.degree || a.degree_details || '')}">
+                                    ${escapeHtml(a.degree || a.degree_details || 'Bằng cử nhân/kỹ sư')}
+                                </div>
+                            </td>
+                            <td>
+                                ${isPending ? `
+                                    <div style="display:flex; gap:6px;">
+                                        <button class="btn-host-action" style="padding:4px 10px; font-size:12px;" onclick="reviewExpertApp(${a.id}, 'approve')">Duyệt</button>
+                                        <button class="btn-ghost-sm" style="padding:4px 10px; font-size:12px; color:#ef4444;" onclick="reviewExpertApp(${a.id}, 'reject')">Từ chối</button>
+                                    </div>
+                                ` : `
+                                    <span style="font-size:12px; font-weight:600; color:${badgeColor}; text-transform:uppercase;">${a.status}</span>
+                                `}
+                            </td>
+                        </tr>
+                        `;
+                    }).join('');
+                }
+
+                // Render active experts
+                const expBody = document.getElementById('activeExpertsTableBody');
+                if (experts.length === 0) {
+                    expBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có chuyên gia nào được cấp phép hoạt động.</td></tr>';
+                } else {
+                    expBody.innerHTML = experts.map(e => {
+                        const statusBadge = e.is_active ? 
+                            '<span style="color:#10b981; font-weight:600;">Đang hoạt động</span>' : 
+                            '<span style="color:#ef4444; font-weight:600;">Tạm dừng</span>';
+                        return `
+                        <tr>
+                            <td>
+                                <div style="font-weight:600;">${escapeHtml(e.full_name || 'Chuyên gia GARI')}</div>
+                                <div style="font-size:12px; color:var(--host-muted);">${escapeHtml(e.email || '')}</div>
+                            </td>
+                            <td>${escapeHtml(e.display_title || e.title || 'Bác sĩ Cây trồng')}</td>
+                            <td>${escapeHtml((e.primary_crops || e.specialties || []).join(', ') || 'Đa cây trồng')}</td>
+                            <td>${e.cases_resolved_count || 0} ca</td>
+                            <td>⭐ ${e.rating || '5.0'} / 5.0</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button class="btn-ghost-sm" style="padding:4px 10px; font-size:12px;" onclick="toggleExpertStatus(${e.id}, ${!e.is_active})">
+                                    ${e.is_active ? 'Tạm ngưng' : 'Kích hoạt'}
+                                </button>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('');
+                }
+
+            } catch (err) {
+                console.error('Error loading experts:', err);
+            }
+        }
+
+        async function reviewExpertApp(appId, action) {
+            const notes = prompt(`Nhập ghi chú thẩm định (${action === 'approve' ? 'Phê duyệt' : 'Từ chối'}):`, action === 'approve' ? 'Hồ sơ đạt tiêu chuẩn chuyên gia BVTV GARI.' : 'Chưa đủ năm kinh nghiệm thực tế.');
+            if (notes === null) return;
+
+            try {
+                const res = await fetch(`/api/host/experts/applications/${appId}/review`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ action: action, admin_notes: notes, commission_rate: 0.15 })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    alert('Đã cập nhật đơn thẩm định thành công!');
+                    loadHostExperts();
+                } else {
+                    alert('Thất bại: ' + (d.detail || 'Lỗi không xác định'));
+                }
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+            }
+        }
+
+        async function toggleExpertStatus(expertId, nextState) {
+            if (!confirm(`Bạn có chắc muốn ${nextState ? 'kích hoạt' : 'tạm ngưng'} quyền chuyên gia này?`)) return;
+            try {
+                const res = await fetch(`/api/host/experts/${expertId}/status`, {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ is_active: nextState })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    loadHostExperts();
+                } else {
+                    alert('Thất bại: ' + (d.detail || 'Lỗi'));
+                }
+            } catch (err) {
+                alert('Lỗi: ' + err.message);
+            }
+        }
+
+    
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
     </script>
 </body>
 </html>
+
+<script>
+        // =========================================================================
+        // MODULE 03: HOST CONSOLE ASSISTANT CONFIGURATION JS
+        // =========================================================================
+        async function loadAssistantHostConfig() {
+            try {
+                const res = await fetch('/api/host/assistant/config', { headers: getAuthHeaders(), credentials: 'include' });
+                const d = await res.json();
+                if (d.success && d.config) {
+                    const cfg = d.config;
+                    document.getElementById('hostAssistantProviderSelect').value = cfg.provider || 'disabled';
+                    document.getElementById('hostAssistantModelInput').value = cfg.model || '';
+                    document.getElementById('hostAssistantBaseUrlInput').value = cfg.base_url || '';
+                    document.getElementById('hostAssistantApiKeyInput').placeholder = cfg.has_api_key ? `Đã lưu (${cfg.api_key_masked})` : 'Chưa có API key';
+                    document.getElementById('hostAssistantApiKeyInput').value = '';
+                    document.getElementById('hostAssistantCitationsCheck').checked = !!cfg.citations_enabled;
+                    document.getElementById('hostAssistantDeepDiveCheck').checked = !!cfg.deep_dive_enabled;
+
+                    const pill = document.getElementById('hostAssistantStatusPill');
+                    if (cfg.is_configured) {
+                        pill.className = 'host-pill host-pill-active';
+                        pill.textContent = `Sẵn sàng (${cfg.provider})`;
+                    } else {
+                        pill.className = 'host-pill host-pill-inactive';
+                        pill.textContent = 'Chưa cấu hình';
+                    }
+                }
+            } catch (e) {
+                console.error("loadAssistantHostConfig error:", e);
+            }
+        }
+
+        async function saveAssistantHostConfig() {
+            const btn = document.getElementById('btnHostSaveAssistant');
+            const alertEl = document.getElementById('hostAssistantAlert');
+            btn.disabled = true;
+            btn.textContent = 'Đang lưu...';
+            if (alertEl) alertEl.style.display = 'none';
+
+            const payload = {
+                provider: document.getElementById('hostAssistantProviderSelect').value,
+                model: document.getElementById('hostAssistantModelInput').value.trim(),
+                base_url: document.getElementById('hostAssistantBaseUrlInput').value.trim(),
+                citations_enabled: document.getElementById('hostAssistantCitationsCheck').checked,
+                deep_dive_enabled: document.getElementById('hostAssistantDeepDiveCheck').checked,
+                reason: 'Cập nhật từ Host Console Web'
+            };
+
+            const keyVal = document.getElementById('hostAssistantApiKeyInput').value.trim();
+            if (keyVal) {
+                payload.api_key = keyVal;
+            }
+
+            try {
+                const res = await fetch('/api/host/assistant/config', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if (res.ok && d.success) {
+                    alertEl.style.display = 'block';
+                    alertEl.style.background = 'rgba(16,185,129,0.1)';
+                    alertEl.style.border = '1px solid rgba(16,185,129,0.3)';
+                    alertEl.style.color = '#10b981';
+                    alertEl.innerHTML = `<strong>Thành công!</strong> ${d.message}`;
+                    loadAssistantHostConfig();
+                    loadApiControls();
+                } else {
+                    throw new Error(d.detail || 'Không thể lưu cấu hình.');
+                }
+            } catch (e) {
+                alertEl.style.display = 'block';
+                alertEl.style.background = 'rgba(239,68,68,0.1)';
+                alertEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                alertEl.style.color = '#ef4444';
+                alertEl.textContent = e.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Lưu cấu hình';
+            }
+        }
+
+        async function testAssistantHostConfig() {
+            const btn = document.getElementById('btnHostTestAssistant');
+            const alertEl = document.getElementById('hostAssistantAlert');
+            btn.disabled = true;
+            btn.textContent = 'Đang ping...';
+            if (alertEl) alertEl.style.display = 'none';
+
+            const payload = {
+                provider: document.getElementById('hostAssistantProviderSelect').value,
+                model: document.getElementById('hostAssistantModelInput').value.trim()
+            };
+            const keyVal = document.getElementById('hostAssistantApiKeyInput').value.trim();
+            if (keyVal) payload.api_key = keyVal;
+
+            try {
+                const res = await fetch('/api/host/assistant/test', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const d = await res.json();
+                if (res.ok && d.success) {
+                    alertEl.style.display = 'block';
+                    alertEl.style.background = 'rgba(16,185,129,0.1)';
+                    alertEl.style.border = '1px solid rgba(16,185,129,0.3)';
+                    alertEl.style.color = '#10b981';
+                    alertEl.innerHTML = `<strong>Kết nối thành công!</strong> [${d.provider}:${d.model}] phản hồi trong <strong>${d.latency_ms}ms</strong>.<br><div style="font-size:11.5px; opacity:0.9; margin-top:4px;">"${d.sample_response}"</div>`;
+                } else {
+                    alertEl.style.display = 'block';
+                    alertEl.style.background = 'rgba(239,68,68,0.1)';
+                    alertEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                    alertEl.style.color = '#ef4444';
+                    alertEl.innerHTML = `<strong>Lỗi kết nối Provider:</strong> ${d.error_detail || d.message || 'Không thể kết nối.'}`;
+                }
+            } catch (e) {
+                alertEl.style.display = 'block';
+                alertEl.style.background = 'rgba(239,68,68,0.1)';
+                alertEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                alertEl.style.color = '#ef4444';
+                alertEl.textContent = e.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '⚡ Kiểm tra kết nối (Ping)';
+            }
+        }
+
+        // Knowledge Management loader
+        async function loadKnowledgeData() {
+            try {
+                // Fetch crops
+                const cropsRes = await fetchJSON('/api/knowledge/crops');
+                const crops = cropsRes && cropsRes.crops ? cropsRes.crops : [];
+                document.getElementById('kmCropCount').textContent = crops.length;
+
+                const cropsTbody = document.getElementById('kmCropsTableBody');
+                if (crops.length === 0) {
+                    cropsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có dữ liệu cây trồng.</td></tr>';
+                } else {
+                    cropsTbody.innerHTML = crops.map(c => `
+                        <tr>
+                            <td style="font-family:monospace; color:var(--host-accent);">${c.id || c.crop_id || '--'}</td>
+                            <td><strong>${c.name || c.display_name || '--'}</strong></td>
+                            <td style="color:var(--host-muted);">${c.description || 'Cây trồng nông nghiệp trọng điểm'}</td>
+                            <td><span class="host-pill host-pill-active">${c.model_id || 'YOLOv11+DenseNet'}</span></td>
+                            <td><span style="color:var(--host-accent); font-weight:600;">Sẵn sàng</span></td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Fetch articles
+                const articlesRes = await fetchJSON('/api/knowledge/articles');
+                const articles = articlesRes && articlesRes.articles ? articlesRes.articles : [];
+                document.getElementById('kmArticleCount').textContent = articles.length;
+
+                const articlesTbody = document.getElementById('kmArticlesTableBody');
+                if (articles.length === 0) {
+                    articlesTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--host-muted);">Chưa có bài viết tri thức nào.</td></tr>';
+                } else {
+                    articlesTbody.innerHTML = articles.map(a => `
+                        <tr>
+                            <td style="font-family:monospace;">#${a.id}</td>
+                            <td><strong>${a.title}</strong></td>
+                            <td><span class="host-pill host-pill-active">${a.crop_id || 'Chung'}</span></td>
+                            <td style="color:var(--host-muted);">${a.updated_at ? new Date(a.updated_at).toLocaleDateString('vi-VN') : 'Mới'}</td>
+                            <td>
+                                <a href="/disease?article_id=${a.id}" target="_blank" class="btn-host-sec" style="text-decoration:none; display:inline-block;">
+                                    Xem chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                document.getElementById('kmLastSync').textContent = new Date().toLocaleTimeString('vi-VN');
+            } catch (err) {
+                console.error('Error loading knowledge data:', err);
+                showToast('Lỗi tải dữ liệu tri thức: ' + err.message, false);
+            }
+        }
+</script>

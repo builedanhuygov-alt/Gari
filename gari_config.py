@@ -58,16 +58,23 @@ DEFAULT_DEV_SECRETS = {
     ""
 }
 
-# Development Pro Bypass: STRICTLY FORBIDDEN IN PRODUCTION
-_raw_dev_pro = os.getenv("GARI_ALLOW_DEV_PRO", "0" if IS_PRODUCTION else "1")
-ALLOW_DEV_PRO_BYPASS = False if IS_PRODUCTION else (_raw_dev_pro in ("1", "true", "True"))
+# Development Pro Bypass: PERMANENTLY DISABLED (PRODUCTION-SECURE)
+# All Pro/VIP capabilities must be verified through backend subscription entitlements.
+ALLOW_DEV_PRO_BYPASS = False
 
 # CORS Allowed Origins
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "")
 if _raw_origins:
     ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 elif IS_PRODUCTION:
-    ALLOWED_ORIGINS = ["https://gari.vn", "https://app.gari.vn"]
+    # Keep this fallback narrow.  A deployment should still set ALLOWED_ORIGINS
+    # explicitly, but the public Vercel frontend must not be accidentally
+    # excluded when that variable is omitted.
+    ALLOWED_ORIGINS = [
+        "https://gari.vn",
+        "https://app.gari.vn",
+        "https://gari-team.vercel.app",
+    ]
 else:
     ALLOWED_ORIGINS = [
         "http://localhost:8000",
@@ -80,7 +87,7 @@ else:
 
 # Upload & Inference Limits
 MAX_UPLOAD_SIZE_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(15 * 1024 * 1024)))  # 15 MB
-INFERENCE_TIMEOUT_SECONDS = int(os.getenv("INFERENCE_TIMEOUT_SECONDS", "30"))
+INFERENCE_TIMEOUT_SECONDS = int(os.getenv("INFERENCE_TIMEOUT_SECONDS", "60"))
 
 
 def validate_startup_configuration() -> None:

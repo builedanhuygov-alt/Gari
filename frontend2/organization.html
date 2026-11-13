@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản trị Tổ chức & Đội ngũ • Gari B2B SaaS</title>
-    <link rel="stylesheet" href="/static/frontend2/style.css">
+    <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_stable">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -313,11 +313,13 @@
                             </div>
                             <form id="inviteForm" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;">
                                 <input type="email" id="inviteEmail" class="input" placeholder="email.thanhvien@congty.vn" required style="min-width:240px; flex:1; max-width:340px;" />
-                                <select id="inviteRole" class="input" style="width:150px;">
-                                    <option value="member">Member</option>
-                                    <option value="manager">Manager</option>
-                                    <option value="viewer">Viewer</option>
-                                    <option value="admin" data-owner-only="1">Admin (Owner only)</option>
+                                <select id="inviteRole" class="input" style="min-width:210px;">
+                                    <option value="member">Thành viên (Member)</option>
+                                    <option value="farm_manager">Quản lý nông trại (Farm Manager)</option>
+                                    <option value="agronomist">Kỹ sư nông học (Agronomist)</option>
+                                    <option value="field_worker">Nhân viên hiện trường (Field Worker)</option>
+                                    <option value="viewer">Chỉ xem (Viewer)</option>
+                                    <option value="admin" data-owner-only="1">Quản trị viên (Admin - Owner only)</option>
                                 </select>
                                 <button type="submit" class="btn btn-primary btn-sm" id="btnCreateInvite">Tạo lời mời</button>
                             </form>
@@ -573,11 +575,11 @@
                     <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Loại hình</label>
                     <select id="inputOrgType" class="input" style="width:100%;">
                         <option value="">-- Chọn --</option>
-                        <option value="smallholder_group">Nhóm nông hộ</option>
-                        <option value="cooperative">Hợp tác xã</option>
-                        <option value="farm">Trang trại</option>
-                        <option value="dealer">Đại lý</option>
-                        <option value="agribusiness">Doanh nghiệp</option>
+                        <option value="cooperative">Hợp tác xã (Cooperative)</option>
+                        <option value="business">Doanh nghiệp nông nghiệp (Business)</option>
+                        <option value="farm">Trang trại / Nông trường</option>
+                        <option value="smallholder_group">Nhóm nông hộ liên kết</option>
+                        <option value="dealer">Đại lý vật tư BVTV</option>
                         <option value="other">Khác</option>
                     </select>
                 </div>
@@ -635,7 +637,7 @@
     <div id="globalToast" class="toast-notice"></div>
 
     <script type="module">
-        import { setupSaaSShell, toast } from '/static/frontend2/app.js';
+        import { setupSaaSShell, toast } from '/static/frontend2/app.js?v=20261104_stable';
 
         let currentOrgId = null;
         let currentOrgData = null;
@@ -644,11 +646,16 @@
         let pendingLifecycleAction = null;
 
         const ROLE_LABELS = {
-            owner: 'Owner',
-            admin: 'Admin',
-            manager: 'Manager',
-            member: 'Member',
-            viewer: 'Viewer'
+            owner: 'Chủ sở hữu (Owner)',
+            admin: 'Quản trị viên (Admin)',
+            farm_manager: 'Quản lý nông trại (Farm Manager)',
+            manager: 'Quản lý (Manager)',
+            agronomist: 'Kỹ sư nông học (Agronomist)',
+            expert: 'Chuyên gia (Expert)',
+            field_worker: 'Nhân viên hiện trường (Field Worker)',
+            field_staff: 'Nhân viên hiện trường',
+            member: 'Thành viên (Member)',
+            viewer: 'Chỉ xem (Viewer)'
         };
         const STATUS_LABELS = {
             pending: 'Chờ onboarding',
@@ -1043,11 +1050,14 @@
                     const actions = [];
                     if (canManageRoles && m.role !== 'owner') {
                         actions.push(`<select class="input" style="height:30px; font-size:11.5px; width:110px;" onchange="window.changeMemberRole(${m.user_id}, this.value)">
-                            ${['admin', 'manager', 'member', 'viewer'].map(r => `<option value="${r}" ${m.role === r ? 'selected' : ''} ${r === 'admin' && currentOrgData.user_role !== 'owner' ? 'disabled' : ''}>${ROLE_LABELS[r]}</option>`).join('')}
+                            ${['admin', 'farm_manager', 'agronomist', 'field_worker', 'member', 'viewer'].map(r => `<option value="${r}" ${m.role === r ? 'selected' : ''} ${r === 'admin' && currentOrgData.user_role !== 'owner' ? 'disabled' : ''}>${ROLE_LABELS[r]}</option>`).join('')}
                         </select>`);
                     }
                     if (canTransfer && m.role !== 'owner') {
                         actions.push(`<button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px; font-size:11px;" onclick="window.transferOwnership(${m.user_id})">Chuyển owner</button>`);
+                    }
+                    if (can('members.manage') || can('members.assignments_manage')) {
+                        actions.push(`<button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px; font-size:11px;" onclick="window.openAssignScopeModal(${m.user_id}, '${escapeHtml(m.full_name)}')">Phân công</button>`);
                     }
                     if (canRemove && m.role !== 'owner') {
                         actions.push(`<button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px; font-size:11px; color:var(--danger);" onclick="window.removeOrgMember(${m.user_id})">Xóa</button>`);
@@ -1592,6 +1602,132 @@
                 }
             };
         }
-    </script>
+    
+        window.openAssignScopeModal = async function(userId, userName) {
+            document.getElementById('assignScopeUserId').value = userId;
+            document.getElementById('assignScopeUserName').textContent = userName || ('Thành viên #' + userId);
+            document.getElementById('modalAssignScope').style.display = 'flex';
+            await loadFarmsForScopeModal();
+            await loadCurrentAssignmentsForUser(userId);
+        };
+
+        async function loadFarmsForScopeModal() {
+            const select = document.getElementById('scopeFarmSelect');
+            select.innerHTML = '<option value="">-- Toàn bộ tổ chức --</option>';
+            if (!currentOrgId) return;
+            try {
+                const res = await apiFetch(`/api/farms?organization_id=${currentOrgId}`);
+                const farms = res.farms || [];
+                farms.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.id;
+                    opt.textContent = `${f.name} (${f.area_hectare || f.area || 0} ha)`;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.warn('Could not load farms for scope modal:', e);
+            }
+        }
+
+        async function loadCurrentAssignmentsForUser(userId) {
+            const container = document.getElementById('currentScopesList');
+            container.innerHTML = '<span style="color:var(--text-muted);">Đang tải...</span>';
+            if (!currentOrgId) return;
+            try {
+                const res = await apiFetch(`/api/organizations/${currentOrgId}/assignments?user_id=${userId}`);
+                const assignments = res.assignments || [];
+                if (assignments.length === 0) {
+                    container.innerHTML = '<span style="color:var(--text-muted);">Chưa có phân công nông trại/lô nào.</span>';
+                    return;
+                }
+                container.innerHTML = assignments.map(a => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);">
+                        <div>
+                            <strong>${escapeHtml(a.farm_name || 'Toàn bộ nông trại')}</strong>
+                            ${a.notes ? ` — <span style="color:var(--text-muted);">${escapeHtml(a.notes)}</span>` : ''}
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 6px; font-size:10px; color:var(--danger);" onclick="window.removeMemberScopeItem(${a.id}, ${userId})">Xóa</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = `<span style="color:var(--danger);">Lỗi: ${escapeHtml(e.message)}</span>`;
+            }
+        }
+
+        window.removeMemberScopeItem = async function(assignmentId, userId) {
+            if (!confirm('Xác nhận xóa phân công này?')) return;
+            try {
+                await apiFetch(`/api/organizations/${currentOrgId}/assignments/${assignmentId}`, { method: 'DELETE' });
+                await loadCurrentAssignmentsForUser(userId);
+            } catch (err) {
+                alert(err.message || 'Lỗi xóa phân công');
+            }
+        };
+
+        document.getElementById('btnSaveScopeAssignment').onclick = async function() {
+            const userId = parseInt(document.getElementById('assignScopeUserId').value, 10);
+            const farmIdVal = document.getElementById('scopeFarmSelect').value;
+            const farmId = farmIdVal ? parseInt(farmIdVal, 10) : null;
+            const notes = document.getElementById('scopeNotes').value.trim();
+
+            if (!userId) return;
+            try {
+                await apiFetch(`/api/organizations/${currentOrgId}/assignments`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, farm_id: farmId, notes: notes })
+                });
+                document.getElementById('scopeNotes').value = '';
+                await loadCurrentAssignmentsForUser(userId);
+            } catch (err) {
+                alert(err.message || 'Lỗi lưu phân công');
+            }
+        };
+
+        const closeScopeModal = () => document.getElementById('modalAssignScope').style.display = 'none';
+        document.getElementById('btnCloseAssignScopeModal').onclick = closeScopeModal;
+        document.getElementById('btnDoneAssignScope').onclick = closeScopeModal;
+
+        window.leaveCurrentOrg = async function() {
+            if (!currentOrgId) return;
+            if (!confirm(`Bạn có chắc chắn muốn rời khỏi tổ chức "${currentOrgData ? currentOrgData.name : ''}"?`)) return;
+            try {
+                const res = await apiFetch(`/api/organizations/${currentOrgId}/leave`, { method: 'POST' });
+                alert(res.message || 'Bạn đã rời tổ chức thành công.');
+                window.location.reload();
+            } catch (err) {
+                alert(err.message || 'Không thể rời tổ chức.');
+            }
+        };
+</script>
+    <!-- MODAL: ASSIGN MEMBER SCOPE -->
+    <div id="modalAssignScope" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+        <div class="card" style="width:540px; max-width:92%; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-xl); padding:24px; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <h3 style="margin:0; font-size:16px; font-weight:700;">Phân Công Phạm Vi: <span id="assignScopeUserName" style="color:var(--primary);"></span></h3>
+                <button type="button" id="btnCloseAssignScopeModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:18px;">✕</button>
+            </div>
+            <input type="hidden" id="assignScopeUserId" />
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Nông trại phụ trách</label>
+                <select id="scopeFarmSelect" class="input" style="width:100%;">
+                    <option value="">-- Toàn bộ tổ chức --</option>
+                </select>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Ghi chú phân công (VD: Phụ trách Lô A1-A5 & Sâu bệnh hại)</label>
+                <input type="text" id="scopeNotes" class="input" placeholder="Nhập ghi chú hoặc phạm vi cụ thể..." style="width:100%;" />
+            </div>
+            <div style="margin-bottom:16px;">
+                <button type="button" class="btn btn-primary btn-sm" id="btnSaveScopeAssignment">+ Thêm phân công</button>
+            </div>
+            <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Các phạm vi đã phân công:</div>
+            <div id="currentScopesList" style="max-height:160px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:10px; font-size:12px; background:var(--surface-muted); margin-bottom:16px;">
+                Đang nạp phân công...
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnDoneAssignScope">Đóng</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

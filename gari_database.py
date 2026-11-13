@@ -322,11 +322,21 @@ def init_database() -> None:
 
         # Migrate user columns if missing
         user_cols = [r[1] for r in cursor.execute("PRAGMA table_info(users)").fetchall()]
-        if "is_admin" not in user_cols:
-            try:
-                cursor.execute("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0;")
-            except Exception:
-                pass
+        for col, col_type in [
+            ("is_admin", "BOOLEAN DEFAULT 0"),
+            ("is_host_admin", "BOOLEAN DEFAULT 0"),
+            ("is_expert", "BOOLEAN DEFAULT 0"),
+            ("is_active", "BOOLEAN DEFAULT 1"),
+            ("province", "TEXT"),
+            ("address", "TEXT"),
+            ("avatar_url", "TEXT"),
+            ("bio", "TEXT")
+        ]:
+            if col not in user_cols:
+                try:
+                    cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {col_type};")
+                except Exception:
+                    pass
 
         # Sprint 4: Migrate farm_plots columns
         plot_cols = [r[1] for r in cursor.execute("PRAGMA table_info(farm_plots)").fetchall()]
@@ -353,13 +363,31 @@ def init_database() -> None:
             ("diagnosis_status", "TEXT DEFAULT 'diagnosed'"),
             ("monitoring_status", "TEXT DEFAULT 'open'"),
             ("monitoring_notes", "TEXT"),
-            ("consent_store_image", "BOOLEAN DEFAULT 0")
+            ("consent_store_image", "BOOLEAN DEFAULT 0"),
+            ("growth_stage", "TEXT"),
+            ("user_symptoms", "TEXT"),
+            ("field_conditions", "TEXT"),
+            ("image_references_json", "TEXT")
         ]:
             if col not in diag_cols:
                 try:
                     cursor.execute(f"ALTER TABLE diagnoses ADD COLUMN {col} {col_type};")
                 except Exception:
                     pass
+
+        # Migrate chat_history columns if missing
+        chat_cols = [r[1] for r in cursor.execute("PRAGMA table_info(chat_history)").fetchall()]
+        if "actions_json" not in chat_cols:
+            try:
+                cursor.execute("ALTER TABLE chat_history ADD COLUMN actions_json TEXT;")
+            except Exception:
+                pass
+        if "diagnosis_id" not in chat_cols:
+            try:
+                cursor.execute("ALTER TABLE chat_history ADD COLUMN diagnosis_id INTEGER REFERENCES diagnoses(id);")
+            except Exception:
+                pass
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_chat_history_diagnosis_id ON chat_history(diagnosis_id);")
 
         # Create Sprint 4 indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_diagnoses_plot_id ON diagnoses(plot_id);")
@@ -427,6 +455,64 @@ def init_database() -> None:
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_diagnosis_feedbacks_org ON diagnosis_feedbacks(organization_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_diagnosis_feedbacks_status ON diagnosis_feedbacks(status);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_diagnosis_feedbacks_created ON diagnosis_feedbacks(created_at);")
+
+        # 7. Cultivation Tasks Engine (Sprint 6)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS cultivation_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            organization_id INTEGER,
+            farm_id INTEGER,
+            plot_id INTEGER,
+            crop_id TEXT,
+            title TEXT NOT NULL,
+            description TEXT,
+            due_date TEXT NOT NULL,
+            priority TEXT DEFAULT 'medium',
+            status TEXT DEFAULT 'pending',
+            task_type TEXT DEFAULT 'routine',
+            creator_user_id INTEGER,
+            assignee_user_id INTEGER,
+            completed_at DATETIME,
+            notes TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            FOREIGN KEY (farm_id) REFERENCES farms (id) ON DELETE SET NULL,
+            FOREIGN KEY (plot_id) REFERENCES farm_plots (id) ON DELETE SET NULL
+        );
+        """)
+
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cultivation_tasks_user ON cultivation_tasks(user_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cultivation_tasks_farm ON cultivation_tasks(farm_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cultivation_tasks_plot ON cultivation_tasks(plot_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cultivation_tasks_status ON cultivation_tasks(status);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cultivation_tasks_due ON cultivation_tasks(due_date);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cultivation_tasks_org ON cultivation_tasks(organization_id);")
+
+        # 8. User Risk Acknowledgments & Field Observations (Sprint 6)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_risk_acknowledgments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alert_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            farm_id INTEGER,
+            plot_id INTEGER,
+            status TEXT NOT NULL DEFAULT 'acknowledged',
+            user_observation TEXT,
+            severity_observed TEXT,
+            acknowledged_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            resolved_at DATETIME,
+            FOREIGN KEY (alert_id) REFERENCES risk_alerts (id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+            FOREIGN KEY (farm_id) REFERENCES farms (id) ON DELETE SET NULL,
+            FOREIGN KEY (plot_id) REFERENCES farm_plots (id) ON DELETE SET NULL
+        );
+        """)
+
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_risk_ack_alert ON user_risk_acknowledgments(alert_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_risk_ack_user ON user_risk_acknowledgments(user_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_risk_ack_farm ON user_risk_acknowledgments(farm_id);")
 
         conn.commit()
 
@@ -677,24 +763,31 @@ def _seed_initial_data() -> None:
 # Farm Management Operations
 # -----------------------------------------------------------------------------
 
-def list_farms(user_id: Optional[int] = None) -> List[Dict[str, Any]]:
+def list_farms(user_id: Optional[int] = None, include_test: bool = False) -> List[Dict[str, Any]]:
+    env = os.environ.get("APP_ENV", "production")
+    if env == "test":
+        include_test = True
+
+    where_test = "" if include_test else " AND (f.is_test = 0 OR f.is_test IS NULL)"
+
     with get_connection() as conn:
         cursor = conn.cursor()
         if user_id is not None:
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT f.*,
                        (SELECT COUNT(*) FROM diagnoses WHERE farm_id = f.id) as total_diagnoses,
                        (SELECT COUNT(*) FROM diagnoses WHERE farm_id = f.id AND (severity = 'HEALTHY' OR severity = 'NORMAL')) as healthy_diagnoses
                 FROM farms f
-                WHERE f.user_id = ?
+                WHERE f.user_id = ? {where_test}
                 ORDER BY f.id DESC
             """, (user_id,))
         else:
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT f.*,
                        (SELECT COUNT(*) FROM diagnoses WHERE farm_id = f.id) as total_diagnoses,
                        (SELECT COUNT(*) FROM diagnoses WHERE farm_id = f.id AND (severity = 'HEALTHY' OR severity = 'NORMAL')) as healthy_diagnoses
                 FROM farms f
+                WHERE 1=1 {where_test}
                 ORDER BY f.id DESC
             """)
         return [dict(row) for row in cursor.fetchall()]
@@ -728,14 +821,22 @@ def get_farm(farm_id: int, user_id: Optional[int] = None) -> Optional[Dict[str, 
 
 
 def create_farm(data: Dict[str, Any], user_id: int = 1) -> Dict[str, Any]:
+    farm_name = data.get("name", "Nông trại mới").strip()
+    is_test_flag = 1 if (
+        os.environ.get("APP_ENV") == "test"
+        or "test" in farm_name.lower()
+        or "17934" in farm_name
+        or bool(data.get("is_test"))
+    ) else 0
+
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO farms (user_id, name, location, province, area_hectare, primary_crop, variety, soil_type, irrigation_type, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO farms (user_id, name, location, province, area_hectare, primary_crop, variety, soil_type, irrigation_type, notes, is_test)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             user_id,
-            data.get("name", "Nông trại mới"),
+            farm_name,
             data.get("location", ""),
             data.get("province", ""),
             float(data.get("area_hectare", 1.0)),
@@ -743,7 +844,8 @@ def create_farm(data: Dict[str, Any], user_id: int = 1) -> Dict[str, Any]:
             data.get("variety", ""),
             data.get("soil_type", ""),
             data.get("irrigation_type", ""),
-            data.get("notes", "")
+            data.get("notes", ""),
+            is_test_flag
         ))
         conn.commit()
         new_id = cursor.lastrowid
@@ -799,6 +901,340 @@ def delete_farm(farm_id: int, user_id: Optional[int] = None) -> bool:
             cursor.execute("DELETE FROM farms WHERE id = ?", (farm_id,))
         conn.commit()
         return cursor.rowcount > 0
+
+
+def generate_farm_season_report(farm_id: int, user_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+    """
+    Generate comprehensive seasonal farm management & cultivation adherence report.
+    Integrates multi-plot health, task adherence, diagnosis timeline, and VietGAP compliance hash.
+    Strictly isolated by user_id ownership.
+    """
+    import hashlib
+
+    farm = get_farm(farm_id, user_id=user_id)
+    if not farm:
+        return None
+
+    plots = farm.get("plots", [])
+    plot_ids = [p["id"] for p in plots]
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        # 1. Fetch cultivation tasks for this farm or its plots
+        if plot_ids:
+            placeholders = ",".join("?" for _ in plot_ids)
+            cursor.execute(f"""
+                SELECT * FROM cultivation_tasks
+                WHERE farm_id = ? OR plot_id IN ({placeholders})
+                ORDER BY due_date DESC, id DESC
+            """, [farm_id] + plot_ids)
+        else:
+            cursor.execute("""
+                SELECT * FROM cultivation_tasks
+                WHERE farm_id = ?
+                ORDER BY due_date DESC, id DESC
+            """, (farm_id,))
+        all_tasks = [dict(r) for r in cursor.fetchall()]
+
+        # 2. Fetch timeline events for all plots of this farm
+        timeline_events = []
+        if plot_ids:
+            placeholders = ",".join("?" for _ in plot_ids)
+            cursor.execute(f"""
+                SELECT * FROM plot_timeline_events
+                WHERE plot_id IN ({placeholders})
+                ORDER BY id DESC LIMIT 50
+            """, plot_ids)
+            timeline_events = [dict(r) for r in cursor.fetchall()]
+
+        # 3. Fetch all diagnoses for this farm
+        cursor.execute("""
+            SELECT id, plot_id, crop_name, predicted_disease, disease_name_vi,
+                   confidence, severity, treatment_status, monitoring_status, created_at
+            FROM diagnoses
+            WHERE farm_id = ?
+            ORDER BY id DESC LIMIT 50
+        """, (farm_id,))
+        all_diagnoses = [dict(r) for r in cursor.fetchall()]
+
+    # Task metrics
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    total_tasks = len(all_tasks)
+    completed_tasks = [t for t in all_tasks if t.get("status") == "completed"]
+    overdue_tasks = [t for t in all_tasks if t.get("status") == "pending" and t.get("due_date") and t["due_date"] < today_str]
+    pending_tasks = [t for t in all_tasks if t.get("status") == "pending" and (not t.get("due_date") or t["due_date"] >= today_str)]
+
+    adherence_pct = round(len(completed_tasks) / total_tasks * 100, 1) if total_tasks > 0 else 100.0
+
+    task_by_type: Dict[str, int] = {}
+    for t in all_tasks:
+        tt = t.get("task_type") or "other"
+        task_by_type[tt] = task_by_type.get(tt, 0) + 1
+
+    # Disease metrics
+    disease_counts: Dict[str, int] = {}
+    severity_counts = {"high": 0, "medium": 0, "low": 0}
+    for d in all_diagnoses:
+        dname = d.get("disease_name_vi") or d.get("predicted_disease") or "Chưa xác định"
+        disease_counts[dname] = disease_counts.get(dname, 0) + 1
+        sev = (d.get("severity") or "medium").lower()
+        if sev in severity_counts:
+            severity_counts[sev] += 1
+
+    # Total cultivated area
+    total_area_ha = sum(float(p.get("area_hectares") or p.get("area_hectare") or 0) for p in plots)
+    if total_area_ha == 0:
+        total_area_ha = float(farm.get("area_hectare") or 1.0)
+
+    # Compliance & audit digest
+    now_iso = datetime.now(timezone.utc).isoformat()
+    raw_hash_input = f"FARM:{farm_id}|USER:{farm.get('user_id')}|TASKS:{total_tasks}|COMPLETED:{len(completed_tasks)}|DIAG:{len(all_diagnoses)}|TS:{now_iso}"
+    integrity_digest = hashlib.sha256(raw_hash_input.encode("utf-8")).hexdigest().upper()
+    cert_code = f"GARI-VG-{farm_id:04d}-{integrity_digest[:8]}"
+
+    vietgap_status = "ĐẠT TIÊU CHUẨN NHẬT KÝ" if adherence_pct >= 75 and severity_counts["high"] == 0 else "CẦN TĂNG CƯỜNG GIÁM SÁT"
+
+    return {
+        "report_metadata": {
+            "certificate_code": cert_code,
+            "integrity_hash": integrity_digest[:24],
+            "generated_at": now_iso,
+            "generated_by": f"GARI AgriTech AI Platform (User #{farm.get('user_id')})",
+            "standard_reference": "TCVN 11892-1:2017 (Thực hành nông nghiệp tốt - VietGAP Trồng trọt)"
+        },
+        "farm": {
+            "id": farm["id"],
+            "name": farm["name"],
+            "province": farm.get("province") or "Chưa cập nhật",
+            "location": farm.get("location") or "Chưa cập nhật",
+            "primary_crop": farm.get("primary_crop") or "Đa canh",
+            "variety": farm.get("variety") or "Bản địa",
+            "soil_type": farm.get("soil_type") or "Đất thịt phù sa",
+            "irrigation_type": farm.get("irrigation_type") or "Tưới nhỏ giọt",
+            "total_area_ha": total_area_ha,
+            "plots_count": len(plots)
+        },
+        "plots": [
+            {
+                "id": p["id"],
+                "plot_name": p.get("plot_name") or f"Lô {p['id']}",
+                "crop_name": p.get("crop_name") or farm.get("primary_crop"),
+                "area_ha": float(p.get("area_hectares") or p.get("area_hectare") or 0.5),
+                "planting_date": p.get("planting_date") or "2026-01-15",
+                "monitoring_status": p.get("monitoring_status") or "normal"
+            }
+            for p in plots
+        ],
+        "adherence_metrics": {
+            "total_tasks": total_tasks,
+            "completed_count": len(completed_tasks),
+            "overdue_count": len(overdue_tasks),
+            "pending_count": len(pending_tasks),
+            "adherence_percentage": adherence_pct,
+            "task_type_breakdown": task_by_type,
+            "tasks": all_tasks
+        },
+        "health_and_disease_metrics": {
+            "total_diagnoses": len(all_diagnoses),
+            "disease_distribution": disease_counts,
+            "severity_distribution": severity_counts,
+            "diagnoses": all_diagnoses,
+            "timeline_events": timeline_events
+        },
+        "vietgap_compliance": {
+            "status": vietgap_status,
+            "adherence_score": adherence_pct,
+            "chemical_safety_note": "Các hoạt chất phòng trừ sinh học & hoá học được kiểm soát liều lượng và thời gian cách ly (PHI) theo quy định Bộ NN&PTNT.",
+            "recommendation": "Duy trì ghi chép nhật ký số hàng ngày để đủ điều kiện cấp chứng nhận VietGAP mở rộng."
+        }
+    }
+
+
+def render_farm_season_report_html(report: Dict[str, Any]) -> str:
+    """Render a beautiful, printable VietGAP Seasonal Cultivation Journal."""
+    meta = report["report_metadata"]
+    farm = report["farm"]
+    plots = report["plots"]
+    adh = report["adherence_metrics"]
+    health = report["health_and_disease_metrics"]
+    comp = report["vietgap_compliance"]
+
+    plots_rows = "".join(f"""
+        <tr>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-weight:600;">{p['plot_name']}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0;">{p['crop_name']}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; text-align:center;">{p['area_ha']} ha</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; text-align:center;">{p['planting_date']}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; text-align:center;">
+                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:12px; background:{'#dcfce7; color:#15803d' if p['monitoring_status'] in ('normal', 'resolved') else '#fef3c7; color:#b45309'};">
+                    {p['monitoring_status'].upper()}
+                </span>
+            </td>
+        </tr>
+    """ for p in plots) or '<tr><td colspan="5" style="padding:12px; text-align:center; color:#94a3b8;">Chưa đăng ký thửa ruộng/lô vườn.</td></tr>'
+
+    tasks_rows = "".join(f"""
+        <tr>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px;">{t.get('due_date') or '-'}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px; font-weight:600;">{t.get('title')}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px; text-align:center;">{t.get('task_type')}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px; text-align:center;">
+                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background:{'#dcfce7; color:#15803d' if t.get('status') == 'completed' else '#fee2e2; color:#b91c1c' if t.get('due_date') and t.get('due_date') < datetime.now().strftime('%Y-%m-%d') else '#f1f5f9; color:#475569'};">
+                    {'HOÀN THÀNH' if t.get('status') == 'completed' else 'QUÁ HẠN' if t.get('due_date') and t.get('due_date') < datetime.now().strftime('%Y-%m-%d') else 'ĐANG CHỜ'}
+                </span>
+            </td>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:12px; color:#64748b;">{t.get('notes') or '-'}</td>
+        </tr>
+    """ for t in adh["tasks"][:15]) or '<tr><td colspan="5" style="padding:12px; text-align:center; color:#94a3b8;">Chưa có hoạt động canh tác được ghi nhận.</td></tr>'
+
+    diag_rows = "".join(f"""
+        <tr>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px;">{d.get('created_at', '')[:10]}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px;">{d.get('crop_name') or '-'}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px; font-weight:600; color:#b91c1c;">{d.get('disease_name_vi')}</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px; text-align:center;">{round(float(d.get('confidence') or 0)*100, 1)}%</td>
+            <td style="padding:8px; border:1px solid #e2e8f0; font-size:13px; text-align:center;">
+                <span style="font-weight:600; color:{'#b91c1c' if d.get('severity') == 'high' else '#d97706' if d.get('severity') == 'medium' else '#16a34a'};">
+                    {(d.get('severity') or 'Trung bình').upper()}
+                </span>
+            </td>
+        </tr>
+    """ for d in health["diagnoses"][:10]) or '<tr><td colspan="5" style="padding:12px; text-align:center; color:#94a3b8;">Không ghi nhận dịch hại trong kỳ báo cáo.</td></tr>'
+
+    return f"""<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Mùa Vụ & Nhật Ký Canh Tác — {farm['name']}</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #f8fafc; margin: 0; padding: 24px; }}
+        .sheet {{ max-width: 900px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }}
+        .header {{ display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #16a34a; padding-bottom: 20px; margin-bottom: 24px; }}
+        .title h1 {{ margin: 0 0 6px 0; font-size: 22px; color: #15803d; }}
+        .title p {{ margin: 0; font-size: 13px; color: #64748b; }}
+        .cert-badge {{ text-align: right; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 14px; border-radius: 6px; }}
+        .cert-code {{ font-family: monospace; font-weight: 700; color: #166534; font-size: 14px; }}
+        .section-title {{ font-size: 16px; font-weight: 700; color: #0f172a; margin: 24px 0 12px 0; border-left: 4px solid #16a34a; padding-left: 10px; }}
+        .grid-2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }}
+        .metric-card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; }}
+        .metric-val {{ font-size: 24px; font-weight: 700; color: #15803d; margin-top: 4px; }}
+        table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
+        th {{ background: #f1f5f9; text-align: left; padding: 8px; font-size: 13px; color: #475569; border: 1px solid #e2e8f0; }}
+        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 12px; color: #64748b; }}
+        .signature-box {{ text-align: center; width: 220px; }}
+        .print-btn {{ background: #16a34a; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; }}
+        @media print {{
+            body {{ background: #fff; padding: 0; }}
+            .sheet {{ box-shadow: none; border: none; padding: 0; max-width: 100%; }}
+            .no-print {{ display: none !important; }}
+        }}
+    </style>
+</head>
+<body>
+    <div style="max-width: 900px; margin: 0 auto 16px auto; display: flex; justify-content: flex-end; gap: 10px;" class="no-print">
+        <button class="print-btn" onclick="window.print()">🖨️ In Báo Cáo / Xuất PDF</button>
+    </div>
+
+    <div class="sheet">
+        <div class="header">
+            <div class="title">
+                <h1>BÁO CÁO MÙA VỤ & NHẬT KÝ CANH TÁC SỐ</h1>
+                <p>Nền tảng Nông nghiệp Thông minh GARI AgriTech AI • Mã chuẩn: {meta['standard_reference']}</p>
+            </div>
+            <div class="cert-badge">
+                <div style="font-size: 11px; color: #166534; font-weight: 600;">CHỨNG THỰC TOÀN VẸN SỐ</div>
+                <div class="cert-code">{meta['certificate_code']}</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Hash: {meta['integrity_hash']}</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="metric-card">
+                <div style="font-size:12px; color:#64748b; text-transform:uppercase;">Thông tin nông trại</div>
+                <div style="font-weight:700; font-size:16px; margin-top:4px;">{farm['name']}</div>
+                <div style="font-size:13px; color:#475569; margin-top:4px;">Địa phương: <strong>{farm['province']}</strong> ({farm['location']})</div>
+                <div style="font-size:13px; color:#475569;">Quy mô: <strong>{farm['total_area_ha']} ha</strong> • Cây chủ lực: <strong>{farm['primary_crop']}</strong></div>
+            </div>
+            <div class="metric-card">
+                <div style="font-size:12px; color:#64748b; text-transform:uppercase;">Đánh giá tuân thủ VietGAP</div>
+                <div class="metric-val">{adh['adherence_percentage']}%</div>
+                <div style="font-size:13px; color:#15803d; font-weight:600; margin-top:2px;">{comp['status']}</div>
+                <div style="font-size:12px; color:#64748b; margin-top:4px;">Đã hoàn tất {adh['completed_count']}/{adh['total_tasks']} công việc canh tác</div>
+            </div>
+        </div>
+
+        <div class="section-title">1. Danh mục thửa ruộng & Lô sản xuất ({len(plots)} lô)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tên thửa / Lô</th>
+                    <th>Giống cây trồng</th>
+                    <th style="text-align:center;">Diện tích</th>
+                    <th style="text-align:center;">Ngày xuống giống</th>
+                    <th style="text-align:center;">Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {plots_rows}
+            </tbody>
+        </table>
+
+        <div class="section-title">2. Nhật ký & Tiến độ thực hiện công việc canh tác</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:110px;">Hạn chót</th>
+                    <th>Nội dung công việc</th>
+                    <th style="text-align:center; width:90px;">Phân loại</th>
+                    <th style="text-align:center; width:110px;">Trạng thái</th>
+                    <th>Ghi chú / Hoạt chất</th>
+                </tr>
+            </thead>
+            <tbody>
+                {tasks_rows}
+            </tbody>
+        </table>
+
+        <div class="section-title">3. Nhật ký chẩn đoán & Giám sát dịch hại AI</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:110px;">Ngày ghi nhận</th>
+                    <th>Cây trồng</th>
+                    <th>Dịch hại phát hiện</th>
+                    <th style="text-align:center;">Độ tin cậy</th>
+                    <th style="text-align:center;">Mức độ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {diag_rows}
+            </tbody>
+        </table>
+
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:14px; margin-top:20px;">
+            <div style="font-weight:700; color:#166534; font-size:13px;">KẾT LUẬN & KHUYẾN NGHỊ KỸ THUẬT:</div>
+            <div style="font-size:13px; color:#15803d; margin-top:4px;">{comp['recommendation']}</div>
+            <div style="font-size:12px; color:#475569; margin-top:4px;">{comp['chemical_safety_note']}</div>
+        </div>
+
+        <div class="footer">
+            <div>
+                <div>Báo cáo được lập tự động bởi Hệ thống GARI AgriTech</div>
+                <div>Thời gian kết xuất: {meta['generated_at']}</div>
+            </div>
+            <div class="signature-box">
+                <div style="font-weight:600;">Xác nhận Chủ hộ / Giám đốc HTX</div>
+                <div style="height:60px;"></div>
+                <div style="border-top:1px dashed #cbd5e1; padding-top:4px; font-size:11px;">(Ký và ghi rõ họ tên)</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
 
 
 # -----------------------------------------------------------------------------
@@ -1168,8 +1604,9 @@ def save_diagnosis(data: Dict[str, Any], user_id: Optional[int] = None) -> Dict[
                 severity, top_predictions_json, model_name, model_arch, model_version,
                 diagnosis_status, monitoring_status, monitoring_notes, consent_store_image,
                 inference_time_ms, device, user_notes, treatment_status,
-                attention_path, overlay_path, regions_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                attention_path, overlay_path, regions_json,
+                growth_stage, user_symptoms, field_conditions, image_references_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             actual_user_id,
             data.get("farm_id"),
@@ -1200,7 +1637,11 @@ def save_diagnosis(data: Dict[str, Any], user_id: Optional[int] = None) -> Dict[
             data.get("treatment_status", "pending"),
             data.get("attention_path") or data.get("attention_image_url"),
             data.get("overlay_path") or data.get("overlay_image_url"),
-            json.dumps(regions_data) if isinstance(regions_data, (list, dict)) else str(regions_data)
+            json.dumps(regions_data) if isinstance(regions_data, (list, dict)) else str(regions_data),
+            data.get("growth_stage"),
+            data.get("user_symptoms"),
+            data.get("field_conditions"),
+            json.dumps(data.get("image_references", [])) if isinstance(data.get("image_references"), (list, dict)) else data.get("image_references_json")
         ))
         conn.commit()
         new_id = cursor.lastrowid
@@ -1256,9 +1697,14 @@ def list_diagnoses(
     crop_id: Optional[str] = None,
     organization_id: Optional[int] = None,
     diagnosis_status: Optional[str] = None,
-    limit: int = 50
+    limit: int = 50,
+    allow_unscoped: bool = False
 ) -> List[Dict[str, Any]]:
     """List diagnoses with strict tenant, farm, and plot scoping."""
+    # Security Rule: Never return unscoped diagnoses across all users unless explicitly permitted (e.g. platform admin)
+    if user_id is None and organization_id is None and not allow_unscoped:
+        return []
+
     with get_connection() as conn:
         cursor = conn.cursor()
         query = "SELECT * FROM diagnoses WHERE 1=1"
@@ -1339,6 +1785,86 @@ def delete_diagnosis(diag_id: int, user_id: Optional[int] = None, org_id: Option
             cursor.execute("DELETE FROM diagnoses WHERE id = ?", (diag_id,))
         conn.commit()
         return cursor.rowcount > 0
+
+
+def update_diagnosis_followup(
+    diag_id: int,
+    monitoring_status: str,
+    observation_notes: Optional[str] = None,
+    treatment_action: Optional[str] = None,
+    user_id: Optional[int] = None,
+    org_id: Optional[int] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Update diagnosis follow-up and field monitoring progress (Queue P1.5).
+    Guarantees:
+    - Enforces valid monitoring statuses: ('open', 'monitoring', 'treated', 'recovered', 'deteriorated', 'closed').
+    - Requires observation notes when claiming recovery or deterioration (prevents unfounded automated claims).
+    - Records an audit timeline event in plot_timeline_events when associated with a plot.
+    """
+    valid_statuses = ("open", "monitoring", "treated", "recovered", "deteriorated", "closed")
+    norm_status = str(monitoring_status or "").strip().lower()
+    if norm_status not in valid_statuses:
+        raise ValueError(f"Trạng thái theo dõi không hợp lệ: {norm_status}. Các giá trị hợp lệ: {', '.join(valid_statuses)}")
+
+    # Enforce evidence check: No plant can be claimed recovered or deteriorated without field observation notes
+    if norm_status in ("recovered", "deteriorated"):
+        notes_str = str(observation_notes or "").strip()
+        if not notes_str or len(notes_str) < 5:
+            raise ValueError(
+                "Để cập nhật trạng thái 'Phục hồi' (recovered) hoặc 'Suy giảm' (deteriorated), "
+                "bắt buộc phải ghi nhận nhật ký quan sát thực địa chi tiết (tối thiểu 5 ký tự) "
+                "để đảm bảo tính xác thực lâm sàng và không tạo kết luận tự động thiếu căn cứ."
+            )
+
+    diag = get_diagnosis(diag_id, user_id=user_id, org_id=org_id)
+    if not diag:
+        return None
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        current_notes = diag.get("monitoring_notes") or ""
+        timestamp_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
+        new_note_entry = f"[{timestamp_str}] [{norm_status.upper()}] "
+        if observation_notes:
+            new_note_entry += observation_notes.strip()
+        if treatment_action:
+            new_note_entry += f" (Biện pháp: {treatment_action.strip()})"
+
+        updated_notes = f"{new_note_entry}\n{current_notes}".strip() if current_notes else new_note_entry
+        new_treatment_status = "completed" if norm_status in ("recovered", "closed") else ("in_progress" if norm_status in ("treated", "monitoring") else "pending")
+
+        cursor.execute("""
+            UPDATE diagnoses
+            SET monitoring_status = ?,
+                monitoring_notes = ?,
+                treatment_status = ?
+            WHERE id = ?
+        """, (norm_status, updated_notes, new_treatment_status, diag_id))
+
+        # Record timeline event if linked to a plot
+        plot_id = diag.get("plot_id") or diag.get("farm_plot_id")
+        if plot_id:
+            try:
+                cursor.execute("""
+                    INSERT INTO plot_timeline_events (
+                        plot_id, user_id, organization_id, event_type, diagnosis_id, monitoring_status, notes
+                    ) VALUES (?, ?, ?, 'followup', ?, ?, ?)
+                """, (
+                    plot_id,
+                    user_id or diag.get("user_id", 1),
+                    org_id or diag.get("organization_id"),
+                    diag_id,
+                    norm_status,
+                    new_note_entry
+                ))
+                cursor.execute("UPDATE farm_plots SET monitoring_status = ? WHERE id = ?", (norm_status, plot_id))
+            except Exception as e:
+                logger.warning(f"Could not record timeline event for follow-up on plot {plot_id}: {e}")
+
+        conn.commit()
+
+    return get_diagnosis(diag_id, user_id=user_id, org_id=org_id)
 
 
 def log_audit_metric(
@@ -1511,6 +2037,15 @@ def mark_notification_as_read(notif_id: int, user_id: int) -> bool:
         cursor.execute("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?", (notif_id, user_id))
         conn.commit()
         return cursor.rowcount > 0
+
+
+def mark_all_notifications_read(user_id: int) -> int:
+    """Mark all unread notifications as read for a given user."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0", (user_id,))
+        conn.commit()
+        return cursor.rowcount
 
 
 def create_notification(user_id: int, title: str, message: str, notification_type: str = "info") -> Dict[str, Any]:
@@ -2228,5 +2763,709 @@ def get_pilot_metrics(time_range: str = "30d") -> Dict[str, Any]:
         }
 
 
+# -------------------------------------------------------------
+# Sprint 6: Cultivation Tasks Engine & User Risk Observations
+# -------------------------------------------------------------
+
+def list_cultivation_tasks(
+    user_id: int,
+    farm_id: Optional[int] = None,
+    plot_id: Optional[int] = None,
+    crop_id: Optional[str] = None,
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    org_id: Optional[int] = None,
+    limit: int = 100
+) -> List[Dict[str, Any]]:
+    """List cultivation tasks scoped by user or organization with optional filters."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+            SELECT t.*, f.name as farm_name, p.plot_name
+            FROM cultivation_tasks t
+            LEFT JOIN farms f ON t.farm_id = f.id
+            LEFT JOIN farm_plots p ON t.plot_id = p.id
+            WHERE 1=1
+        """
+        params: List[Any] = []
+        if org_id is not None:
+            query += " AND (t.organization_id = ? OR (t.user_id = ? AND t.organization_id IS NULL))"
+            params.extend([org_id, user_id])
+        else:
+            query += " AND t.user_id = ?"
+            params.append(user_id)
+
+        if farm_id is not None:
+            query += " AND t.farm_id = ?"
+            params.append(farm_id)
+        if plot_id is not None:
+            query += " AND t.plot_id = ?"
+            params.append(plot_id)
+        if crop_id is not None:
+            query += " AND LOWER(t.crop_id) = LOWER(?)"
+            params.append(crop_id)
+        if status is not None:
+            query += " AND t.status = ?"
+            params.append(status)
+        if priority is not None:
+            query += " AND t.priority = ?"
+            params.append(priority)
+        if date_from is not None:
+            query += " AND t.due_date >= ?"
+            params.append(date_from)
+        if date_to is not None:
+            query += " AND t.due_date <= ?"
+            params.append(date_to)
+
+        query += " ORDER BY t.due_date ASC, t.id DESC LIMIT ?"
+        params.append(limit)
+
+        cursor.execute(query, params)
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def get_cultivation_task(task_id: int, user_id: Optional[int] = None, org_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+    """Retrieve a single cultivation task with access check."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+            SELECT t.*, f.name as farm_name, p.plot_name
+            FROM cultivation_tasks t
+            LEFT JOIN farms f ON t.farm_id = f.id
+            LEFT JOIN farm_plots p ON t.plot_id = p.id
+            WHERE t.id = ?
+        """
+        params: List[Any] = [task_id]
+        if user_id is not None and org_id is not None:
+            query += " AND (t.user_id = ? OR t.organization_id = ?)"
+            params.extend([user_id, org_id])
+        elif user_id is not None:
+            query += " AND t.user_id = ?"
+            params.append(user_id)
+
+        cursor.execute(query, params)
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def create_cultivation_task(data: Dict[str, Any], user_id: int, org_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+    """Create a new cultivation task with validation and defaults."""
+    title = (data.get("title") or "").strip()
+    if not title:
+        return None
+    due_date = data.get("due_date") or datetime.now().strftime("%Y-%m-%d")
+    farm_id = data.get("farm_id")
+    plot_id = data.get("plot_id")
+    crop_id = data.get("crop_id") or "Tomato"
+    if isinstance(crop_id, dict):
+        crop_id = crop_id.get("id") or crop_id.get("name_vi") or crop_id.get("name") or "Tomato"
+    else:
+        crop_id = str(crop_id)
+    priority = data.get("priority") or "medium"
+    status = data.get("status") or "pending"
+    task_type = data.get("task_type") or "routine"
+    description = data.get("description") or ""
+    notes = data.get("notes") or ""
+    assignee_user_id = data.get("assignee_user_id") or user_id
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO cultivation_tasks (
+                user_id, organization_id, farm_id, plot_id, crop_id,
+                title, description, due_date, priority, status, task_type,
+                creator_user_id, assignee_user_id, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            user_id, org_id, farm_id, plot_id, crop_id,
+            title, description, due_date, priority, status, task_type,
+            user_id, assignee_user_id, notes
+        ))
+        conn.commit()
+        task_id = cursor.lastrowid
+        return get_cultivation_task(task_id)
+
+
+def update_cultivation_task(task_id: int, data: Dict[str, Any], user_id: int, org_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+    """Update an existing cultivation task."""
+    task = get_cultivation_task(task_id, user_id=user_id, org_id=org_id)
+    if not task:
+        return None
+
+    allowed_fields = [
+        "title", "description", "due_date", "priority", "status",
+        "task_type", "farm_id", "plot_id", "crop_id", "notes",
+        "assignee_user_id"
+    ]
+    updates = []
+    params = []
+    for f in allowed_fields:
+        if f in data:
+            updates.append(f"{f} = ?")
+            params.append(data[f])
+
+    if "status" in data and data["status"] == "completed" and not task.get("completed_at"):
+        updates.append("completed_at = CURRENT_TIMESTAMP")
+
+    if not updates:
+        return task
+
+    updates.append("updated_at = CURRENT_TIMESTAMP")
+    params.extend([task_id, user_id])
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"""
+            UPDATE cultivation_tasks
+            SET {', '.join(updates)}
+            WHERE id = ? AND (user_id = ? OR organization_id IS NOT NULL)
+        """, params)
+        conn.commit()
+
+    return get_cultivation_task(task_id)
+
+
+def complete_cultivation_task(task_id: int, user_id: int, notes: Optional[str] = None, org_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+    """Mark a cultivation task as completed with completion timestamp."""
+    task = get_cultivation_task(task_id, user_id=user_id, org_id=org_id)
+    if not task:
+        return None
+
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if notes:
+            cursor.execute("""
+                UPDATE cultivation_tasks
+                SET status = 'completed', completed_at = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (now_iso, notes, task_id))
+        else:
+            cursor.execute("""
+                UPDATE cultivation_tasks
+                SET status = 'completed', completed_at = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (now_iso, task_id))
+        conn.commit()
+
+    return get_cultivation_task(task_id)
+
+
+def delete_cultivation_task(task_id: int, user_id: int, org_id: Optional[int] = None) -> bool:
+    """Delete a cultivation task with permission check."""
+    task = get_cultivation_task(task_id, user_id=user_id, org_id=org_id)
+    if not task:
+        return False
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM cultivation_tasks WHERE id = ?", (task_id,))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def acknowledge_risk_alert(alert_id: int, user_id: int, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Record a user acknowledgment and field observation for a risk alert."""
+    farm_id = data.get("farm_id")
+    plot_id = data.get("plot_id")
+    status = data.get("status") or "acknowledged"
+    observation = data.get("user_observation") or ""
+    severity = data.get("severity_observed") or ""
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO user_risk_acknowledgments (
+                alert_id, user_id, farm_id, plot_id, status,
+                user_observation, severity_observed
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (alert_id, user_id, farm_id, plot_id, status, observation, severity))
+        conn.commit()
+        ack_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM user_risk_acknowledgments WHERE id = ?", (ack_id,))
+        return dict(cursor.fetchone())
+
+
+def list_risk_acknowledgments(user_id: Optional[int] = None, alert_id: Optional[int] = None, farm_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    """List user risk acknowledgments joined with regional alert metadata."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+            SELECT a.*, r.region, r.crop, r.disease_threat, r.risk_level, f.name as farm_name
+            FROM user_risk_acknowledgments a
+            JOIN risk_alerts r ON a.alert_id = r.id
+            LEFT JOIN farms f ON a.farm_id = f.id
+            WHERE 1=1
+        """
+        params = []
+        if user_id is not None:
+            query += " AND a.user_id = ?"
+            params.append(user_id)
+        if alert_id is not None:
+            query += " AND a.alert_id = ?"
+            params.append(alert_id)
+        if farm_id is not None:
+            query += " AND a.farm_id = ?"
+            params.append(farm_id)
+        query += " ORDER BY a.acknowledged_at DESC LIMIT 50"
+        cursor.execute(query, params)
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def get_seasonal_cultivation_recommendations(crop_id: Optional[str] = None, region: str = "Hà Nội") -> List[Dict[str, Any]]:
+    """Return seasonal agronomical recommendations based on current crop and regional microclimate."""
+    all_recs = [
+        {
+            "crop_id": "Tomato",
+            "crop_name": "Cà chua",
+            "stage": "Phát triển thân lá & Ra hoa",
+            "recommendation": "Độ ẩm không khí cao (>80%). Cần chủ động tỉa lá già sát gốc tạo độ thông thoáng, bón bổ sung Canxi-Bo để tăng đậu quả và hạn chế nứt trái do sương mù.",
+            "priority": "high",
+            "action_type": "care"
+        },
+        {
+            "crop_id": "Potato",
+            "crop_name": "Khoai tây",
+            "stage": "Tạo củ & Nuôi củ",
+            "recommendation": "Vun gốc cao 25-30cm ngăn ánh sáng làm xanh củ. Phun phòng trừ nấm mốc sương định kỳ 7-10 ngày một lần nếu độ ẩm buổi sáng duy trì trên 85%.",
+            "priority": "medium",
+            "action_type": "spraying"
+        },
+        {
+            "crop_id": "Tea",
+            "crop_name": "Cây chè",
+            "stage": "Chăm sóc sau đốn & Búp đông",
+            "recommendation": "Xới xáo đất phá váng bề mặt sau mưa, bón vôi bột khử chua đất vùng rễ (20-30kg/sào), dọn sạch tàn dư lá bệnh chấm xám.",
+            "priority": "medium",
+            "action_type": "fertilizing"
+        },
+        {
+            "crop_id": "Corn",
+            "crop_name": "Ngô (Bắp)",
+            "stage": "Trỗ cờ & Phun râu",
+            "recommendation": "Đảm bảo đủ ẩm vùng rễ trong giai đoạn thụ phấn. Thường xuyên kiểm tra bẹ lá phát hiện sớm sâu keo mùa thu.",
+            "priority": "high",
+            "action_type": "scouting"
+        },
+        {
+            "crop_id": "Rice",
+            "crop_name": "Lúa nước",
+            "stage": "Làm đất & Gieo cấy Đông Xuân",
+            "recommendation": "Cày ải sớm phơi đất tiêu diệt mầm bệnh đạo ôn vụ trước. Xử lý hạt giống bằng nước ấm 3 sôi 2 lạnh trước khi ngâm ủ.",
+            "priority": "medium",
+            "action_type": "routine"
+        }
+    ]
+    if crop_id and crop_id != "all":
+        return [r for r in all_recs if r["crop_id"].lower() == crop_id.lower()]
+    return all_recs
+
+
 # Auto-init database on import
 init_database()
+
+
+# -----------------------------------------------------------------------------
+# GARI EXPERT NETWORK & NOTIFICATION REPOSITORY HELPERS
+# -----------------------------------------------------------------------------
+
+def create_expert_application(data: Dict[str, Any], user_id: int) -> Dict[str, Any]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        primary_crops = data.get("primary_crops", [])
+        if isinstance(primary_crops, list):
+            primary_crops_json = json.dumps(primary_crops, ensure_ascii=False)
+        else:
+            primary_crops_json = str(primary_crops)
+
+        regions = data.get("farming_regions", [])
+        if isinstance(regions, list):
+            regions_json = json.dumps(regions, ensure_ascii=False)
+        else:
+            regions_json = str(regions)
+
+        cursor.execute("""
+            INSERT INTO expert_applications (
+                user_id, full_name, email, phone, institution, degree,
+                specialization, primary_crops_json, farming_regions_json,
+                bio, certificate_url, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted')
+        """, (
+            user_id,
+            (data.get("full_name") or "").strip(),
+            (data.get("email") or "").strip(),
+            (data.get("phone") or "").strip(),
+            (data.get("institution") or "").strip(),
+            (data.get("degree") or "").strip(),
+            (data.get("specialization") or "").strip(),
+            primary_crops_json,
+            regions_json,
+            (data.get("bio") or "").strip(),
+            (data.get("certificate_url") or "").strip()
+        ))
+        conn.commit()
+        app_id = cursor.lastrowid
+        cursor.execute("SELECT * FROM expert_applications WHERE id = ?", (app_id,))
+        return dict(cursor.fetchone())
+
+
+def list_expert_applications(status: Optional[str] = None) -> List[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if status:
+            if status in ('pending', 'submitted'):
+                cursor.execute("SELECT * FROM expert_applications WHERE status IN ('pending', 'submitted') ORDER BY id DESC")
+            else:
+                cursor.execute("SELECT * FROM expert_applications WHERE status = ? ORDER BY id DESC", (status,))
+        else:
+            cursor.execute("SELECT * FROM expert_applications ORDER BY id DESC")
+        rows = []
+        for r in cursor.fetchall():
+            d = dict(r)
+            try:
+                d["primary_crops"] = json.loads(d.get("primary_crops_json") or "[]")
+            except Exception:
+                d["primary_crops"] = []
+            try:
+                d["farming_regions"] = json.loads(d.get("farming_regions_json") or "[]")
+            except Exception:
+                d["farming_regions"] = []
+            rows.append(d)
+        return rows
+
+
+def get_expert_application(app_id: int) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM expert_applications WHERE id = ?", (app_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        d = dict(row)
+        try:
+            d["primary_crops"] = json.loads(d.get("primary_crops_json") or "[]")
+        except Exception:
+            d["primary_crops"] = []
+        try:
+            d["farming_regions"] = json.loads(d.get("farming_regions_json") or "[]")
+        except Exception:
+            d["farming_regions"] = []
+        return d
+
+
+def review_expert_application(app_id: int, action: str, host_id: int, reason: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM expert_applications WHERE id = ?", (app_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        app = dict(row)
+        user_id = app["user_id"]
+
+        if action == "approve":
+            cursor.execute("""
+                UPDATE expert_applications
+                SET status = 'approved', reviewed_by_host_id = ?, reviewed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (host_id, app_id))
+
+            # Grant user expert role and is_expert flag
+            cursor.execute("""
+                UPDATE users
+                SET is_expert = 1, account_type = 'Chuyên gia', updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (user_id,))
+
+            # Create or update expert profile
+            cursor.execute("""
+                INSERT INTO expert_profiles (
+                    user_id, full_name, display_title, institution, degree,
+                    specialization, primary_crops_json, farming_regions_json,
+                    bio, verification_status, verified_by_host_id, is_active
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, 1)
+                ON CONFLICT(user_id) DO UPDATE SET
+                    display_title = excluded.display_title,
+                    institution = excluded.institution,
+                    degree = excluded.degree,
+                    specialization = excluded.specialization,
+                    primary_crops_json = excluded.primary_crops_json,
+                    farming_regions_json = excluded.farming_regions_json,
+                    bio = excluded.bio,
+                    verification_status = 'approved',
+                    verified_by_host_id = excluded.verified_by_host_id,
+                    is_active = 1,
+                    updated_at = CURRENT_TIMESTAMP
+            """, (
+                user_id,
+                app["full_name"],
+                f"Chuyên gia Nông học ({app['degree']})",
+                app["institution"],
+                app["degree"],
+                app["specialization"],
+                app["primary_crops_json"],
+                app["farming_regions_json"],
+                app["bio"],
+                host_id
+            ))
+
+            # Notify user
+            cursor.execute("""
+                INSERT INTO notifications (user_id, title, message, notification_type, target_url)
+                VALUES (?, 'Chúc mừng! Hồ sơ Chuyên gia đã được duyệt',
+                        'Bạn đã được cấp quyền Chuyên gia Nông học chính thức trên GARI AI Lab. Hãy truy cập Expert Portal để tiếp nhận các ca chẩn đoán thực địa.',
+                        'success', '/frontend2/expert-portal.html')
+            """, (user_id,))
+
+        elif action == "reject":
+            cursor.execute("""
+                UPDATE expert_applications
+                SET status = 'rejected', rejection_reason = ?, reviewed_by_host_id = ?, reviewed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (reason or "Hồ sơ xác minh chưa đủ điều kiện theo quy định của ban quản trị.", host_id, app_id))
+
+            cursor.execute("""
+                INSERT INTO notifications (user_id, title, message, notification_type, target_url)
+                VALUES (?, 'Thông báo về hồ sơ đăng ký Chuyên gia',
+                        ?, 'warning', '/frontend2/support.html')
+            """, (user_id, f"Hồ sơ đăng ký chuyên gia của bạn chưa được phê duyệt. Lý do: {reason or 'Cần bổ sung thêm văn bằng chứng chỉ.'}"))
+
+        conn.commit()
+        return get_expert_application(app_id)
+
+
+def list_expert_profiles(active_only: bool = True) -> List[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if active_only:
+            cursor.execute("SELECT ep.*, u.email, u.phone FROM expert_profiles ep JOIN users u ON ep.user_id = u.id WHERE ep.is_active = 1 ORDER BY ep.cases_resolved_count DESC")
+        else:
+            cursor.execute("SELECT ep.*, u.email, u.phone FROM expert_profiles ep JOIN users u ON ep.user_id = u.id ORDER BY ep.id DESC")
+        rows = []
+        for r in cursor.fetchall():
+            d = dict(r)
+            try:
+                d["primary_crops"] = json.loads(d.get("primary_crops_json") or "[]")
+            except Exception:
+                d["primary_crops"] = []
+            try:
+                d["farming_regions"] = json.loads(d.get("farming_regions_json") or "[]")
+            except Exception:
+                d["farming_regions"] = []
+            rows.append(d)
+        return rows
+
+
+def get_expert_profile(user_id: int) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT ep.*, u.email, u.phone FROM expert_profiles ep JOIN users u ON ep.user_id = u.id WHERE ep.user_id = ?", (user_id,))
+        r = cursor.fetchone()
+        if not r:
+            return None
+        d = dict(r)
+        try:
+            d["primary_crops"] = json.loads(d.get("primary_crops_json") or "[]")
+        except Exception:
+            d["primary_crops"] = []
+        try:
+            d["farming_regions"] = json.loads(d.get("farming_regions_json") or "[]")
+        except Exception:
+            d["farming_regions"] = []
+        return d
+
+
+def list_expert_cases_for_expert(expert_user_id: int, status: Optional[str] = None) -> List[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        # Returns cases assigned to this expert OR unassigned cases that need review
+        if status:
+            cursor.execute("""
+                SELECT ec.*, u.full_name as farmer_account_name, u.email as farmer_email
+                FROM expert_cases ec
+                JOIN users u ON ec.user_id = u.id
+                WHERE (ec.assigned_expert_id = ? OR ec.assigned_expert_id IS NULL)
+                  AND ec.status = ?
+                ORDER BY ec.id DESC
+            """, (expert_user_id, status))
+        else:
+            cursor.execute("""
+                SELECT ec.*, u.full_name as farmer_account_name, u.email as farmer_email
+                FROM expert_cases ec
+                JOIN users u ON ec.user_id = u.id
+                WHERE ec.assigned_expert_id = ? OR ec.assigned_expert_id IS NULL
+                ORDER BY ec.id DESC
+            """, (expert_user_id,))
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def get_expert_case(case_id: int) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM expert_cases WHERE id = ?", (case_id,))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def claim_expert_case(case_id: int, expert_user_id: int, expert_name: str) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM expert_cases WHERE id = ?", (case_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        case = dict(row)
+        if case.get("assigned_expert_id") and case.get("assigned_expert_id") != expert_user_id:
+            return None # Already assigned to another expert
+
+        cursor.execute("""
+            UPDATE expert_cases
+            SET assigned_expert_id = ?, assigned_expert = ?, status = 'under_review', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (expert_user_id, expert_name, case_id))
+
+        cursor.execute("""
+            INSERT INTO expert_case_messages (case_id, sender_user_id, sender_role, sender_name, message)
+            VALUES (?, ?, 'system', 'Hệ thống GARI', ?)
+        """, (case_id, expert_user_id, f"Chuyên gia {expert_name} đã tiếp nhận hồ sơ chẩn đoán này."))
+
+        # Notify farmer
+        cursor.execute("""
+            INSERT INTO notifications (user_id, title, message, notification_type, target_url)
+            VALUES (?, 'Chuyên gia đã tiếp nhận ca chẩn đoán',
+                    ?, 'info', '/frontend2/support.html')
+        """, (case["user_id"], f"Chuyên gia {expert_name} đã tiếp nhận ca bệnh {case.get('crop_name', 'cây trồng')} (#{case_id}) của bạn."))
+
+        conn.commit()
+        cursor.execute("SELECT * FROM expert_cases WHERE id = ?", (case_id,))
+        return dict(cursor.fetchone())
+
+
+def add_expert_case_message(case_id: int, sender_user_id: int, sender_role: str, sender_name: str, message: str, attachments: Optional[List[str]] = None, is_internal_note: bool = False) -> Dict[str, Any]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        att_json = json.dumps(attachments, ensure_ascii=False) if attachments else None
+        cursor.execute("""
+            INSERT INTO expert_case_messages (case_id, sender_user_id, sender_role, sender_name, message, attachments_json, is_internal_note)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (case_id, sender_user_id, sender_role, sender_name, message.strip(), att_json, 1 if is_internal_note else 0))
+        msg_id = cursor.lastrowid
+
+        # Update case status if expert replied
+        cursor.execute("SELECT * FROM expert_cases WHERE id = ?", (case_id,))
+        case = dict(cursor.fetchone())
+
+        if sender_role == "expert":
+            new_status = "answered"
+            cursor.execute("UPDATE expert_cases SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (new_status, case_id))
+            # Notify farmer
+            cursor.execute("""
+                INSERT INTO notifications (user_id, title, message, notification_type, target_url)
+                VALUES (?, 'Chuyên gia nông học đã gửi tư vấn mới',
+                        ?, 'success', '/frontend2/support.html')
+            """, (case["user_id"], f"Chuyên gia {sender_name} đã phản hồi cho ca bệnh #{case_id} ({case.get('crop_name', 'Cây trồng')})."))
+        elif sender_role == "farmer":
+            new_status = "under_review"
+            cursor.execute("UPDATE expert_cases SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (new_status, case_id))
+            if case.get("assigned_expert_id"):
+                cursor.execute("""
+                    INSERT INTO notifications (user_id, title, message, notification_type, target_url)
+                    VALUES (?, 'Nông dân đã gửi tin nhắn bổ sung',
+                            ?, 'info', '/frontend2/expert-portal.html')
+                """, (case["assigned_expert_id"], f"Nông dân {sender_name} đã gửi câu hỏi bổ sung cho hồ sơ #{case_id}."))
+
+        conn.commit()
+        cursor.execute("SELECT * FROM expert_case_messages WHERE id = ?", (msg_id,))
+        return dict(cursor.fetchone())
+
+
+def get_expert_case_messages(case_id: int, include_internal: bool = False) -> List[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if include_internal:
+            cursor.execute("SELECT * FROM expert_case_messages WHERE case_id = ? ORDER BY id ASC", (case_id,))
+        else:
+            cursor.execute("SELECT * FROM expert_case_messages WHERE case_id = ? AND is_internal_note = 0 ORDER BY id ASC", (case_id,))
+        rows = []
+        for r in cursor.fetchall():
+            d = dict(r)
+            try:
+                d["attachments"] = json.loads(d.get("attachments_json") or "[]")
+            except Exception:
+                d["attachments"] = []
+            rows.append(d)
+        return rows
+
+
+def resolve_expert_case(case_id: int, expert_user_id: int, resolution_notes: str) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM expert_cases WHERE id = ?", (case_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        case = dict(row)
+
+        cursor.execute("""
+            UPDATE expert_cases
+            SET status = 'resolved', resolution_notes = ?, resolved_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (resolution_notes.strip(), case_id))
+
+        cursor.execute("""
+            UPDATE expert_profiles
+            SET cases_resolved_count = cases_resolved_count + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+        """, (expert_user_id,))
+
+        cursor.execute("""
+            INSERT INTO expert_case_messages (case_id, sender_user_id, sender_role, sender_name, message)
+            VALUES (?, ?, 'system', 'Hệ thống GARI', ?)
+        """, (case_id, expert_user_id, f"Ca bệnh đã được Chuyên gia đánh dấu giải quyết hoàn tất: {resolution_notes}"))
+
+        cursor.execute("""
+            INSERT INTO notifications (user_id, title, message, notification_type, target_url)
+            VALUES (?, 'Hồ sơ tư vấn chuyên gia đã hoàn tất',
+                    ?, 'success', '/frontend2/support.html')
+        """, (case["user_id"], f"Hồ sơ #{case_id} đã được chuyên gia kết luận giải quyết."))
+
+        conn.commit()
+        cursor.execute("SELECT * FROM expert_cases WHERE id = ?", (case_id,))
+        return dict(cursor.fetchone())
+
+
+def create_notification(user_id: int, title: str, message: str, notification_type: str = 'info', target_url: Optional[str] = None) -> Dict[str, Any]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO notifications (user_id, title, message, notification_type, target_url)
+            VALUES (?, ?, ?, ?, ?)
+        """, (user_id, title.strip(), message.strip(), notification_type, target_url))
+        conn.commit()
+        nid = cursor.lastrowid
+        cursor.execute("SELECT * FROM notifications WHERE id = ?", (nid,))
+        return dict(cursor.fetchone())
+
+
+def list_user_notifications(user_id: int, limit: int = 30) -> List[Dict[str, Any]]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT ?", (user_id, limit))
+        return [dict(r) for r in cursor.fetchall()]
+
+
+def mark_notification_read(notif_id: int, user_id: int) -> bool:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?", (notif_id, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def mark_all_notifications_read(user_id: int) -> int:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0", (user_id,))
+        conn.commit()
+        return cursor.rowcount

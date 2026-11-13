@@ -1,0 +1,176 @@
+{
+  "timestamp_utc": "2026-11-10T15:02:09Z",
+  "status": "SUCCESS",
+  "production_db": "D:\\leaf-diseases-detector-main\\database\\disease_detector.db",
+  "staging_db": "D:\\leaf-diseases-detector-main\\database\\staging\\disease_detector_staging.db",
+  "backup_file": "gari_db_backup_20261110_150209.db",
+  "backup_size_bytes": 9920512,
+  "backup_time_ms": 90.28,
+  "restore_time_ms": 105.0,
+  "integrity_check": "passed",
+  "total_tables_verified": 83,
+  "table_counts": {
+    "users": 3608,
+    "crops": 3,
+    "disease_history": 129,
+    "predictions": 89,
+    "chat_history": 151,
+    "feedback": 0,
+    "system_stats": 0,
+    "system_logs": 0,
+    "farms": 644,
+    "diagnoses": 599,
+    "expert_cases": 209,
+    "risk_alerts": 3,
+    "user_sessions": 4073,
+    "password_resets": 18,
+    "farm_plots": 540,
+    "notifications": 336,
+    "user_quotas": 228,
+    "audit_metrics": 446,
+    "organizations": 399,
+    "organization_members": 669,
+    "organization_quotas": 363,
+    "api_keys": 21,
+    "usage_metering": 28,
+    "organization_brandings": 0,
+    "b2b2c_allocations": 0,
+    "enterprise_contracts": 0,
+    "model_licenses": 0,
+    "user_consents": 6867,
+    "data_subject_requests": 8,
+    "user_subscriptions": 3435,
+    "plan_audit_trail": 567,
+    "user_onboarding_profiles": 1,
+    "organization_invitations": 73,
+    "organization_audit_log": 880,
+    "organization_onboarding": 363,
+    "subscriptions": 624,
+    "billing_customers": 0,
+    "invoices": 95,
+    "payment_attempts": 0,
+    "credit_notes": 0,
+    "billing_usage_events": 142,
+    "plot_timeline_events": 605,
+    "pilot_requests": 13,
+    "pilot_audit_logs": 18,
+    "diagnosis_feedbacks": 1,
+    "vouchers": 200,
+    "voucher_redemptions": 76,
+    "voucher_audit_log": 318,
+    "payment_orders": 37,
+    "payment_webhook_events": 112,
+    "payment_audit_log": 33,
+    "user_account_type_audit": 3487,
+    "host_audit_logs": 211,
+    "host_api_config": 17,
+    "moderation_cases": 0,
+    "moderation_audit_logs": 0,
+    "moderation_appeals": 0,
+    "cultivation_tasks": 392,
+    "user_risk_acknowledgments": 5,
+    "expert_profiles": 448,
+    "expert_applications": 63,
+    "expert_case_messages": 249,
+    "farm_zones": 57,
+    "crop_cycles": 557,
+    "plot_plants": 180,
+    "organization_member_assignments": 3,
+    "task_activities": 546,
+    "expert_case_activities": 433,
+    "community_posts": 159,
+    "community_comments": 34,
+    "community_likes": 6,
+    "community_reports": 83,
+    "knowledge_articles": 21,
+    "community_moderation_audit_logs": 29,
+    "subscription_plans": 8,
+    "usage_tracking": 138,
+    "weather_cache": 8,
+    "satellite_scenes": 0,
+    "satellite_plot_indices": 72,
+    "agricultural_risk_assessments": 50,
+    "smart_alerts": 6,
+    "agent_executions": 53,
+    "agent_approval_requests": 12
+  },
+  "sample_queries": {
+    "sample_users": [
+      {
+        "id": 1,
+        "email": "danhuynh@gari.vn",
+        "account_type": "expert",
+        "is_admin": 1
+      },
+      {
+        "id": 2,
+        "email": "user1@example.com",
+        "account_type": "farmer",
+        "is_admin": 0
+      },
+      {
+        "id": 3,
+        "email": "user2@example.com",
+        "account_type": "farmer",
+        "is_admin": 0
+      }
+    ],
+    "recent_diagnoses": [
+      {
+        "id": 638,
+        "crop": "tomato",
+        "disease": "Bệnh đốm vi khuẩn",
+        "conf": 0.9532,
+        "created_at": "2026-11-10 12:39:01"
+      },
+      {
+        "id": 637,
+        "crop": "tomato",
+        "disease": "Tomato_Late_blight",
+        "conf": 0.94,
+        "created_at": "2026-11-10 12:38:51"
+      },
+      {
+        "id": 636,
+        "crop": "tomato",
+        "disease": "Tomato_Late_blight",
+        "conf": 0.94,
+        "created_at": "2026-11-10 12:38:00"
+      }
+    ],
+    "organizations": [
+      {
+        "id": 1,
+        "name": "Hợp Tác Xã Nông Nghiệp Ba Vì",
+        "status": "active"
+      },
+      {
+        "id": 2,
+        "name": "Trang Trại Rau Sạch Nông Dân 7",
+        "status": "active"
+      },
+      {
+        "id": 46,
+        "name": "HTX Nông Nghiệp Xanh 85cff5b5",
+        "status": "active"
+      }
+    ],
+    "farms": [
+      {
+        "id": 1,
+        "name": "Trang trại Ba Vì Organic",
+        "location": "Xã Vân Hòa, Huyện Ba Vì"
+      },
+      {
+        "id": 2,
+        "name": "Vườn Rau Công Nghệ Cao Đơn Dương",
+        "location": "Thị trấn Thạnh Mỹ, Huyện Đơn Dương"
+      },
+      {
+        "id": 3,
+        "name": "Hợp Tác Xã Chè Hữu Cơ Mộc Châu",
+        "location": "Thị trấn Nông trường Mộc Châu"
+      }
+    ]
+  }
+}
