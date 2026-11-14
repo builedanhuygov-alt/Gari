@@ -113,11 +113,14 @@ def register(
     ip = get_client_ip(request)
     ua = request.headers.get("User-Agent")
 
-    # Rate limiting by IP: max 5 attempts per hour
-    allowed, retry_after = rate_limiter.is_allowed(
-        f"register:ip:{ip}",
-        settings.RATE_LIMIT_REGISTER_MAX_ATTEMPTS,
-        settings.RATE_LIMIT_REGISTER_WINDOW_SECONDS
+    # Rate limiting by IP: distributed check across serverless instances
+    allowed, retry_after = rate_limiter.is_allowed_distributed(
+        db,
+        action="register",
+        ip=ip,
+        identifier=req.email,
+        max_requests=settings.RATE_LIMIT_REGISTER_MAX_ATTEMPTS,
+        window_seconds=settings.RATE_LIMIT_REGISTER_WINDOW_SECONDS
     )
     if not allowed:
         log_security_event(db, "REGISTER_RATE_LIMITED", ip_address=ip, user_agent=ua)
@@ -173,19 +176,16 @@ def login(
     ip = get_client_ip(request)
     ua = request.headers.get("User-Agent")
 
-    # Rate limiting by IP and by account email
-    allowed_ip, retry_ip = rate_limiter.is_allowed(
-        f"login:ip:{ip}",
-        settings.RATE_LIMIT_LOGIN_MAX_ATTEMPTS,
-        settings.RATE_LIMIT_LOGIN_WINDOW_SECONDS
+    # Rate limiting by IP and by account email: distributed check across serverless instances
+    allowed, retry_after = rate_limiter.is_allowed_distributed(
+        db,
+        action="login",
+        ip=ip,
+        identifier=req.email,
+        max_requests=settings.RATE_LIMIT_LOGIN_MAX_ATTEMPTS,
+        window_seconds=settings.RATE_LIMIT_LOGIN_WINDOW_SECONDS
     )
-    allowed_email, retry_email = rate_limiter.is_allowed(
-        f"login:email:{req.email}",
-        settings.RATE_LIMIT_LOGIN_MAX_ATTEMPTS,
-        settings.RATE_LIMIT_LOGIN_WINDOW_SECONDS
-    )
-    if not allowed_ip or not allowed_email:
-        retry_after = max(retry_ip, retry_email)
+    if not allowed:
         log_security_event(db, "LOGIN_RATE_LIMITED", ip_address=ip, user_agent=ua, metadata={"email": req.email})
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,

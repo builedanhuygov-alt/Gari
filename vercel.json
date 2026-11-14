@@ -42,6 +42,54 @@
   ],
   "rewrites": [
     {
+      "source": "/api/v1/auth/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/v1/health",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/v1/ready",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/ready",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/v1/profile/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/profile/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/v1/user/profile/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/user/profile/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/v1/admin/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/api/admin/:path*",
+      "destination": "/api/index.py"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/[...path]?path=$1"
     },
