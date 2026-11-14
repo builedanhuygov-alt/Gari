@@ -1,13 +1,11 @@
 {
   "version": 2,
-  "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
   "public": false,
   "functions": {
     "api/index.py": {
-      "includeFiles": "auth-server/app/**",
-      "excludeFiles": "{frontend2/**,models/**,mobile/**,server/**,tests/**,node_modules/**,database/**,data/**}"
+      "includeFiles": "auth-server/**"
     }
   },
   "headers": [
