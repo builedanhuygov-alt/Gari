@@ -27,6 +27,10 @@ model/
 model/**/*
 models/
 models/**/*
+
+# Whitelist Python Auth Server models package
+!auth-server/app/models/
+!auth-server/app/models/*.py
 uploads/
 uploads/**/*
 artifacts/
