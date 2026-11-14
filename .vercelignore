@@ -24,5 +24,10 @@ docs/
 *.env.*
 requirements-worker.txt
 auth-server/tests/
+node_modules/
+release/
+.agents/
+.taste-skill/
+.pytest_cache/
 /*.py
 !api/index.py
