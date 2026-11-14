@@ -22,6 +22,7 @@ docs/
 *.log
 .env
 *.env.*
-requirements*.txt
-pyproject.toml
-*.py
+requirements-worker.txt
+auth-server/tests/
+/*.py
+!api/index.py
