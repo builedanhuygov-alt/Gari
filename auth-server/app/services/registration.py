@@ -52,9 +52,16 @@ def register_user(
 
     normalized_email = email.strip().lower()
 
-    # SQLite BEGIN IMMEDIATE ensures an exclusive write lock from the start of the transaction,
-    # preventing concurrent threads/processes from reading count and inserting past 10.
-    db.connection().execute(text("BEGIN IMMEDIATE"))
+    # Dialect-aware concurrency control:
+    # 1. SQLite: BEGIN IMMEDIATE acquires an exclusive write lock from transaction start.
+    # 2. PostgreSQL (Neon): pg_advisory_xact_lock(424242) acquires an atomic, transaction-level
+    #    exclusive advisory lock released automatically on commit/rollback.
+    bind = db.get_bind()
+    dialect_name = bind.dialect.name
+    if dialect_name == "sqlite":
+        db.connection().execute(text("BEGIN IMMEDIATE"))
+    elif dialect_name == "postgresql":
+        db.connection().execute(text("SELECT pg_advisory_xact_lock(424242);"))
 
     # Check capacity limit inside the write-locked transaction
     current_count = db.query(User).filter(User.account_type != "admin").count()

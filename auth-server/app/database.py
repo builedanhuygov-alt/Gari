@@ -8,16 +8,24 @@ import sqlite3
 from typing import Generator
 from app.config import settings
 
-# Engine configuration for SQLite
-connect_args = {"check_same_thread": False, "timeout": 15}
+# Engine configuration: PostgreSQL (Neon Serverless) vs SQLite
+if settings.database_url.startswith("postgresql"):
+    engine = create_engine(
+        settings.database_url,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        pool_size=5,
+        max_overflow=10
+    )
+else:
+    connect_args = {"check_same_thread": False, "timeout": 15}
+    engine = create_engine(
+        settings.database_url,
+        connect_args=connect_args,
+        pool_pre_ping=True
+    )
 
-engine = create_engine(
-    settings.database_url,
-    connect_args=connect_args,
-    pool_pre_ping=True
-)
-
-# Enforce SQLite foreign keys and WAL journal mode
+# Enforce SQLite foreign keys and WAL journal mode when using SQLite
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     if isinstance(dbapi_connection, sqlite3.Connection):

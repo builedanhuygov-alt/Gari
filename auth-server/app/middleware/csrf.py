@@ -9,12 +9,22 @@ from app.config import settings
 
 EXEMPT_PATHS = {
     "/api/v1/auth/login",
+    "/api/auth/login",
     "/api/v1/auth/register",
+    "/api/auth/register",
     "/api/v1/auth/logout",
+    "/api/auth/logout",
     "/api/v1/auth/csrf",
+    "/api/auth/csrf",
     "/api/v1/admin/bootstrap",
+    "/api/admin/bootstrap",
     "/api/v1/health",
+    "/api/health",
+    "/health",
+    "/healthz",
     "/api/v1/ready",
+    "/api/ready",
+    "/ready",
     "/docs",
     "/openapi.json",
     "/redoc"

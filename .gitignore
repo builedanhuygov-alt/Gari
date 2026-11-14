@@ -41,6 +41,9 @@ cloudflared.exe
 
 # Database, uploads and backups
 *.db
+*.db-wal
+*.db-shm
+data/
 database/disease_detector.db
 database/uploads/
 database/backups/
@@ -53,6 +56,9 @@ database/*.jsonl
 .env
 .env.*
 !.env.example
+auth-server/.env
+auth-server/.env.*
+!auth-server/.env.example
 
 .vercel
 .env*
@@ -63,3 +69,4 @@ id_rsa
 id_rsa.pub
 id_ed25519
 id_ed25519.pub
+.neon

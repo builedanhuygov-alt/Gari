@@ -61,18 +61,24 @@ async def global_exception_handler(request: Request, exc: Exception):
         }
     )
 
-# 5. Include API Routers
+# 5. Include API Routers (Mount both /api/v1 and /api for seamless backward compatibility)
 app.include_router(health_router)
-app.include_router(auth_router)
-app.include_router(profile_router)
+app.include_router(auth_router, prefix="/api/v1/auth")
+app.include_router(auth_router, prefix="/api/auth")
+app.include_router(profile_router, prefix="/api/v1/profile")
+app.include_router(profile_router, prefix="/api/profile")
+app.include_router(profile_router, prefix="/api/v1/user/profile")
+app.include_router(profile_router, prefix="/api/user/profile")
 app.include_router(admin_router)
 
 
 if __name__ == "__main__":
     import uvicorn
+    import os
+    port = int(os.getenv("PORT", settings.AUTH_PORT))
     uvicorn.run(
         "app.main:app",
         host=settings.AUTH_HOST,
-        port=settings.AUTH_PORT,
+        port=port,
         reload=(settings.AUTH_ENV == "development")
     )

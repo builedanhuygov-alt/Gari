@@ -34,7 +34,7 @@ from app.services.security_event import log_security_event
 from app.middleware.rate_limit import rate_limiter, get_client_ip
 from app.middleware.csrf import generate_csrf_token
 
-router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 # Dummy hash for constant-time rejection when user does not exist
 DUMMY_ARGON2_HASH = "$argon2id$v=19$m=65536,t=3,p=4$dGVzdHNhbHQxMjM0NTY3OA$9W/a2QG76m4B6f3x4f8wZg0kG8hR0mG0kG8hR0mG0kE"
@@ -128,7 +128,7 @@ def register(
         )
 
     try:
-        user = register_user(db, req.email, req.password, req.full_name)
+        user = register_user(db, req.email, req.password, req.resolved_name)
     except RegistrationCapacityError as e:
         log_security_event(db, "REGISTER_CAPACITY_REJECTED", ip_address=ip, user_agent=ua, metadata={"email": req.email})
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))

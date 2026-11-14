@@ -175,23 +175,34 @@ async function handler(req, res) {
     }));
   }
 
-  // Fast-path health check or fail-closed response if no backend is configured
-  // In local development, fall back to localhost FastAPI if unset
-  const configuredOrigin = process.env.VERCEL_BACKEND_API_URL || 
-    (process.env.NODE_ENV !== 'production' && !process.env.VERCEL_ENV ? 'http://127.0.0.1:8000' : '');
-  if (!configuredOrigin) {
+  const isAuthRoute = pathStr === 'health' || pathStr === 'v1/health' ||
+                      pathStr.startsWith('auth/') || pathStr.startsWith('v1/auth/') ||
+                      pathStr === 'user/profile' || pathStr === 'profile' || pathStr === 'v1/profile' ||
+                      pathStr === 'ready' || pathStr === 'v1/ready' ||
+                      pathStr.startsWith('admin/') || pathStr.startsWith('v1/admin/');
+
+  // Auth routing priority: Use dedicated AUTH_SERVER_URL if configured, otherwise fall back to VERCEL_BACKEND_API_URL
+  let targetOriginStr = '';
+  if (isAuthRoute && process.env.AUTH_SERVER_URL) {
+    targetOriginStr = process.env.AUTH_SERVER_URL;
+  } else {
+    targetOriginStr = process.env.VERCEL_BACKEND_API_URL || 
+      (process.env.NODE_ENV !== 'production' && !process.env.VERCEL_ENV ? 'http://127.0.0.1:8000' : '');
+  }
+
+  if (!targetOriginStr) {
     return handleBackendUnavailable(pathStr, res);
   }
 
   let origin;
   try {
-    origin = new URL(configuredOrigin);
+    origin = new URL(targetOriginStr);
     if (!['https:', 'http:'].includes(origin.protocol)) throw new Error('Unsupported protocol');
   } catch (_) {
     return handleBackendUnavailable(pathStr, res);
   }
 
-  const isAuthOrHealthRoute = pathStr === 'health' || pathStr.startsWith('auth/') || pathStr === 'user/profile';
+  const isAuthOrHealthRoute = isAuthRoute;
 
   // Read and buffer request payload safely before proxying to strictly prevent stream consumption deadlock
   let bufferedBody = null;

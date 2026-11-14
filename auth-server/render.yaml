@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: gari-auth-server
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    autoDeploy: false
+    envVars:
+      - key: AUTH_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: "lax"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://gari-team.vercel.app,https://gari-team-fwwp1442f-bui11.vercel.app"
+      - key: MAX_REGISTRATION_ACCOUNTS
+        value: "10"
+      - key: REGISTRATION_OPEN
+        value: "true"
+      - key: BOOTSTRAP_ADMIN_TOKEN
+        generateValue: true

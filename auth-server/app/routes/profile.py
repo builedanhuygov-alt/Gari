@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.auth import UserResponse
 from app.routes.auth import get_current_user
 
-router = APIRouter(prefix="/api/v1/profile", tags=["Profile"])
+router = APIRouter(tags=["Profile"])
 
 
 class UpdateProfileRequest(BaseModel):

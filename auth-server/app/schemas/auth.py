@@ -7,9 +7,11 @@ from typing import Optional
 
 
 class RegisterRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128, description="Minimum 8 characters")
-    full_name: str = Field(..., min_length=2, max_length=100)
+    full_name: Optional[str] = Field(default=None, max_length=100)
+    name: Optional[str] = Field(default=None, max_length=100)
 
     @field_validator("email", mode="before")
     @classmethod
@@ -24,6 +26,11 @@ class RegisterRequest(BaseModel):
         if isinstance(v, str):
             return v.strip()
         return v
+
+    @property
+    def resolved_name(self) -> str:
+        val = (self.full_name or self.name or "").strip()
+        return val if len(val) >= 2 else "Nông dân Gari"
 
 
 class LoginRequest(BaseModel):

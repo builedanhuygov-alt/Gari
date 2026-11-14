@@ -7,10 +7,13 @@ from sqlalchemy import text
 from app.database import get_db
 from app.config import settings
 
-router = APIRouter(prefix="/api/v1", tags=["Monitoring"])
+router = APIRouter(tags=["Monitoring"])
 
 
 @router.get("/health")
+@router.get("/healthz")
+@router.get("/api/health")
+@router.get("/api/v1/health")
 def health_check():
     """Liveness probe: verifies service process is running."""
     return {
@@ -22,6 +25,8 @@ def health_check():
 
 
 @router.get("/ready")
+@router.get("/api/ready")
+@router.get("/api/v1/ready")
 def readiness_check(response: Response, db: Session = Depends(get_db)):
     """Readiness probe: verifies database connectivity and WAL mode operation."""
     try:
