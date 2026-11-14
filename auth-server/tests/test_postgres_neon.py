@@ -11,12 +11,20 @@ from app.models.user import User
 
 
 def test_database_url_normalization_neon():
-    """Verifies that postgres:// URI from Render/Neon is converted to postgresql:// for SQLAlchemy 2.0."""
+    """Verifies that postgres:// URI from Render/Neon is converted to postgresql+psycopg2:// for SQLAlchemy 2.0."""
     neon_url = "postgres://neondb_owner:npg_secret123@ep-lively-star-123456-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
     s = Settings(DATABASE_URL=neon_url)
-    assert s.database_url.startswith("postgresql://")
+    assert s.database_url.startswith("postgresql+psycopg2://")
     assert "neondb_owner" in s.database_url
     assert "sslmode=require" in s.database_url
+
+    # Also test postgresql:// input
+    s2 = Settings(DATABASE_URL="postgresql://user:pass@ep-test.neon.tech/neondb?sslmode=require")
+    assert s2.database_url.startswith("postgresql+psycopg2://")
+
+    # Also test postgresql+psycopg2:// input preserves unchanged
+    s3 = Settings(DATABASE_URL="postgresql+psycopg2://user:pass@ep-test.neon.tech/neondb?sslmode=require")
+    assert s3.database_url.startswith("postgresql+psycopg2://")
 
 
 def test_cors_origins_comma_separated_parsing():

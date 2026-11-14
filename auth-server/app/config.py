@@ -76,9 +76,13 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         if self.DATABASE_URL:
             url = self.DATABASE_URL.strip()
-            # Normalize postgres:// to postgresql:// for SQLAlchemy 2.0 compatibility
+            # Explicitly force psycopg2 driver so SQLAlchemy 2.0 never attempts to load psycopg 3 (psycopg)
+            if url.startswith("postgresql+psycopg2://"):
+                return url
             if url.startswith("postgres://"):
-                url = url.replace("postgres://", "postgresql://", 1)
+                return url.replace("postgres://", "postgresql+psycopg2://", 1)
+            if url.startswith("postgresql://"):
+                return url.replace("postgresql://", "postgresql+psycopg2://", 1)
             return url
         if not self.AUTH_DB_PATH:
             data_dir = Path(self.AUTH_DATA_DIR)
