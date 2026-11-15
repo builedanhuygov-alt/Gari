@@ -15,6 +15,7 @@ from app.routes.health import router as health_router
 from app.routes.auth import router as auth_router
 from app.routes.profile import router as profile_router
 from app.routes.admin import router as admin_router
+from app.routes.voucher import router as voucher_router
 
 
 @asynccontextmanager
@@ -75,6 +76,8 @@ app.include_router(profile_router, prefix="/api/profile")
 app.include_router(profile_router, prefix="/api/v1/user/profile")
 app.include_router(profile_router, prefix="/api/user/profile")
 app.include_router(admin_router)
+app.include_router(voucher_router, prefix="/api/v1/voucher")
+app.include_router(voucher_router, prefix="/api/voucher")
 
 
 if __name__ == "__main__":

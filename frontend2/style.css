@@ -6159,3 +6159,666 @@ body.copilot-open {
         transform: translateY(0);
     }
 }
+
+
+/* ==========================================================================
+   GARI VIP 7-DAY VOUCHER CAMPAIGN & ANIMATIONS
+   Campaign: THPT Nguyễn Hồng Đạo (Voucher: Gari-THPTNHD1)
+   ========================================================================== */
+
+.gari-vip-voucher-banner {
+    position: relative;
+    background: linear-gradient(135deg, #052e16 0%, #064e3b 45%, #042f2e 100%);
+    border: 1.5px solid rgba(16, 185, 129, 0.4);
+    border-radius: var(--radius-xl, 16px);
+    overflow: hidden;
+    box-shadow: 0 12px 32px -8px rgba(6, 78, 59, 0.5), 0 0 0 1px rgba(16, 185, 129, 0.2);
+    padding: 22px 26px;
+    margin-bottom: 24px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.gari-vip-voucher-banner:hover {
+    border-color: rgba(52, 211, 153, 0.6);
+    box-shadow: 0 16px 38px -6px rgba(6, 78, 59, 0.6), 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+.voucher-ambient-glow {
+    position: absolute;
+    top: -50px;
+    right: 20%;
+    width: 320px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(5, 46, 22, 0) 70%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.voucher-particles-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.voucher-particles-layer .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 8px #34d399;
+    opacity: 0.6;
+}
+
+.voucher-particles-layer .p1 {
+    top: 25%;
+    left: 20%;
+    animation: particleDrift 7s ease-in-out infinite alternate;
+}
+
+.voucher-particles-layer .p2 {
+    bottom: 30%;
+    left: 45%;
+    width: 5px;
+    height: 5px;
+    animation: particleDrift 9s ease-in-out infinite alternate-reverse;
+}
+
+.voucher-particles-layer .p3 {
+    top: 60%;
+    right: 25%;
+    width: 3px;
+    height: 3px;
+    animation: particleDrift 6s ease-in-out infinite alternate;
+}
+
+.voucher-banner-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 0.95fr;
+    gap: 24px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.voucher-content-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.voucher-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.voucher-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(52, 211, 153, 0.5);
+    color: #6ee7b7;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+}
+
+.voucher-subtag {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.08);
+    padding: 3px 8px;
+    border-radius: 9999px;
+}
+
+.voucher-headline {
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 4px 0 8px;
+}
+
+.voucher-desc {
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.55;
+    margin: 0 0 16px;
+}
+
+.voucher-action-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.voucher-code-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px dashed rgba(52, 211, 153, 0.6);
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: all;
+}
+
+.voucher-code-pill:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #34d399;
+}
+
+.voucher-code-pill .code-label {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 11px;
+}
+
+.voucher-code-pill .code-value {
+    color: #86efac;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+}
+
+.btn-voucher-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 8px 20px;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    animation: ctaBreathPulse 2.8s ease-in-out infinite;
+}
+
+.btn-voucher-cta:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55);
+    transform: translateY(-2px);
+}
+
+.btn-voucher-cta .cta-arrow {
+    transition: transform 0.2s ease;
+}
+
+.btn-voucher-cta:hover .cta-arrow {
+    transform: translateX(3px);
+}
+
+.voucher-activated-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.18);
+    border: 1px solid rgba(52, 211, 153, 0.5);
+    color: #d1fae5;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+
+.btn-voucher-info-link {
+    background: none;
+    border: none;
+    color: #6ee7b7;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.voucher-expired-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12.5px;
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+
+.voucher-footnote {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+/* Right Column: Visual Stage */
+.voucher-visual-col {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.voucher-leaf-stage {
+    position: relative;
+    width: 100%;
+    height: 185px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    background: #021a12;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.voucher-leaf-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    animation: leafFloat 8s ease-in-out infinite alternate;
+    transform-origin: center center;
+}
+
+/* Shimmer Light Sweep Layer */
+.emerald-light-sweep {
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 90%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0) 0%, rgba(52, 211, 153, 0.35) 50%, rgba(16, 185, 129, 0) 100%);
+    transform: skewX(-22deg);
+    animation: emeraldLightSweep 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* AI Laser Scanning Beam */
+.ai-scan-beam {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(52, 211, 153, 0) 0%, #34d399 50%, rgba(52, 211, 153, 0) 100%);
+    box-shadow: 0 0 14px 3px #34d399;
+    animation: aiScanBeam 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    pointer-events: none;
+}
+
+/* Concentric Radar Rings */
+.radar-detection-ring {
+    position: absolute;
+    top: 38%;
+    left: 48%;
+    transform: translate(-50%, -50%);
+    border: 1.5px solid rgba(52, 211, 153, 0.85);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.radar-detection-ring.ring-1 {
+    width: 20px;
+    height: 20px;
+    animation: pulseRadarRing 3s ease-out infinite;
+}
+
+.radar-detection-ring.ring-2 {
+    width: 20px;
+    height: 20px;
+    animation: pulseRadarRing 3s ease-out 1.5s infinite;
+}
+
+.hud-target-reticle {
+    position: absolute;
+    top: 38%;
+    left: 48%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.hud-target-reticle .reticle-dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 8px #34d399;
+}
+
+.hud-target-reticle .reticle-tag {
+    position: absolute;
+    top: -18px;
+    left: 10px;
+    font-size: 8.5px;
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+    color: #34d399;
+    letter-spacing: 0.08em;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 1px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+/* ==========================================================================
+   Continuous Seamless Keyframe Animations
+   ========================================================================== */
+
+@keyframes leafFloat {
+    0% {
+        transform: scale(1.02) translate(0, 0);
+    }
+    100% {
+        transform: scale(1.05) translate(-3px, -2px);
+    }
+}
+
+@keyframes emeraldLightSweep {
+    0% {
+        left: -120%;
+    }
+    40%, 100% {
+        left: 200%;
+    }
+}
+
+@keyframes aiScanBeam {
+    0% {
+        top: 0%;
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    85% {
+        opacity: 1;
+    }
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+@keyframes pulseRadarRing {
+    0% {
+        width: 14px;
+        height: 14px;
+        opacity: 0.9;
+    }
+    100% {
+        width: 80px;
+        height: 80px;
+        opacity: 0;
+    }
+}
+
+@keyframes particleDrift {
+    0% {
+        transform: translate(0, 0);
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(12px, -15px);
+        opacity: 0.4;
+    }
+}
+
+@keyframes ctaBreathPulse {
+    0%, 100% {
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+    50% {
+        box-shadow: 0 6px 22px rgba(16, 185, 129, 0.65), 0 0 0 3px rgba(52, 211, 153, 0.25);
+    }
+}
+
+/* ==========================================================================
+   Confirmation Modal Styles
+   ========================================================================== */
+
+.gari-voucher-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+    animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gari-voucher-modal-backdrop.show {
+    display: flex;
+}
+
+.gari-voucher-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface, #1e293b);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: var(--radius-xl, 16px);
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.6), 0 0 24px rgba(16, 185, 129, 0.15);
+    padding: 24px 26px;
+    color: var(--text-main, #f8fafc);
+}
+
+.btn-close-voucher-modal {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    background: var(--surface-muted, rgba(255, 255, 255, 0.05));
+    color: var(--text-muted, #94a3b8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-close-voucher-modal:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.voucher-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #10b981;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.voucher-modal-title {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-main, #f8fafc);
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.voucher-modal-intro {
+    font-size: 13px;
+    color: var(--text-secondary, #94a3b8);
+    line-height: 1.5;
+    margin: 0 0 16px;
+}
+
+.voucher-details-box {
+    background: var(--surface-muted, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.voucher-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+}
+
+.voucher-detail-item .detail-label {
+    color: var(--text-muted, #94a3b8);
+}
+
+.voucher-detail-item .detail-value {
+    color: var(--text-main, #f8fafc);
+    font-weight: 600;
+    text-align: right;
+}
+
+.voucher-detail-item .detail-value.highlight {
+    color: #10b981;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+}
+
+.voucher-modal-notice {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    margin-bottom: 16px;
+}
+
+.voucher-modal-notice.warning {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #f59e0b;
+}
+
+.voucher-modal-notice.error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+}
+
+.voucher-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.btn-confirm-voucher {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.btn-confirm-voucher:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.voucher-success-icon-wrap {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.15);
+    border: 2px solid #10b981;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ==========================================================================
+   Responsive Adaptations & Reduced Motion
+   ========================================================================== */
+
+@media (max-width: 860px) {
+    .voucher-banner-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .voucher-leaf-stage {
+        height: 150px;
+    }
+    .gari-vip-voucher-banner {
+        padding: 18px 18px;
+    }
+    .voucher-headline {
+        font-size: 19px;
+    }
+    .voucher-action-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .btn-voucher-cta {
+        width: 100%;
+        text-align: center;
+    }
+    .voucher-code-pill {
+        justify-content: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .voucher-leaf-img,
+    .emerald-light-sweep,
+    .ai-scan-beam,
+    .radar-detection-ring,
+    .voucher-particles-layer .particle,
+    .btn-voucher-cta,
+    .gari-voucher-modal-backdrop {
+        animation: none !important;
+        transition: none !important;
+    }
+    .emerald-light-sweep,
+    .ai-scan-beam,
+    .radar-detection-ring {
+        display: none !important;
+    }
+}

@@ -51,6 +51,17 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=8, max_length=128)
 
 
+class UserSubscription(BaseModel):
+    plan_id: str = "free"
+    plan_name: str = "Cá nhân Free"
+    is_vip: bool = False
+    is_trial: bool = False
+    daily_quota: int = 5
+    activated_at: Optional[str] = None
+    expires_at: Optional[str] = None
+    days_left: Optional[int] = None
+
+
 class UserResponse(BaseModel):
     id: int
     email: str
@@ -60,6 +71,8 @@ class UserResponse(BaseModel):
     is_verified: bool
     created_at: datetime
     updated_at: datetime
+    subscription: Optional[UserSubscription] = None
+    vip_trial: Optional[dict] = None
 
     model_config = ConfigDict(from_attributes=True)
 

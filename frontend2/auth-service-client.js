@@ -326,6 +326,50 @@ export class GariAuthServiceClient {
         }
         return { success: true, message: data.message };
     }
+
+    async activateVoucher(code) {
+        code = (code || '').trim();
+        if (!code) {
+            throw new Error('Vui lòng cung cấp mã voucher ưu đãi.');
+        }
+
+        const res = await withTimeout(
+            fetch(`${this.baseUrl}/api/v1/voucher/activate`, {
+                method: 'POST',
+                headers: this._getHeaders(true),
+                credentials: 'include',
+                body: JSON.stringify({ code })
+            }),
+            25000,
+            'Kích hoạt voucher quá thời gian chờ (25s).'
+        );
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            throw new Error(data.detail || 'Không thể kích hoạt voucher ưu đãi.');
+        }
+
+        // Refresh session to synchronize new VIP trial across all components
+        await this.checkCurrentSession();
+        this._broadcastAuthEvent('voucher_activated');
+        return data;
+    }
+
+    async getVoucherStatus(code = 'Gari-THPTNHD1') {
+        try {
+            const res = await withTimeout(
+                fetch(`${this.baseUrl}/api/v1/voucher/status?code=${encodeURIComponent(code)}`, {
+                    headers: this._getHeaders(false),
+                    credentials: 'include'
+                }),
+                10000
+            );
+            if (res.ok) {
+                return await res.json();
+            }
+        } catch (_) {}
+        return { is_activated: false, is_expired: false };
+    }
 }
 
 // Global instance registration

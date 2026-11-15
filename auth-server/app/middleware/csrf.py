@@ -14,6 +14,8 @@ EXEMPT_PATHS = {
     "/api/auth/register",
     "/api/v1/auth/logout",
     "/api/auth/logout",
+    "/api/v1/voucher/activate",
+    "/api/voucher/activate",
     "/api/v1/auth/csrf",
     "/api/auth/csrf",
     "/api/v1/admin/bootstrap",

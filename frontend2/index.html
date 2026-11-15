@@ -86,6 +86,9 @@
                     </div>
                 </section>
 
+                <!-- VIP 7-DAY VOUCHER CAMPAIGN BANNER (THPT Nguyễn Hồng Đạo) -->
+                <div id="gariVoucherBannerContainer" style="margin-top: 18px; margin-bottom: 24px;"></div>
+
                 <!-- C. Quick-access Feature Cards -->
                 <section class="quick-access-section" aria-label="Tính năng thao tác nhanh">
                     <div class="quick-access-scroll-track" id="quickAccessTrack">
@@ -352,6 +355,7 @@
     <script type="module">
         import { setupSaaSShell, fetchJSON, toast, AUTH_TOKEN_KEY } from '/static/frontend2/app.js?v=20261104_redesign';
         import { formatCropName, formatDiseaseName } from '/static/frontend2/localization.js';
+        import { initVoucherBanner } from '/static/frontend2/voucher-banner.js';
 
         let currentSelectedFile = null;
 
@@ -362,6 +366,7 @@
             initDashboardInteractions();
             loadProductionFarms();
             checkProBanner();
+            try { initVoucherBanner('gariVoucherBannerContainer'); } catch(e) { console.warn('Banner init:', e); }
         }
 
         if (document.readyState === 'loading') {

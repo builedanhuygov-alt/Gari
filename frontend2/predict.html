@@ -1396,6 +1396,11 @@
                 </div>
 
                 <!-- ========================================================================= -->
+                <!-- VIP 7-DAY VOUCHER CAMPAIGN BANNER (THPT Nguyễn Hồng Đạo)                 -->
+                <!-- ========================================================================= -->
+                <div id="gariVoucherBannerContainer"></div>
+
+                <!-- ========================================================================= -->
                 <!-- 2. UNAUTHENTICATED ONBOARDING GATEWAY (Visible when not logged in)        -->
                 <!-- ========================================================================= -->
                 <div id="authOnboardingGateway" style="margin-bottom:24px; padding:24px; background:linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.04) 100%); border:1.5px solid rgba(16,185,129,0.25); border-radius:var(--radius-lg);">
@@ -2683,6 +2688,7 @@
         import { setupSaaSShell, fetchJSON, bindDropzone, toast } from '/static/frontend2/app.js?v=20261104_stable';
         import '/frontend2/firebase-client.js';
         import { formatCropName, formatDiseaseName } from '/static/frontend2/localization.js';
+        import { initVoucherBanner } from '/static/frontend2/voucher-banner.js';
 
         let selectedFile = null;
         let currentResultData = null;
@@ -2708,6 +2714,7 @@
             initDiagnosis();
             initViewerEvents();
             initTierModal();
+            try { initVoucherBanner('gariVoucherBannerContainer'); } catch(e) { console.warn('Banner init:', e); }
 
         // Expert review modal handlers
         (function setupExpertModal() {
