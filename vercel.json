@@ -131,6 +131,22 @@
       "destination": "/api"
     },
     {
+      "source": "/api/v1/voucher/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/api/v1/voucher",
+      "destination": "/api"
+    },
+    {
+      "source": "/api/voucher/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/api/voucher",
+      "destination": "/api"
+    },
+    {
       "source": "/api/predict/(.*)",
       "destination": "/api/[...path]?path=predict/$1"
     },
