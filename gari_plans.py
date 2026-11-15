@@ -45,7 +45,7 @@ PRODUCT_PLANS: Dict[str, Dict[str, Any]] = {
         "price": 0,
         "price_status": "free",
         "currency": "VND",
-        "quota_limit": 3,
+        "quota_limit": 5,
         "is_unlimited_quota": False,
         "refresh_hours": 24,
         "max_members": 1,

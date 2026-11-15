@@ -3332,26 +3332,58 @@
         let currentQuotaData = null;
 
         async function loadQuotaStatus() {
+            const badge = document.getElementById('quotaBadgePill');
+            const sub = document.getElementById('quotaSubText');
+            const pBar = document.getElementById('quotaProgressBar');
+            const exhCard = document.getElementById('quotaExhaustedCard');
+            const btnPredict = document.getElementById('btnPredict');
+
+            // 1. Loading State
+            if (badge) {
+                badge.className = 'pill pill-outline';
+                badge.innerHTML = '<span class="status-dot"></span> Đang tải lượt...';
+            }
+            if (sub) sub.textContent = 'Đang đồng bộ hạn mức chẩn đoán...';
+            if (pBar) pBar.style.width = '30%';
+
             try {
-                if (!activeUser) {
-                    toast('Vui lòng đăng nhập để sử dụng công cụ chẩn đoán AI.', 'warning');
-                    document.getElementById('authOnboardingGateway')?.scrollIntoView({ behavior: 'smooth' });
-                    document.getElementById('loginEmail')?.focus();
-                    return;
-                }
                 const headers = window.gariAuth ? window.gariAuth.getAuthHeaders() : {};
                 delete headers['Content-Type'];
+                
+                let quotaUrl = '/api/user/quota';
                 if (activeOrgId) {
-                    fd.append('org_id', activeOrgId);
+                    quotaUrl += `?org_id=${encodeURIComponent(activeOrgId)}`;
                 }
-                const res = await fetch('/api/user/quota', { headers, credentials: 'include' });
-                if (!res.ok) return;
+
+                const res = await fetch(quotaUrl, { headers, credentials: 'include' });
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
                 const data = await res.json();
-                if (data.quota) {
+                if (data && data.quota) {
                     updateQuotaUI(data.quota);
+                } else {
+                    throw new Error('Dữ liệu phản hồi không hợp lệ');
                 }
             } catch (err) {
                 console.warn('Could not load quota:', err);
+                currentQuotaData = null; // Fail closed
+                if (badge) {
+                    badge.className = 'pill pill-danger';
+                    badge.innerHTML = '⚠️ Không tải được hạn mức';
+                }
+                if (sub) {
+                    sub.innerHTML = '<span style="color:var(--danger); font-weight:600;">Lỗi kết nối máy chủ hạn ngạch.</span> <button type="button" id="btnRetryQuota" style="background:var(--primary); color:white; border:none; padding:3px 10px; border-radius:6px; font-size:11.5px; font-weight:600; cursor:pointer; margin-left:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">Thử lại</button>';
+                    const btnRetry = document.getElementById('btnRetryQuota');
+                    if (btnRetry) btnRetry.onclick = () => loadQuotaStatus();
+                }
+                if (pBar) pBar.style.width = '0%';
+                if (exhCard) exhCard.style.display = 'none';
+
+                if (btnPredict) {
+                    btnPredict.disabled = true;
+                    btnPredict.title = 'Vui lòng bấm Thử lại để tải thông tin hạn ngạch trước khi chẩn đoán';
+                }
             }
         }
 
@@ -3367,54 +3399,58 @@
 
             if (!badge || !sub) return;
 
-            if (quota.is_vip) {
+            if (quota.is_vip || quota.is_unlimited) {
                 badge.className = 'pill pill-warning';
                 badge.textContent = '👑 VIP — Không giới hạn';
                 sub.textContent = 'Tài khoản VIP được phép phân loại không giới hạn';
                 if (pCont) pCont.style.display = 'none';
                 if (exhCard) exhCard.style.display = 'none';
-                if (btnPredict) btnPredict.disabled = false;
+                if (btnPredict) {
+                    btnPredict.disabled = false;
+                    btnPredict.title = '';
+                }
                 return;
             }
 
             if (pCont) pCont.style.display = 'block';
-            const rem = quota.remaining != null ? quota.remaining : 0;
+            const used = quota.used_count != null ? quota.used_count : 0;
             const lim = quota.quota_limit || 5;
-            badge.textContent = `${rem}/${lim} lượt còn lại`;
+            const rem = quota.remaining != null ? quota.remaining : Math.max(0, lim - used);
 
-            if (rem > 2) {
-                badge.className = 'pill pill-success';
-                if (pBar) pBar.style.background = 'var(--primary)';
-            } else if (rem > 0) {
-                badge.className = 'pill pill-warning';
-                if (pBar) pBar.style.background = '#f59e0b';
-            } else {
-                badge.className = 'pill pill-danger';
-                if (pBar) pBar.style.background = 'var(--danger)';
-            }
-
-            const pct = Math.max(0, Math.min(100, (rem / lim) * 100));
-            if (pBar) pBar.style.width = `${pct}%`;
-
-            sub.textContent = `Làm mới sau: ${quota.resets_in_human || '24 giờ'} (${quota.cycle_end_formatted || ''})`;
-
-            if (rem <= 0) {
-                if (exhCard) {
-                    exhCard.style.display = 'block';
-                    document.getElementById('quotaExhaustedMsg').textContent =
-                        quota.exhausted_message_vi || `Bạn đã dùng hết lượt phân loại miễn phí. Lượt tiếp theo sẽ được cấp lại vào ${quota.cycle_end_formatted || 'ngày mai'}.`;
+            // Display standard format: Đã dùng X/5 lượt hôm nay (Y lượt còn lại)
+            if (rem > 0) {
+                badge.textContent = `Đã dùng ${used}/${lim} lượt (${rem} còn lại)`;
+                if (rem > 2) {
+                    badge.className = 'pill pill-success';
+                    if (pBar) pBar.style.background = 'var(--primary)';
+                } else {
+                    badge.className = 'pill pill-warning';
+                    if (pBar) pBar.style.background = '#f59e0b';
                 }
-                if (btnPredict) {
-                    btnPredict.disabled = true;
-                    btnPredict.title = 'Đã hết lượt phân loại miễn phí hôm nay';
-                }
-            } else {
+                sub.textContent = `Làm mới sau: ${quota.resets_in_human || '24 giờ'} (${quota.cycle_end_formatted || ''})`;
                 if (exhCard) exhCard.style.display = 'none';
                 if (btnPredict) {
                     btnPredict.disabled = false;
                     btnPredict.title = '';
                 }
+            } else {
+                badge.className = 'pill pill-danger';
+                badge.textContent = `Hết lượt (${used}/${lim})`;
+                if (pBar) pBar.style.background = 'var(--danger)';
+                sub.textContent = `Bạn đã sử dụng hết ${lim} lượt hôm nay. Làm mới lúc ${quota.cycle_end_formatted || 'ngày mai'}.`;
+                if (exhCard) {
+                    exhCard.style.display = 'block';
+                    document.getElementById('quotaExhaustedMsg').textContent =
+                        quota.exhausted_message_vi || `Bạn đã dùng hết ${lim} lượt phân loại hôm nay. Lượt tiếp theo sẽ được cấp lại vào ${quota.cycle_end_formatted || 'ngày mai'}.`;
+                }
+                if (btnPredict) {
+                    btnPredict.disabled = true;
+                    btnPredict.title = 'Bạn đã sử dụng hết lượt phân loại miễn phí hôm nay';
+                }
             }
+
+            const pct = Math.max(0, Math.min(100, (rem / lim) * 100));
+            if (pBar) pBar.style.width = `${pct}%`;
         }
 
         async function loadSupportedCrops() {
@@ -3493,10 +3529,11 @@
                 }
                 const headers = window.gariAuth ? window.gariAuth.getAuthHeaders() : {};
                 delete headers['Content-Type'];
+                let ctxUrl = '/api/user/diagnosis-contexts';
                 if (activeOrgId) {
-                    fd.append('org_id', activeOrgId);
+                    ctxUrl += `?org_id=${encodeURIComponent(activeOrgId)}`;
                 }
-                const res = await fetch('/api/user/diagnosis-contexts', { headers, credentials: 'include' });
+                const res = await fetch(ctxUrl, { headers, credentials: 'include' });
                 if (!res.ok) throw new Error('API failed');
                 const data = await res.json();
                 diagnosisContextsData = data;
@@ -3810,16 +3847,23 @@
                 return;
             }
 
-            // Quota pre-check on client before sending
-            if (currentQuotaData && !currentQuotaData.is_vip && currentQuotaData.remaining <= 0) {
-                const exhMsg = currentQuotaData.exhausted_message_vi || 'Bạn đã dùng hết lượt phân loại miễn phí. Lượt tiếp theo sẽ được cấp lại sau.';
+            // Quota pre-check on client before sending (Fail-closed)
+            if (!currentQuotaData) {
+                toast('Chưa tải được thông tin hạn ngạch chẩn đoán. Vui lòng bấm Thử lại trên thanh trạng thái.', 'error');
+                const badge = document.getElementById('quotaBadgePill');
+                if (badge) badge.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            if (!currentQuotaData.is_vip && !currentQuotaData.is_unlimited && currentQuotaData.remaining <= 0) {
+                const exhMsg = currentQuotaData.exhausted_message_vi || 'Bạn đã dùng hết 5 lượt phân loại hôm nay. Lượt tiếp theo sẽ được cấp lại vào ngày mai.';
                 const exhCard = document.getElementById('quotaExhaustedCard');
                 if (exhCard) {
                     exhCard.style.display = 'block';
                     document.getElementById('quotaExhaustedMsg').textContent = exhMsg;
                     exhCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-                toast(exhMsg);
+                toast(exhMsg, 'error');
                 return;
             }
 
