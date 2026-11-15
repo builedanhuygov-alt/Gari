@@ -1,0 +1,402 @@
+/**
+ * GARI 3.0 — PREMIUM MOTION & INTERACTION SYSTEM
+ * Optimized for 60 FPS performance, subtle micro-interactions,
+ * hardware acceleration (transform & opacity), and full accessibility.
+ */
+
+:root {
+    /* Motion Durations */
+    --gari-motion-instant: 100ms;
+    --gari-motion-fast: 180ms;
+    --gari-motion-base: 280ms;
+    --gari-motion-slow: 450ms;
+    --gari-motion-slower: 700ms;
+    --gari-motion-lazy: 1200ms;
+
+    /* Motion Easings */
+    --gari-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --gari-ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+    --gari-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --gari-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ==========================================================================
+   1. ENTRANCE & STAGGER SYSTEM
+   ========================================================================== */
+
+@keyframes gariFadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes gariFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes gariScaleIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.gari-motion-enter {
+    animation: gariFadeSlideUp var(--gari-motion-slow) var(--gari-ease-smooth) backwards;
+    will-change: transform, opacity;
+}
+
+.stagger-1 { animation-delay: 40ms; }
+.stagger-2 { animation-delay: 90ms; }
+.stagger-3 { animation-delay: 140ms; }
+.stagger-4 { animation-delay: 190ms; }
+.stagger-5 { animation-delay: 240ms; }
+.stagger-6 { animation-delay: 290ms; }
+.stagger-7 { animation-delay: 340ms; }
+.stagger-8 { animation-delay: 390ms; }
+
+/* ==========================================================================
+   2. CARD MICRO-INTERACTIONS & HOVER LIFTS
+   ========================================================================== */
+
+.gari-interactive-card {
+    transition: transform var(--gari-motion-base) var(--gari-ease-smooth),
+                box-shadow var(--gari-motion-base) var(--gari-ease-smooth),
+                border-color var(--gari-motion-base) var(--gari-ease-smooth);
+    will-change: transform, box-shadow;
+}
+
+.gari-interactive-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px -10px rgba(7, 34, 25, 0.12),
+                0 4px 12px -2px rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.45);
+}
+
+/* ==========================================================================
+   3. BUTTON MICRO-INTERACTIONS & BREATHING PULSE
+   ========================================================================== */
+
+.gari-btn-motion {
+    position: relative;
+    overflow: hidden;
+    transition: transform var(--gari-motion-fast) var(--gari-ease-spring),
+                box-shadow var(--gari-motion-base) var(--gari-ease-smooth),
+                background var(--gari-motion-base) ease;
+    will-change: transform;
+}
+
+.gari-btn-motion:hover {
+    transform: translateY(-2px);
+}
+
+.gari-btn-motion:active {
+    transform: scale(0.96) translateY(0);
+    transition-duration: 70ms;
+}
+
+/* Primary CTA Breathing Glow */
+@keyframes gariCtaBreathingGlow {
+    0%, 100% {
+        box-shadow: 0 6px 20px -2px rgba(16, 185, 129, 0.4),
+                    0 0 0 1px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        box-shadow: 0 10px 28px 0px rgba(16, 185, 129, 0.65),
+                    0 0 18px 2px rgba(52, 211, 153, 0.35);
+    }
+}
+
+.gari-breathing-cta {
+    animation: gariCtaBreathingGlow 3.5s ease-in-out infinite;
+}
+
+.gari-breathing-cta:hover {
+    animation: none;
+    box-shadow: 0 12px 32px 0 rgba(16, 185, 129, 0.7),
+                0 0 22px rgba(52, 211, 153, 0.5);
+}
+
+/* Light sweep across buttons */
+.gari-btn-motion::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -70%;
+    width: 50%;
+    height: 200%;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.25) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-25deg);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--gari-motion-fast) ease;
+}
+
+.gari-btn-motion:hover::after {
+    opacity: 1;
+    animation: gariButtonShine 0.85s var(--gari-ease-smooth) forwards;
+}
+
+@keyframes gariButtonShine {
+    0% {
+        left: -70%;
+    }
+    100% {
+        left: 140%;
+    }
+}
+
+/* ==========================================================================
+   4. VIP CAMPAIGN CONTINUOUS LOOP ANIMATIONS
+   ========================================================================== */
+
+/* Light Sweep effect across banner */
+@keyframes gariBannerSheen {
+    0% {
+        transform: translateX(-160%) skewX(-20deg);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.6;
+    }
+    35% {
+        transform: translateX(260%) skewX(-20deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(260%) skewX(-20deg);
+        opacity: 0;
+    }
+}
+
+.gari-banner-sheen-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.08) 35%,
+        rgba(16, 185, 129, 0.22) 50%,
+        rgba(255, 255, 255, 0.12) 65%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+    animation: gariBannerSheen 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Particle drift in banner */
+@keyframes gariParticleDrift {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.35;
+    }
+    50% {
+        transform: translate(10px, -14px) scale(1.25);
+        opacity: 0.85;
+    }
+    100% {
+        transform: translate(-8px, 10px) scale(0.9);
+        opacity: 0.45;
+    }
+}
+
+.gari-floating-particle {
+    animation: gariParticleDrift 6.5s ease-in-out infinite alternate;
+}
+
+/* Subtle leaf float animation */
+@keyframes gariLeafWatermarkFloat {
+    0%, 100% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(2.5deg) scale(1.03) translateY(-3px);
+    }
+}
+
+.gari-leaf-floating {
+    animation: gariLeafWatermarkFloat 7s ease-in-out infinite;
+    transform-origin: bottom center;
+}
+
+/* ==========================================================================
+   5. AI DIAGNOSIS SCANNER & DROPZONE
+   ========================================================================== */
+
+/* Scanning laser bar */
+@keyframes gariScanLaserMove {
+    0% {
+        top: 0%;
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+.gari-scan-laser-beam {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, #10b981 20%, #6ee7b7 50%, #10b981 80%, transparent 100%);
+    box-shadow: 0 0 14px #10b981, 0 0 28px rgba(16, 185, 129, 0.6);
+    pointer-events: none;
+    z-index: 5;
+    animation: gariScanLaserMove 2.4s ease-in-out infinite alternate;
+}
+
+/* Dropzone dragover pulse */
+@keyframes gariDropzonePulse {
+    0%, 100% {
+        border-color: #10b981;
+        background-color: rgba(16, 185, 129, 0.08);
+    }
+    50% {
+        border-color: #34d399;
+        background-color: rgba(16, 185, 129, 0.14);
+    }
+}
+
+.gari-dropzone-active {
+    animation: gariDropzonePulse 1.4s ease-in-out infinite;
+    transform: scale(1.01);
+}
+
+/* ==========================================================================
+   6. SVG SPLINE CHART & PROGRESS ANIMATIONS
+   ========================================================================== */
+
+@keyframes gariDrawSplinePath {
+    0% {
+        stroke-dashoffset: 700;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+.gari-chart-spline-path {
+    stroke-dasharray: 700;
+    stroke-dashoffset: 700;
+    animation: gariDrawSplinePath 1.6s var(--gari-ease-smooth) forwards;
+    animation-delay: 200ms;
+}
+
+@keyframes gariChartAreaFade {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.gari-chart-area-fill {
+    opacity: 0;
+    animation: gariChartAreaFade 1.2s ease forwards;
+    animation-delay: 600ms;
+}
+
+@keyframes gariPeakPulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.6));
+    }
+    50% {
+        transform: scale(1.25);
+        filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.9));
+    }
+}
+
+.gari-peak-pulse-dot {
+    transform-origin: center;
+    animation: gariPeakPulse 2.2s ease-in-out infinite;
+}
+
+/* VIP Countdown progress bar fill */
+@keyframes gariProgressFill {
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 85.7%; /* 6 days out of 7 */
+    }
+}
+
+.gari-progress-fill-animated {
+    width: 0%;
+    animation: gariProgressFill 1.4s var(--gari-ease-smooth) forwards;
+    animation-delay: 300ms;
+}
+
+/* ==========================================================================
+   7. ACCESSIBILITY OVERRIDES (prefers-reduced-motion)
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .gari-banner-sheen-line,
+    .gari-floating-particle,
+    .gari-leaf-floating,
+    .gari-scan-laser-beam,
+    .gari-breathing-cta,
+    .gari-peak-pulse-dot {
+        animation: none !important;
+    }
+
+    .gari-chart-spline-path {
+        stroke-dashoffset: 0 !important;
+    }
+
+    .gari-chart-area-fill {
+        opacity: 1 !important;
+    }
+
+    .gari-progress-fill-animated {
+        width: 85.7% !important;
+    }
+
+    .gari-interactive-card:hover {
+        transform: none !important;
+    }
+
+    .gari-btn-motion:hover,
+    .gari-btn-motion:active {
+        transform: none !important;
+    }
+}

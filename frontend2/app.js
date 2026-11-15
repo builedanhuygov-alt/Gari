@@ -46,10 +46,9 @@ export function getNavGroups(currentUser) {
 
     const groups = [
         {
-            title: 'NÔNG HỘ',
+            title: '',
             links: [
-                { key: 'overview', href: '/frontend2/index.html', label: 'Tổng quan vườn', icon: ICONS.overview },
-                { key: 'farms', href: '/frontend2/farms.html', label: 'Vườn trồng & Nông trại', icon: ICONS.farms },
+                { key: 'overview', href: '/frontend2/index.html', label: 'Trang chủ', icon: ICONS.overview },
                 { key: 'predict', href: '/frontend2/predict.html', label: 'GARI Leaf Intelligence', icon: ICONS.predict },
                 { key: 'agents', href: '/frontend2/agents.html', label: 'Trợ lý AI Nông nghiệp', icon: ICONS.bot },
                 { key: 'reports', href: '/frontend2/reports.html', label: 'Lịch sử chẩn đoán', icon: ICONS.reports },
@@ -58,24 +57,18 @@ export function getNavGroups(currentUser) {
         {
             title: 'CHĂM SÓC CÂY TRỒNG',
             links: [
-                { key: 'calendar', href: '/frontend2/crops.html#calendar', label: 'Lịch canh tác thông minh', icon: ICONS.calendar },
+                { key: 'calendar', href: '/frontend2/calendar.html', label: 'Lịch canh tác thông minh', icon: ICONS.calendar },
                 { key: 'crops', href: '/frontend2/crops.html', label: 'Thư viện cây trồng', icon: ICONS.crops },
                 { key: 'disease', href: '/frontend2/disease.html', label: 'Thư viện bệnh cây', icon: ICONS.disease },
                 { key: 'support', href: '/frontend2/support.html', label: 'Tư vấn chuyên gia', icon: ICONS.support },
-                { key: 'community', href: '/frontend2/community.html', label: 'Cộng đồng & Tri thức', icon: ICONS.community },
             ]
         },
         {
-            title: 'THEO DÕI RỦI RO',
+            title: 'HỆ THỐNG',
             links: [
-                { key: 'risk', href: '/frontend2/risk.html', label: 'Cảnh báo dịch hại & Giám sát', icon: ICONS.risk },
-            ]
-        },
-        {
-            title: 'DỊCH VỤ',
-            links: [
-                { key: 'pricing', href: '/frontend2/pricing.html', label: 'Gói dịch vụ & Pilot', icon: ICONS.sparkles },
-                { key: 'collect', href: '/frontend2/collect.html', label: 'Thu thập thực địa', icon: ICONS.camera },
+                { key: 'pricing', href: '/frontend2/pricing.html', label: 'Gói dịch vụ', icon: ICONS.sparkles },
+                { key: 'farms', href: '/frontend2/farms.html', label: 'Vườn của tôi', icon: ICONS.farms, badge: 'Sắp ra mắt' },
+                { key: 'community', href: '/frontend2/community.html', label: 'Cộng đồng', icon: ICONS.community, badge: 'Sắp ra mắt' },
             ]
         }
     ];
@@ -338,9 +331,13 @@ export function updateShellAuthUI(user, state) {
     if (topbarAuth) {
         if (isAuth) {
             topbarAuth.innerHTML = `
-                <div class="user-profile topbar-avatar-only" id="userProfileBtn" title="Hồ sơ: ${userFullName} (${userAccountType})">
-                    <div class="user-avatar" id="topbarAvatar">${initials}</div>
-                    <span class="user-avatar-caret" style="margin-left:4px; font-size:11px; opacity:0.7;">▾</span>
+                <div class="user-profile topbar-profile-pill" id="userProfileBtn" title="Hồ sơ: ${userFullName} (${userAccountType})" style="display:flex; align-items:center; cursor:pointer; padding:3px 10px 3px 4px; border-radius:9999px; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.25);">
+                    <div class="user-avatar" id="topbarAvatar" style="background:#065f46; color:#ffffff; font-weight:700;">${initials}</div>
+                    <div class="topbar-user-info-desktop" style="display:flex; flex-direction:column; text-align:left; margin-left:7px; line-height:1.2;">
+                        <span style="font-weight:700; font-size:12.5px; color:var(--text-main);">${userFullName}</span>
+                        <span style="font-size:10.5px; color:#10b981; font-weight:600;">VIP (Còn 6 ngày)</span>
+                    </div>
+                    <span class="user-avatar-caret" style="margin-left:6px; font-size:10px; opacity:0.6;">▾</span>
                 </div>
                 <div class="user-dropdown-panel" id="userDropdownPanel">
                     <div class="user-dropdown-header">
@@ -1010,8 +1007,8 @@ export async function fetchJSON(url, opts = {}) {
             localStorage.removeItem(AUTH_TOKEN_KEY);
             localStorage.removeItem(USER_INFO_KEY);
             const currentPath = window.location.pathname + window.location.search;
-            const isPublicPage = currentPath === '/' || currentPath === '/dashboard' || currentPath.includes('index.html') || currentPath.includes('predict.html') || currentPath.includes('landing.html');
-            if (!isPublicPage && !currentPath.includes('login.html') && !currentPath.includes('register.html')) {
+            const isPublicPage = currentPath === '/' || currentPath === '/frontend2' || currentPath === '/frontend2/' || currentPath.includes('index') || currentPath.includes('predict') || currentPath.includes('landing');
+            if (!isPublicPage && !currentPath.includes('login') && !currentPath.includes('register')) {
                 window.location.href = `/frontend2/login.html?redirect=${encodeURIComponent(currentPath)}`;
             }
             throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');

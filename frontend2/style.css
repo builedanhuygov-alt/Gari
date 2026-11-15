@@ -437,11 +437,11 @@ button, input, select, textarea {
 }
 
 .nav-link.active {
-    background: #22c55e;
+    background: #10b981;
     color: #ffffff !important;
     font-weight: 700;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(34, 197, 94, 0.35);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
 }
 
 .nav-link.active .nav-link-icon svg {
@@ -6821,4 +6821,688 @@ body.copilot-open {
     .radar-detection-ring {
         display: none !important;
     }
+}
+
+
+/* ==========================================================================
+   GARI 3.0 — MODULAR CARDS & DASHBOARD SYSTEM (DESIGN FREEZE)
+   ========================================================================== */
+
+.gari3-dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: 22px;
+    align-items: start;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+}
+
+@media (max-width: 1180px) {
+    .gari3-dashboard-grid {
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 18px;
+    }
+}
+
+@media (max-width: 960px) {
+    .gari3-dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+.gari3-main-col {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+
+.gari3-side-col {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+
+/* 1. KPI Metric Row */
+.gari3-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 820px) {
+    .gari3-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .gari3-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.gari3-kpi-card {
+    background: var(--surface-card, #ffffff);
+    border: 1px solid rgba(16, 185, 129, 0.16);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 16px -2px rgba(7, 34, 25, 0.04);
+}
+
+.gari3-kpi-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.gari3-kpi-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.gari3-kpi-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+}
+
+.gari3-kpi-body {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.gari3-kpi-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main, #0f291e);
+    letter-spacing: -0.02em;
+}
+
+.gari3-kpi-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+}
+
+.gari3-kpi-decor {
+    margin-top: 8px;
+    height: 4px;
+    border-radius: 2px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.gari3-kpi-decor-fill {
+    height: 100%;
+    background: #10b981;
+    width: 35%;
+}
+
+.gari3-kpi-wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 18px;
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+/* 2. AI Diagnosis Workspace Card */
+.gari3-workspace-card {
+    background: var(--surface-card, #ffffff);
+    border: 1px solid rgba(16, 185, 129, 0.22);
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 6px 24px -4px rgba(7, 34, 25, 0.06);
+}
+
+.gari3-workspace-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.gari3-workspace-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gari3-workspace-sparkle {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.gari3-workspace-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-main, #0f291e);
+    margin: 0;
+}
+
+.gari3-btn-process-guide {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #059669;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gari3-btn-process-guide:hover {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: #10b981;
+}
+
+.gari3-workspace-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 22px;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .gari3-workspace-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.gari3-dropzone-box {
+    position: relative;
+    background: #f7fcf9;
+    border: 1.5px dashed rgba(16, 185, 129, 0.45);
+    border-radius: 16px;
+    padding: 34px 20px;
+    text-align: center;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.gari3-corner-leaf {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    opacity: 0.18;
+    pointer-events: none;
+}
+
+.gari3-corner-leaf.top-left {
+    top: -4px;
+    left: -4px;
+}
+
+.gari3-corner-leaf.bottom-right {
+    bottom: -4px;
+    right: -4px;
+}
+
+.gari3-upload-cloud-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    transition: transform 0.25s ease;
+}
+
+.gari3-dropzone-box:hover .gari3-upload-cloud-icon {
+    transform: translateY(-3px) scale(1.05);
+}
+
+.gari3-dropzone-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main, #0f291e);
+    margin-bottom: 4px;
+}
+
+.gari3-dropzone-sub {
+    font-size: 13px;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 4px;
+}
+
+.gari3-dropzone-formats {
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin-bottom: 18px;
+}
+
+.gari3-dropzone-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gari3-btn-dropzone-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.gari3-btn-dropzone-action.primary {
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.gari3-btn-dropzone-action.secondary {
+    background: #ffffff;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #065f46;
+}
+
+.gari3-options-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.gari3-options-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-main, #0f291e);
+}
+
+.gari3-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.gari3-form-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.gari3-select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: var(--surface-card, #ffffff);
+    color: var(--text-main, #0f291e);
+    font-size: 13.5px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.gari3-select:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.gari3-btn-start-diag {
+    width: 100%;
+    padding: 13px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 6px 20px -2px rgba(16, 185, 129, 0.4);
+}
+
+.gari3-quota-notice {
+    font-size: 11.5px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+}
+
+/* 3. Quick Discovery Row */
+.gari3-discovery-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.gari3-discovery-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main, #0f291e);
+}
+
+.gari3-discovery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 820px) {
+    .gari3-discovery-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .gari3-discovery-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.gari3-discovery-card {
+    background: var(--surface-card, #ffffff);
+    border: 1px solid rgba(16, 185, 129, 0.14);
+    border-radius: 12px;
+    padding: 16px 16px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: inherit;
+    box-shadow: 0 2px 10px -2px rgba(7, 34, 25, 0.03);
+}
+
+.gari3-discovery-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gari3-discovery-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-main, #0f291e);
+}
+
+.gari3-discovery-desc {
+    font-size: 11.5px;
+    color: var(--text-muted, #64748b);
+    line-height: 1.4;
+}
+
+/* 4. Right Column: User Profile & VIP */
+.gari3-profile-card {
+    background: var(--surface-card, #ffffff);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 16px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 16px -2px rgba(7, 34, 25, 0.04);
+}
+
+.gari3-profile-corner-leaf {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 65px;
+    height: 65px;
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+.gari3-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.gari3-profile-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(6, 95, 70, 0.25);
+}
+
+.gari3-profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.gari3-profile-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main, #0f291e);
+}
+
+.gari3-profile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.gari3-profile-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.gari3-progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--text-muted, #64748b);
+}
+
+.gari3-progress-track {
+    width: 100%;
+    height: 7px;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.gari3-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    border-radius: 9999px;
+}
+
+.gari3-progress-expiry {
+    font-size: 11.5px;
+    color: #94a3b8;
+}
+
+/* 5. Right Column: Recent Diagnoses & Trend Chart */
+.gari3-recent-card,
+.gari3-trend-card {
+    background: var(--surface-card, #ffffff);
+    border: 1px solid rgba(16, 185, 129, 0.16);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 4px 16px -2px rgba(7, 34, 25, 0.04);
+}
+
+.gari3-card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.gari3-card-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text-main, #0f291e);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.gari3-card-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: #10b981;
+    text-decoration: none;
+}
+
+.gari3-card-select-sm {
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    padding: 3px 8px;
+    font-size: 11.5px;
+    color: #64748b;
+    background: transparent;
+    outline: none;
+}
+
+.gari3-recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gari3-recent-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.gari3-recent-item:hover {
+    background: #f0fdf4;
+}
+
+.gari3-recent-thumb-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gari3-recent-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.gari3-recent-crop {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main, #0f291e);
+}
+
+.gari3-recent-disease {
+    font-size: 11.5px;
+    color: var(--text-muted, #64748b);
+}
+
+.gari3-recent-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.gari3-recent-score {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #059669;
+}
+
+.gari3-recent-time {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.gari3-trend-chart-box {
+    margin-top: 8px;
 }

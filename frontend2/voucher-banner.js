@@ -45,12 +45,15 @@ export class GariVoucherBanner {
 
         container.innerHTML = `
             <div class="gari-vip-voucher-banner" id="gariVipVoucherBanner" role="region" aria-label="Chương trình ưu đãi GARI VIP THPT Nguyễn Hồng Đạo">
+                <!-- Light Sweep Sheen Line -->
+                <div class="gari-banner-sheen-line"></div>
+
                 <!-- Ambient Glow Overlays -->
                 <div class="voucher-ambient-glow"></div>
                 <div class="voucher-particles-layer">
-                    <span class="particle p1"></span>
-                    <span class="particle p2"></span>
-                    <span class="particle p3"></span>
+                    <span class="particle p1 gari-floating-particle"></span>
+                    <span class="particle p2 gari-floating-particle"></span>
+                    <span class="particle p3 gari-floating-particle"></span>
                 </div>
 
                 <div class="voucher-banner-grid">
@@ -118,6 +121,13 @@ export class GariVoucherBanner {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Carousel Dots Indicator -->
+                <div class="voucher-dots-row" style="display:flex; justify-content:center; align-items:center; gap:6px; margin-top:14px;">
+                    <span style="width:20px; height:4px; border-radius:2px; background:#10b981; display:inline-block; transition:all 0.3s ease;"></span>
+                    <span style="width:5px; height:4px; border-radius:2px; background:rgba(255,255,255,0.3); display:inline-block;"></span>
+                    <span style="width:5px; height:4px; border-radius:2px; background:rgba(255,255,255,0.3); display:inline-block;"></span>
                 </div>
             </div>
         `;

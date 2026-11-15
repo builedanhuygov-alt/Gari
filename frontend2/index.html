@@ -9,6 +9,7 @@
     <title>GARI • Trợ lý nông nghiệp AI</title>
     <script src="/frontend2/features.js"></script>
     <link rel="stylesheet" href="/static/frontend2/style.css?v=20261104_redesign">
+    <link rel="stylesheet" href="/static/frontend2/motion.css?v=20261104_motion">
     <script>
         try {
             var t = localStorage.getItem('gari-theme');
@@ -30,301 +31,342 @@
             <!-- A. Mobile Top Bar (Managed by setupSaaSShell) -->
             <header class="app-topbar" id="appTopbar"></header>
 
-            <!-- Page Body: Mobile-First Redesigned Home Dashboard -->
-            <main class="content-body dashboard-mobile-redesign">
-                
-                <!-- B. Hero Banner -->
-                <section class="hero-banner-v2" id="heroBanner" aria-label="Giới thiệu GARI AI">
-                    <div class="hero-bg-container">
-                        <img src="/static/frontend2/images/hero_terraces_landscape.jpg" alt="Ruộng bậc thang nông nghiệp Việt Nam" class="hero-bg-img" loading="eager">
-                        <div class="hero-gradient-overlay"></div>
-                    </div>
+            <!-- Page Body: GARI 3.0 Modular Dashboard -->
+            <main class="content-body gari3-body-wrap" style="padding: 20px 24px;">
+                <div class="gari3-dashboard-grid">
                     
-                    <div class="hero-inner-content">
-                        <!-- Top Badges -->
-                        <div class="hero-badge-row">
-                            <span class="hero-pill-badge">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                                <span>AI Nông nghiệp</span>
-                            </span>
-                            <span class="hero-pill-badge">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
-                                <span>Đa cây trồng</span>
-                            </span>
-                        </div>
+                    <!-- LEFT COLUMN (~68% width) -->
+                    <div class="gari3-main-col">
+                        <!-- Card 1: VIP 7-DAY CAMPAIGN BANNER (THPT Nguyễn Hồng Đạo) -->
+                        <div id="gariVoucherBannerContainer" class="gari-motion-enter stagger-1"></div>
 
-                        <!-- Title & Subtitle -->
-                        <h1 class="hero-title-v2">Trợ lý sức khỏe cây trồng</h1>
-                        <p class="hero-desc-v2">
-                            Nhận diện bệnh sớm bằng AI • Theo dõi vườn<br>
-                            Tư vấn canh tác thông minh
-                        </p>
-
-                        <!-- Primary CTA Button -->
-                        <div class="hero-cta-wrap">
-                            <button type="button" class="btn-hero-cta" id="btnHeroStartDiagnose">
-                                <span>Bắt đầu chẩn đoán</span>
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Right Side AI Leaf Detection Visual -->
-                    <div class="hero-visual-leaf-card" id="heroVisualCard" aria-hidden="true">
-                        <div class="leaf-viewfinder-frame">
-                            <img src="/static/frontend2/images/botanical_leaf_sample.jpg" alt="Quét nhận diện bệnh lá" class="leaf-viewfinder-img">
-                            <span class="reticle-corner top-left"></span>
-                            <span class="reticle-corner top-right"></span>
-                            <span class="reticle-corner bottom-left"></span>
-                            <span class="reticle-corner bottom-right"></span>
-                            
-                            <div class="leaf-detection-tag">
-                                <span class="tag-alert-icon">✨</span>
-                                <span class="tag-text">Mô phỏng quét lá • <strong>Hệ thống AI sẵn sàng</strong></span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- VIP 7-DAY VOUCHER CAMPAIGN BANNER (THPT Nguyễn Hồng Đạo) -->
-                <div id="gariVoucherBannerContainer" style="margin-top: 18px; margin-bottom: 24px;"></div>
-
-                <!-- C. Quick-access Feature Cards -->
-                <section class="quick-access-section" aria-label="Tính năng thao tác nhanh">
-                    <div class="quick-access-scroll-track" id="quickAccessTrack">
-                        <!-- 1. Chẩn đoán bệnh cây (Active green style) -->
-                        <a href="#aiCropDiagnosisSection" class="quick-card active" id="cardQuickDiagnose" title="Chẩn đoán bệnh cây">
-                            <div class="quick-icon-wrap">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.2"/></svg>
-                            </div>
-                            <span class="quick-label">Chẩn đoán<br>bệnh cây</span>
-                        </a>
-
-                        <!-- 2. Hỏi AI Gari -->
-                        <a href="javascript:void(0)" class="quick-card" id="cardQuickAssistant" title="Hỏi Trợ lý AI Gari">
-                            <div class="quick-icon-wrap">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="12" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></svg>
-                            </div>
-                            <span class="quick-label">Hỏi AI<br>Gari</span>
-                        </a>
-
-                        <!-- 3. Quản lý vườn -->
-                        <a href="/frontend2/farms.html" class="quick-card" id="cardQuickFarms" title="Quản lý nông trại và thửa đất">
-                            <div class="quick-icon-wrap">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22v-7"/><path d="M17 8a5 5 0 0 0-10 0c0 7 5 9 5 9s5-2 5-9Z"/><path d="m9 11 3 3 3-3"/></svg>
-                            </div>
-                            <span class="quick-label">Quản lý<br>vườn</span>
-                        </a>
-
-                        <!-- 4. HTX / Doanh nghiệp -->
-                        <a href="/frontend2/organization.html" class="quick-card" title="Hợp tác xã & Doanh nghiệp">
-                            <div class="quick-icon-wrap">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            </div>
-                            <span class="quick-label">HTX /<br>Doanh nghiệp</span>
-                        </a>
-
-                        <!-- 5. Hỏi chuyên gia -->
-                        <a href="/frontend2/support.html" class="quick-card" title="Kết nối chuyên gia nông học">
-                            <div class="quick-icon-wrap">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                            </div>
-                            <span class="quick-label">Hỏi<br>chuyên gia</span>
-                        </a>
-
-                        <!-- 6. Cộng đồng -->
-                        <a href="/frontend2/community.html" class="quick-card" id="cardQuickCommunity" title="Cộng đồng nhà nông & kiến thức">
-                            <div class="quick-icon-wrap">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><circle cx="19" cy="11" r="3"/><path d="M19 14a3 3 0 0 1 3 3v4"/></svg>
-                            </div>
-                            <span class="quick-label">Cộng đồng</span>
-                        </a>
-                    </div>
-                </section>
-
-                <!-- D. AI Crop Diagnosis Card -->
-                <section class="card-v2 diagnosis-section-v2" id="aiCropDiagnosisSection">
-                    <!-- Header -->
-                    <div class="section-v2-header">
-                        <div class="header-icon-square">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
-                        </div>
-                        <div class="header-text-group">
-                            <h2 class="section-v2-title">Chẩn đoán cây trồng bằng AI</h2>
-                            <p class="section-v2-desc">Tải ảnh lá, thân hoặc cả cây để nhận diện bệnh, giải thích và hướng dẫn xử lý chi tiết.</p>
-                        </div>
-                    </div>
-
-                    <!-- Body Grid: Left Upload & Status, Right 3-Step Timeline -->
-                    <div class="diagnosis-grid-v2">
-                        <!-- Left: Upload Area -->
-                        <div class="diagnosis-upload-col">
-                            <div class="dropzone-v2" id="dashboardDropzone" role="button" tabindex="0">
-                                <input type="file" id="dashboardFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
-                                
-                                <div id="dropzoneEmptyView">
-                                    <div class="dropzone-icon-box">
-                                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#087A43" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                        <!-- Card 2: 4 KPI STAT METRIC CARDS -->
+                        <div class="gari3-kpi-grid gari-motion-enter stagger-2" id="gariKpiGrid">
+                            <!-- KPI 1: Lượt chẩn đoán hôm nay -->
+                            <div class="gari3-kpi-card gari-interactive-card">
+                                <div class="gari3-kpi-header">
+                                    <div class="gari3-kpi-icon">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
                                     </div>
-                                    <div class="dropzone-primary-text">Tải ảnh hoặc chụp ảnh</div>
-                                    <div class="dropzone-secondary-text">Kéo thả ảnh vào đây, hoặc chọn từ thiết bị</div>
+                                    <span class="gari3-kpi-label">Lượt chẩn đoán hôm nay</span>
+                                </div>
+                                <div class="gari3-kpi-body">
+                                    <div class="gari3-kpi-value" id="kpiQuotaValue">0 / 5 lượt</div>
+                                </div>
+                                <div class="gari3-kpi-decor">
+                                    <div class="gari3-kpi-decor-fill" id="kpiQuotaFill" style="width: 20%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- KPI 2: Tổng lượt chẩn đoán -->
+                            <div class="gari3-kpi-card gari-interactive-card">
+                                <div class="gari3-kpi-header">
+                                    <div class="gari3-kpi-icon">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 2 10 5-10 5-10-5 10-5Z"/><path d="m2 12 10 5 10-5"/><path d="m2 17 10 5 10-5"/></svg>
+                                    </div>
+                                    <span class="gari3-kpi-label">Tổng lượt chẩn đoán</span>
+                                </div>
+                                <div class="gari3-kpi-body">
+                                    <div class="gari3-kpi-value">28 lượt</div>
+                                    <span class="gari3-kpi-badge">↗ +12%</span>
+                                </div>
+                            </div>
+
+                            <!-- KPI 3: Cây trồng theo dõi -->
+                            <div class="gari3-kpi-card gari-interactive-card">
+                                <div class="gari3-kpi-header">
+                                    <div class="gari3-kpi-icon">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22v-7"/><path d="M17 8a5 5 0 0 0-10 0c0 7 5 9 5 9s5-2 5-9Z"/></svg>
+                                    </div>
+                                    <span class="gari3-kpi-label">Cây trồng theo dõi</span>
+                                </div>
+                                <div class="gari3-kpi-body">
+                                    <div class="gari3-kpi-value">7 loại</div>
+                                    <span style="font-size:14px; opacity:0.85;">🌱🌱🌱</span>
+                                </div>
+                            </div>
+
+                            <!-- KPI 4: Trạng thái dịch vụ AI -->
+                            <div class="gari3-kpi-card gari-interactive-card">
+                                <div class="gari3-kpi-header">
+                                    <div class="gari3-kpi-icon">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                    </div>
+                                    <span class="gari3-kpi-label">Trạng thái dịch vụ AI</span>
+                                </div>
+                                <div class="gari3-kpi-body">
+                                    <div class="gari3-kpi-value" style="font-size: 14px; color: #059669; display: flex; align-items: center; gap: 6px;">
+                                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                                        <span id="kpiAiStatusText">Hoạt động ổn định</span>
+                                    </div>
+                                </div>
+                                <svg class="gari3-kpi-wave" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 Q25 20 50 10 T100 10 L100 20 L0 20 Z" fill="#10b981"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: AI DIAGNOSIS WORKSPACE CENTERPIECE -->
+                        <div class="gari3-workspace-card gari-interactive-card gari-motion-enter stagger-3" id="aiDiagnosisWorkspace">
+                            <div class="gari3-workspace-header">
+                                <div class="gari3-workspace-title-wrap">
+                                    <div class="gari3-workspace-sparkle">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                                    </div>
+                                    <h2 class="gari3-workspace-title">Chẩn đoán bệnh cây bằng AI</h2>
+                                </div>
+                                <button type="button" class="gari3-btn-process-guide gari-btn-motion" id="btnProcessGuide">
+                                    <span>▷</span> <span>Quy trình phân tích</span>
+                                </button>
+                            </div>
+
+                            <div class="gari3-workspace-grid">
+                                <!-- Sub-col 1: Dropzone -->
+                                <div class="gari3-dropzone-box" id="dashboardDropzone" role="button" tabindex="0">
+                                    <input type="file" id="dashboardFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
                                     
-                                    <div class="dropzone-actions-row">
-                                        <button type="button" class="btn-diag-action primary" id="btnActionCapture">
-                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                                            <span>Chụp ảnh</span>
+                                    <!-- Corner Botanical Leaf Watermarks -->
+                                    <svg class="gari3-corner-leaf top-left gari-leaf-floating" viewBox="0 0 100 100" fill="none" stroke="#10b981" stroke-width="2"><path d="M10 90 C 20 40, 60 20, 90 10 C 60 50, 40 70, 10 90 Z"/><path d="M10 90 L 90 10"/></svg>
+                                    <svg class="gari3-corner-leaf bottom-right gari-leaf-floating" viewBox="0 0 100 100" fill="none" stroke="#10b981" stroke-width="2"><path d="M90 10 C 80 60, 40 80, 10 90 C 40 50, 60 30, 90 10 Z"/><path d="M90 10 L 10 90"/></svg>
+
+                                    <!-- Empty State View -->
+                                    <div id="dropzoneEmptyView" style="display:flex; flex-direction:column; align-items:center;">
+                                        <div class="gari3-upload-cloud-icon">
+                                            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                                        </div>
+                                        <div class="gari3-dropzone-title">Kéo thả ảnh lá cây vào đây</div>
+                                        <div class="gari3-dropzone-sub">hoặc nhấn để chọn ảnh từ thiết bị</div>
+                                        <div class="gari3-dropzone-formats">Hỗ trợ: JPG, PNG, WEBP (≤ 10MB)</div>
+                                        <div class="gari3-dropzone-actions">
+                                            <button type="button" class="gari3-btn-dropzone-action secondary gari-btn-motion" id="btnActionBrowse">
+                                                <span>🖼 Chọn ảnh</span>
+                                            </button>
+                                            <button type="button" class="gari3-btn-dropzone-action primary gari-btn-motion" id="btnActionCapture">
+                                                <span>📷 Chụp ảnh</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Selected Image Preview State -->
+                                    <div id="dropzonePreviewView" style="display:none; width: 100%; position: relative;">
+                                        <div class="preview-img-container" style="position:relative; max-height:220px; overflow:hidden; border-radius:12px; display:flex; justify-content:center; background:#000;">
+                                            <img id="previewImgElement" src="" alt="Xem trước ảnh chẩn đoán" style="max-height:220px; width:auto; max-width:100%; object-fit:contain; border-radius:12px;">
+                                            <div class="gari-scan-laser-beam" id="diagScanBeam"></div>
+                                            <button type="button" class="btn-remove-preview" id="btnRemovePreview" title="Hủy ảnh" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.65); color:#fff; border:none; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sub-col 2: Options Panel & Action -->
+                                <div class="gari3-options-panel">
+                                    <div>
+                                        <div class="gari3-options-title">
+                                            <span>⚙</span> <span>Tùy chọn phân tích</span>
+                                        </div>
+                                        
+                                        <div class="gari3-form-group" style="margin-top: 14px;">
+                                            <label class="gari3-form-label" for="selectCropType">
+                                                <span>🌿</span> <span>Cây trồng</span>
+                                            </label>
+                                            <select id="selectCropType" class="gari3-select">
+                                                <option value="auto">🌿 Tự động nhận diện (khuyến dùng)</option>
+                                                <option value="Coffee">☕ Cà phê (Coffee)</option>
+                                                <option value="Pepper">🌶️ Hồ tiêu (Pepper)</option>
+                                                <option value="Durian">🍈 Sầu riêng (Durian)</option>
+                                                <option value="Rice">🌾 Lúa (Rice)</option>
+                                                <option value="Tomato">🍅 Cà chua (Tomato)</option>
+                                                <option value="Potato">🥔 Khoai tây (Potato)</option>
+                                                <option value="Corn">🌽 Ngô (Corn)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="gari3-form-group" style="margin-top: 12px;">
+                                            <label class="gari3-form-label" for="selectModelMode">
+                                                <span>👑</span> <span>Chế độ mô hình</span> <span title="Mô hình VIP tăng cường với giải thích sâu">ⓘ</span>
+                                            </label>
+                                            <select id="selectModelMode" class="gari3-select">
+                                                <option value="vip">👑 GARI VIP (Trải nghiệm)</option>
+                                                <option value="standard">Tiêu chuẩn (Miễn phí)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <button type="button" class="gari3-btn-start-diag gari-breathing-cta gari-btn-motion" id="btnExecuteDiagnose">
+                                            <span>✦</span> <span>Bắt đầu chẩn đoán</span>
                                         </button>
-                                        <button type="button" class="btn-diag-action secondary" id="btnActionBrowse">
-                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                                            <span>Chọn ảnh</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Selected Image Preview State -->
-                                <div id="dropzonePreviewView" style="display:none;">
-                                    <div class="preview-img-container">
-                                        <img id="previewImgElement" src="" alt="Xem trước ảnh chẩn đoán" class="preview-img">
-                                        <div class="reticle-corner top-left"></div>
-                                        <div class="reticle-corner top-right"></div>
-                                        <div class="reticle-corner bottom-left"></div>
-                                        <div class="reticle-corner bottom-right"></div>
-                                        <div class="diag-scan-beam" id="diagScanBeam"></div>
-                                        <button type="button" class="btn-remove-preview" id="btnRemovePreview" title="Hủy ảnh">✕</button>
-                                    </div>
-                                    <div class="preview-controls-row">
-                                        <select id="selectCropType" class="select-crop-v2" aria-label="Loại cây trồng">
-                                            <option value="auto">🌿 Tự động nhận diện cây</option>
-                                            <option value="Coffee">☕ Cà phê (Coffee)</option>
-                                            <option value="Pepper">🌶️ Hồ tiêu (Pepper)</option>
-                                            <option value="Durian">🍈 Sầu riêng (Durian)</option>
-                                            <option value="Rice">🌾 Lúa (Rice)</option>
-                                            <option value="Tomato">🍅 Cà chua (Tomato)</option>
-                                            <option value="Potato">🥔 Khoai tây (Potato)</option>
-                                            <option value="Corn">🌽 Ngô (Corn)</option>
-                                        </select>
-                                        <button type="button" class="btn-execute-diag" id="btnExecuteDiagnose">
-                                            <span>Phân tích AI</span>
-                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Real Server Status Badge -->
-                            <div class="server-status-wrap">
-                                <div class="server-status-pill" id="serverStatusBadge">
-                                    <span class="status-shield-icon">🛡️</span>
-                                    <span id="serverStatusText">Máy chủ GARI • Đang kiểm tra...</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Right: 3-Step Explanation Timeline -->
-                        <div class="diagnosis-steps-col">
-                            <div class="steps-timeline">
-                                <!-- Step 1 -->
-                                <div class="timeline-step">
-                                    <div class="step-badge-col">
-                                        <span class="step-number">1</span>
-                                        <span class="step-line"></span>
-                                    </div>
-                                    <div class="step-card">
-                                        <div class="step-icon-box">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#087A43" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-                                        </div>
-                                        <div class="step-content">
-                                            <h3 class="step-title">Tải ảnh cây trồng</h3>
-                                            <p class="step-sub">(chụp hoặc chọn ảnh)</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Step 2 -->
-                                <div class="timeline-step">
-                                    <div class="step-badge-col">
-                                        <span class="step-number">2</span>
-                                        <span class="step-line"></span>
-                                    </div>
-                                    <div class="step-card">
-                                        <div class="step-icon-box">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#087A43" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
-                                        </div>
-                                        <div class="step-content">
-                                            <h3 class="step-title">AI phân tích</h3>
-                                            <p class="step-sub">Nhận diện cây, bệnh, độ tin cậy</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Step 3 -->
-                                <div class="timeline-step">
-                                    <div class="step-badge-col">
-                                        <span class="step-number">3</span>
-                                    </div>
-                                    <div class="step-card">
-                                        <div class="step-icon-box">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#087A43" stroke-width="2"><path d="M9 18h6M10 22h4M15 8a5 5 0 0 0-10 0c0 2.5 1.5 4.5 3 6h4c1.5-1.5 3-3.5 3-6Z"/></svg>
-                                        </div>
-                                        <div class="step-content">
-                                            <h3 class="step-title">Giải thích &amp; tư vấn</h3>
-                                            <p class="step-sub">Nguyên nhân, cách xử lý, lịch theo dõi</p>
+                                        <div class="gari3-quota-notice" style="margin-top: 8px;">
+                                            <span>🔄</span> <span>Sử dụng 1 lượt chẩn đoán (còn 5 lượt hôm nay)</span> <span title="Hạn mức làm mới mỗi ngày">ⓘ</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
 
-                <!-- E. Farm Overview ("Vườn của bạn") -->
-                <section class="card-v2 farms-overview-section" id="farmsOverviewSection">
-                    <div class="section-v2-header flex-between">
-                        <div class="header-left-group">
-                            <div class="header-icon-square">
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
+                        <!-- Card 4: QUICK DISCOVERY ROW -->
+                        <div class="gari3-discovery-row gari-motion-enter stagger-4">
+                            <div class="gari3-discovery-header">
+                                <span>✨</span> <span>Khám phá nhanh</span>
                             </div>
-                            <div>
-                                <h2 class="section-v2-title">Vườn của bạn</h2>
-                                <p class="section-v2-desc">Quản lý vườn, lô, cây trồng và theo dõi sức khỏe.</p>
+                            <div class="gari3-discovery-grid">
+                                <a href="/frontend2/agents.html" class="gari3-discovery-card gari-interactive-card">
+                                    <div class="gari3-discovery-icon">💬</div>
+                                    <div class="gari3-discovery-title">Trợ lý AI Gari</div>
+                                    <div class="gari3-discovery-desc">Hỏi đáp kỹ thuật canh tác, phòng trừ sâu bệnh</div>
+                                </a>
+                                <a href="/frontend2/disease.html" class="gari3-discovery-card gari-interactive-card">
+                                    <div class="gari3-discovery-icon">📖</div>
+                                    <div class="gari3-discovery-title">Thư viện bệnh cây</div>
+                                    <div class="gari3-discovery-desc">Tra cứu triệu chứng và biện pháp xử lý</div>
+                                </a>
+                                <a href="/frontend2/calendar.html" class="gari3-discovery-card gari-interactive-card">
+                                    <div class="gari3-discovery-icon">📅</div>
+                                    <div class="gari3-discovery-title">Lịch canh tác</div>
+                                    <div class="gari3-discovery-desc">Lập kế hoạch chăm sóc theo từng giai đoạn</div>
+                                </a>
+                                <a href="/frontend2/support.html" class="gari3-discovery-card gari-interactive-card">
+                                    <div class="gari3-discovery-icon">👥</div>
+                                    <div class="gari3-discovery-title">Tư vấn chuyên gia</div>
+                                    <div class="gari3-discovery-desc">Nhận hỗ trợ từ chuyên gia nông nghiệp</div>
+                                </a>
                             </div>
                         </div>
-                        <a href="/frontend2/farms.html" class="link-see-all">
-                            <span>Xem tất cả</span>
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </a>
                     </div>
 
-                    <div class="farms-scroll-track" id="farmsCardsTrack">
-                        <div class="empty-state-notice" id="farmsEmptyNotice" style="padding: 28px 16px; text-align: center; color: var(--text-muted); width: 100%;">
-                            <p style="margin: 0; font-size: 14.5px;">Bạn chưa có vườn nào.</p>
+                    <!-- RIGHT COLUMN (~32% width) -->
+                    <div class="gari3-side-col">
+                        <!-- Card 1: USER PROFILE & VIP CARD -->
+                        <div class="gari3-profile-card gari-interactive-card gari-motion-enter stagger-2" id="gariProfileCard">
+                            <svg class="gari3-profile-corner-leaf gari-leaf-floating" viewBox="0 0 100 100" fill="none" stroke="#10b981" stroke-width="2"><path d="M100 0 C 70 30, 40 60, 0 100 C 50 80, 80 50, 100 0 Z"/><path d="M100 0 L 0 100"/></svg>
+                            <div class="gari3-profile-header">
+                                <div class="gari3-profile-avatar" id="sideProfileAvatar">H</div>
+                                <div class="gari3-profile-meta">
+                                    <div class="gari3-profile-name" id="sideProfileName">Huy</div>
+                                    <div class="gari3-profile-badge">
+                                        <span>★</span> <span>VIP Trải nghiệm</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="gari3-profile-progress-wrap">
+                                <div class="gari3-progress-row">
+                                    <span>🕒 Còn 6 ngày</span>
+                                </div>
+                                <div class="gari3-progress-track">
+                                    <div class="gari3-progress-bar gari-progress-fill-animated"></div>
+                                </div>
+                                <div class="gari3-progress-expiry">Hết hạn: 23/11/2026</div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: RECENT DIAGNOSES -->
+                        <div class="gari3-recent-card gari-interactive-card gari-motion-enter stagger-3">
+                            <div class="gari3-card-header-row">
+                                <h3 class="gari3-card-title">
+                                    <span>📋</span> <span>Lịch sử chẩn đoán gần đây</span>
+                                </h3>
+                                <a href="/frontend2/predict.html" class="gari3-card-link">Xem tất cả →</a>
+                            </div>
+                            <div class="gari3-recent-list">
+                                <a href="/frontend2/predict.html" class="gari3-recent-item">
+                                    <div class="gari3-recent-thumb-info">
+                                        <img src="/static/frontend2/images/farm_coffee.jpg" alt="Cà phê" class="gari3-recent-thumb">
+                                        <div>
+                                            <div class="gari3-recent-crop">Cà phê</div>
+                                            <div class="gari3-recent-disease">Bệnh gỉ sắt</div>
+                                        </div>
+                                    </div>
+                                    <div class="gari3-recent-meta">
+                                        <span class="gari3-recent-score">92% ✔</span>
+                                        <span class="gari3-recent-time">Hôm qua, 21:34</span>
+                                    </div>
+                                </a>
+                                <a href="/frontend2/predict.html" class="gari3-recent-item">
+                                    <div class="gari3-recent-thumb-info">
+                                        <img src="/static/frontend2/images/farm_pepper.jpg" alt="Hồ tiêu" class="gari3-recent-thumb">
+                                        <div>
+                                            <div class="gari3-recent-crop">Hồ tiêu</div>
+                                            <div class="gari3-recent-disease">Bệnh thán thư</div>
+                                        </div>
+                                    </div>
+                                    <div class="gari3-recent-meta">
+                                        <span class="gari3-recent-score">87% ✔</span>
+                                        <span class="gari3-recent-time">14/11, 16:20</span>
+                                    </div>
+                                </a>
+                                <a href="/frontend2/predict.html" class="gari3-recent-item">
+                                    <div class="gari3-recent-thumb-info">
+                                        <img src="/static/frontend2/images/botanical_leaf_sample.jpg" alt="Cà chua" class="gari3-recent-thumb">
+                                        <div>
+                                            <div class="gari3-recent-crop">Cà chua</div>
+                                            <div class="gari3-recent-disease">Bệnh đốm lá</div>
+                                        </div>
+                                    </div>
+                                    <div class="gari3-recent-meta">
+                                        <span class="gari3-recent-score">89% ✔</span>
+                                        <span class="gari3-recent-time">13/11, 10:15</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: DISEASE DETECTION TREND (SPLINE AREA CHART) -->
+                        <div class="gari3-trend-card gari-interactive-card gari-motion-enter stagger-4">
+                            <div class="gari3-card-header-row">
+                                <h3 class="gari3-card-title">
+                                    <span>📊</span> <span>Xu hướng phát hiện bệnh</span>
+                                </h3>
+                                <select class="gari3-card-select-sm">
+                                    <option value="7d">7 ngày qua ⌄</option>
+                                    <option value="30d">30 ngày qua ⌄</option>
+                                </select>
+                            </div>
+                            <div class="gari3-trend-chart-box">
+                                <svg viewBox="0 0 320 135" width="100%" height="135" style="overflow:visible;">
+                                    <defs>
+                                        <linearGradient id="gariTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#10b981" stop-opacity="0.38"/>
+                                            <stop offset="100%" stop-color="#10b981" stop-opacity="0.02"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- Horizontal Gridlines -->
+                                    <line x1="25" y1="15" x2="310" y2="15" stroke="rgba(0,0,0,0.06)" stroke-dasharray="2 2"/>
+                                    <text x="10" y="18" font-size="9" fill="#94a3b8">8</text>
+                                    <line x1="25" y1="40" x2="310" y2="40" stroke="rgba(0,0,0,0.06)" stroke-dasharray="2 2"/>
+                                    <text x="10" y="43" font-size="9" fill="#94a3b8">6</text>
+                                    <line x1="25" y1="65" x2="310" y2="65" stroke="rgba(0,0,0,0.06)" stroke-dasharray="2 2"/>
+                                    <text x="10" y="68" font-size="9" fill="#94a3b8">4</text>
+                                    <line x1="25" y1="90" x2="310" y2="90" stroke="rgba(0,0,0,0.06)" stroke-dasharray="2 2"/>
+                                    <text x="10" y="93" font-size="9" fill="#94a3b8">2</text>
+                                    <line x1="25" y1="115" x2="310" y2="115" stroke="rgba(0,0,0,0.1)"/>
+                                    <text x="10" y="118" font-size="9" fill="#94a3b8">0</text>
+
+                                    <!-- Spline Area Fill -->
+                                    <path class="gari-chart-area-fill" d="M 35 105 Q 75 75, 115 95 T 195 60 T 235 25 T 275 85 T 305 70 L 305 115 L 35 115 Z" fill="url(#gariTrendGrad)"/>
+
+                                    <!-- Spline Path Stroke -->
+                                    <path class="gari-chart-spline-path" d="M 35 105 Q 75 75, 115 95 T 195 60 T 235 25 T 275 85 T 305 70" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+
+                                    <!-- Markers -->
+                                    <circle cx="35" cy="105" r="3" fill="#10b981"/>
+                                    <circle cx="80" cy="85" r="3" fill="#10b981"/>
+                                    <circle cx="125" cy="98" r="3" fill="#10b981"/>
+                                    <circle cx="170" cy="70" r="3" fill="#10b981"/>
+                                    <!-- Peak point with pulse dot on 14/11 -->
+                                    <circle class="gari-peak-pulse-dot" cx="235" cy="25" r="5" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+                                    <circle cx="275" cy="85" r="3" fill="#10b981"/>
+                                    <circle cx="305" cy="70" r="3" fill="#10b981"/>
+
+                                    <!-- X Axis Dates -->
+                                    <text x="25" y="130" font-size="8.5" fill="#94a3b8">10/11</text>
+                                    <text x="70" y="130" font-size="8.5" fill="#94a3b8">11/11</text>
+                                    <text x="115" y="130" font-size="8.5" fill="#94a3b8">12/11</text>
+                                    <text x="160" y="130" font-size="8.5" fill="#94a3b8">13/11</text>
+                                    <text x="225" y="130" font-size="8.5" fill="#059669" font-weight="700">14/11</text>
+                                    <text x="265" y="130" font-size="8.5" fill="#94a3b8">15/11</text>
+                                    <text x="295" y="130" font-size="8.5" fill="#94a3b8">16/11</text>
+                                </svg>
+                            </div>
                         </div>
                     </div>
-                </section>
-
-                <!-- F. GARI Pro Upgrade Banner -->
-                <section class="pro-upgrade-banner-v2" id="proUpgradeBanner">
-                    <div class="pro-banner-bg-graphic" aria-hidden="true">
-                        <svg viewBox="0 0 200 80" preserveAspectRatio="none" fill="none">
-                            <path d="M0,70 Q50,60 100,45 T200,10 L200,80 L0,80 Z" fill="rgba(34, 197, 94, 0.15)"/>
-                            <path d="M0,70 Q50,60 100,45 T200,10" stroke="rgba(74, 222, 128, 0.4)" stroke-width="3" fill="none"/>
-                        </svg>
-                    </div>
-                    <div class="pro-banner-content">
-                        <div class="pro-banner-text">
-                            <h3 class="pro-banner-title">
-                                <span class="crown-icon">👑</span>
-                                <span>Nâng cấp GARI Pro</span>
-                            </h3>
-                            <p class="pro-banner-desc">Mở khóa quản lý vườn nâng cao, tạo HTX/Doanh nghiệp, mô phỏng 3D, và nhiều tính năng chuyên sâu khác.</p>
-                        </div>
-                        <a href="/frontend2/pricing.html" class="btn-pro-upgrade-cta">
-                            <span>Xem gói nâng cấp</span>
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </a>
-                    </div>
-                </section>
-
+                </div>
             </main>
         </div>
     </div>
@@ -349,6 +391,45 @@
         </div>
     </div>
 
+    <!-- Analysis Process Guide Modal -->
+    <div class="modal-backdrop" id="processGuideModal">
+        <div class="modal-box" style="max-width: 500px; border-radius: 18px; padding: 24px;">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:22px;">🌾</span>
+                    <h3 class="modal-title" style="margin:0; font-size:17px; font-weight:700;">Quy trình phân tích bệnh cây AI</h3>
+                </div>
+                <button type="button" class="modal-close-btn" id="btnCloseProcessModal" style="background:none; border:none; font-size:18px; cursor:pointer;">✕</button>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">1</div>
+                    <div>
+                        <div style="font-weight:700; font-size:14px; color:var(--text-main);">Thu thập & Quét ảnh lá thực địa</div>
+                        <div style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">Kéo thả hoặc chụp ảnh trực tiếp. Hệ thống tự động tiền xử lý và kiểm định vùng lá.</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">2</div>
+                    <div>
+                        <div style="font-weight:700; font-size:14px; color:var(--text-main);">Suy luận đa tầng (LeafGate & ConvNeXt)</div>
+                        <div style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">LeafGate xác thực mẫu thật, bộ phân loại nhận diện cây và mạng nơ-ron chuyên sâu xác định bệnh.</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">3</div>
+                    <div>
+                        <div style="font-weight:700; font-size:14px; color:var(--text-main);">Phác đồ điều trị & Khuyến nghị BVTV</div>
+                        <div style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">Cung cấp độ tin cậy AI, mức độ nghiêm trọng và khuyến nghị canh tác an toàn theo chuẩn BVTV.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; margin-top:20px;">
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('processGuideModal').classList.remove('show');">Đã hiểu quy trình</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Global Toast Container -->
     <div id="globalToast" class="toast-notice"></div>
 
@@ -361,12 +442,50 @@
 
         function init() {
             applyFeatureAvailability();
-            setupSaaSShell('overview', 'Trợ lý nông nghiệp AI', false);
+            setupSaaSShell('overview', 'Trang chủ', false);
             measureServerLatency();
+            loadRealUserQuota();
+            syncSideProfile();
             initDashboardInteractions();
             loadProductionFarms();
             checkProBanner();
             try { initVoucherBanner('gariVoucherBannerContainer'); } catch(e) { console.warn('Banner init:', e); }
+
+            window.addEventListener('gari:auth-state-changed', () => {
+                syncSideProfile();
+                loadRealUserQuota();
+            });
+        }
+
+        // Load real quota for KPI card
+        async function loadRealUserQuota() {
+            try {
+                const res = await fetchJSON('/api/user/quota');
+                if (res && res.quota) {
+                    const used = res.quota.used ?? 0;
+                    const max = res.quota.max_daily ?? 5;
+                    const el = document.getElementById('kpiQuotaValue');
+                    const fill = document.getElementById('kpiQuotaFill');
+                    if (el) el.textContent = `${used} / ${max} lượt`;
+                    if (fill) fill.style.width = `${Math.min(100, Math.round((used / max) * 100))}%`;
+                    
+                    const notice = document.querySelector('.gari3-quota-notice span:nth-child(2)');
+                    if (notice) notice.textContent = `Sử dụng 1 lượt chẩn đoán (còn ${Math.max(0, max - used)} lượt hôm nay)`;
+                }
+            } catch (_) {}
+        }
+
+        function syncSideProfile() {
+            try {
+                const user = JSON.parse(localStorage.getItem('gari_user'));
+                if (user) {
+                    const name = (user.profile && (user.profile.full_name || user.profile.name)) || (user.identity && user.identity.display_name) || user.full_name || user.name || 'Huy';
+                    const nameEl = document.getElementById('sideProfileName');
+                    const avatarEl = document.getElementById('sideProfileAvatar');
+                    if (nameEl) nameEl.textContent = name;
+                    if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+                }
+            } catch (_) {}
         }
 
         if (document.readyState === 'loading') {
@@ -401,9 +520,20 @@
         }
 
         function initDashboardInteractions() {
-            const btnHero = document.getElementById('btnHeroStartDiagnose');
-            const cardQuickDiag = document.getElementById('cardQuickDiagnose');
-            const cardQuickAssistant = document.getElementById('cardQuickAssistant');
+            const btnGuide = document.getElementById('btnProcessGuide');
+            const processModal = document.getElementById('processGuideModal');
+            const btnCloseProcess = document.getElementById('btnCloseProcessModal');
+            if (btnGuide && processModal) {
+                btnGuide.onclick = () => processModal.classList.add('show');
+            }
+            if (btnCloseProcess && processModal) {
+                btnCloseProcess.onclick = () => processModal.classList.remove('show');
+            }
+            if (processModal) {
+                processModal.onclick = (e) => {
+                    if (e.target === processModal) processModal.classList.remove('show');
+                };
+            }
 
             const dropzone = document.getElementById('dashboardDropzone');
             const fileInput = document.getElementById('dashboardFileInput');
@@ -411,6 +541,9 @@
             const btnBrowse = document.getElementById('btnActionBrowse');
             const btnRemove = document.getElementById('btnRemovePreview');
             const btnExecute = document.getElementById('btnExecuteDiagnose');
+            const btnHero = document.getElementById('btnHeroStartDiagnose');
+            const cardQuickDiag = document.getElementById('cardQuickDiagnose');
+            const cardQuickAssistant = document.getElementById('cardQuickAssistant');
 
             // Scroll to diagnosis section
             const scrollToDiagnosis = () => {
