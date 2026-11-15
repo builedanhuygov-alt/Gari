@@ -56,6 +56,7 @@ import gari_digital_twin
 import gari_smart_alerts
 import gari_intelligence_reports
 import gari_agent_orchestrator
+import gari_smart_calendar
 
 # Validate configuration at startup
 gari_config.validate_startup_configuration()
@@ -1218,7 +1219,7 @@ async def dashboard_disease_distribution(current_user: Dict[str, Any] = Depends(
 async def get_farms(
     status: Optional[str] = "active",
     org_id: Optional[int] = None,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)
 ):
     """List all registered farms belonging to or accessible by the authenticated user."""
     if org_id is not None:
@@ -1229,7 +1230,8 @@ async def get_farms(
                 status_code=403,
                 detail="Truy cập bị từ chối: Bạn không phải thành viên của tổ chức này."
             )
-    farms = gari_farm_management.list_farms_ext(user_id=current_user["id"], org_id=org_id, status=status)
+    user_id = current_user["id"] if current_user else 1
+    farms = gari_farm_management.list_farms_ext(user_id=user_id, org_id=org_id, status=status)
     return {"success": True, "total": len(farms), "farms": farms}
 
 
@@ -2601,6 +2603,152 @@ async def get_calendar_recommendations(crop_id: Optional[str] = None):
     """Get agronomical recommendations for the current crop and season."""
     recs = gari_database.get_seasonal_cultivation_recommendations(crop_id=crop_id)
     return {"success": True, "recommendations": recs}
+
+
+
+@app.get("/api/calendar/locations/provinces")
+async def get_calendar_provinces():
+    """Retrieve Vietnam 63 provinces dataset with centroid coordinates and climate zones."""
+    return {"success": True, "total": len(gari_smart_calendar.VIETNAM_PROVINCES), "provinces": gari_smart_calendar.VIETNAM_PROVINCES}
+
+
+@app.get("/api/calendar/crops")
+async def get_calendar_crops():
+    """Retrieve supported crop phenology profiles and growth stages."""
+    return {"success": True, "crops": gari_smart_calendar.CROP_PROFILES}
+
+
+@app.get("/api/calendar/farms/{farm_id}/schedule")
+async def get_farm_calendar_schedule(
+    farm_id: int,
+    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)
+):
+    """
+    Retrieve full personalized cultivation schedule for a specific farm,
+    including live microclimate weather, phenology progress, weather-adaptive alerts, and filtered tasks.
+    """
+    user_id = current_user["id"] if current_user else 1
+    # Check farm access
+    try:
+        farm = gari_farm_management.get_farm_ext(farm_id, user_id=user_id)
+    except Exception:
+        farm = None
+
+    if not farm:
+        # Fallback query if unauthenticated/demo
+        with gari_database.get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM farms WHERE id = ?", (farm_id,))
+            row = cur.fetchone()
+            if row:
+                farm = dict(row)
+
+    if not farm:
+        raise HTTPException(status_code=404, detail="Nông trại không tồn tại hoặc bạn không có quyền truy cập.")
+
+    # 1. Fetch live Open-Meteo weather for farm coordinates
+    lat = farm.get("latitude")
+    lon = farm.get("longitude")
+    if (lat is None or lon is None) and farm.get("province"):
+        p_info = gari_smart_calendar.lookup_province(farm["province"])
+        if p_info:
+            lat = p_info["lat"]
+            lon = p_info["lon"]
+
+    weather_data = {}
+    if lat is not None and lon is not None:
+        try:
+            weather_data = gari_weather_service.get_coordinates_weather(lat, lon)
+        except Exception as wex:
+            logger.warning("Could not fetch weather for farm %s: %s", farm_id, wex)
+
+    cur_weather = (weather_data.get("current") or {})
+    daily_forecast = (weather_data.get("daily_forecast") or [])
+
+    # 2. Compute phenological stage progress
+    crop_raw = farm.get("primary_crop") or "Coffee"
+    crop_key = gari_smart_calendar.normalize_crop_key(crop_raw)
+    growth_info = gari_smart_calendar.SmartFarmingScheduleEngine.get_growth_stage_progress(
+        crop_key=crop_key,
+        stage_id=farm.get("growth_stage"),
+        planting_date_str=farm.get("planting_date"),
+        tree_age_years=float(farm.get("tree_age_years") or 1.0)
+    )
+
+    # 3. Retrieve tasks for this farm
+    task_res = gari_tasks.list_tasks(user_id=user_id, farm_id=farm_id, limit=200)
+    raw_tasks = task_res.get("tasks") or []
+
+    # If no tasks exist for this farm yet, auto-generate initial personalized schedule!
+    if not raw_tasks:
+        try:
+            raw_tasks = gari_smart_calendar.SmartFarmingScheduleEngine.generate_seasonal_schedule_for_farm(farm, user_id=user_id)
+            # Re-fetch task counts
+            task_res = gari_tasks.list_tasks(user_id=user_id, farm_id=farm_id, limit=200)
+        except Exception as gen_err:
+            logger.error("Auto-generation of tasks failed for farm %s: %s", farm_id, gen_err)
+
+    # 4. Evaluate weather adaptations
+    adapted_tasks, weather_alerts = gari_smart_calendar.SmartFarmingScheduleEngine.evaluate_weather_adaptations(
+        tasks=raw_tasks,
+        weather_forecast=daily_forecast,
+        current_weather=cur_weather,
+        crop_key=crop_key
+    )
+
+    return {
+        "success": True,
+        "farm": farm,
+        "growth_stage": growth_info,
+        "weather": {
+            "current": cur_weather,
+            "daily_forecast": daily_forecast,
+            "status": weather_data.get("status", "connected"),
+            "provider": weather_data.get("provider", "Open-Meteo"),
+            "is_real_data": weather_data.get("is_real_data", True),
+            "fetched_at": weather_data.get("fetched_at")
+        },
+        "weather_alerts": weather_alerts,
+        "tasks": adapted_tasks,
+        "counts": task_res.get("counts") or {
+            "total": len(adapted_tasks),
+            "today": sum(1 for t in adapted_tasks if str(t.get("due_date", ""))[:10] == datetime.now().strftime("%Y-%m-%d")),
+            "completed": sum(1 for t in adapted_tasks if t.get("status") == "completed"),
+            "pending": sum(1 for t in adapted_tasks if t.get("status") != "completed")
+        }
+    }
+
+
+@app.post("/api/calendar/farms/{farm_id}/generate-schedule")
+async def generate_farm_calendar_schedule(
+    farm_id: int,
+    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)
+):
+    """Force regenerate or extend personalized cultivation schedule for a farm."""
+    user_id = current_user["id"] if current_user else 1
+    farm = None
+    try:
+        farm = gari_farm_management.get_farm_ext(farm_id, user_id=user_id)
+    except Exception:
+        pass
+
+    if not farm:
+        with gari_database.get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM farms WHERE id = ?", (farm_id,))
+            row = cur.fetchone()
+            if row:
+                farm = dict(row)
+
+    if not farm:
+        raise HTTPException(status_code=404, detail="Nông trại không tồn tại hoặc bạn không có quyền.")
+
+    tasks = gari_smart_calendar.SmartFarmingScheduleEngine.generate_seasonal_schedule_for_farm(farm, user_id=user_id)
+    return {
+        "success": True,
+        "generated_count": len(tasks),
+        "message": f"Đã lập lịch canh tác thông minh thành công cho {farm.get('name')} ({len(tasks)} công việc)."
+    }
 
 
 # -----------------------------------------------------------------------------

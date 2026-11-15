@@ -252,7 +252,7 @@ export async function logout() {
     }
 
     const path = window.location.pathname;
-    const isPublicPage = path.includes('predict') || path.includes('index') || path.endsWith('/frontend2/') || path === '/';
+    const isPublicPage = path.includes('predict') || path.includes('index') || path.endsWith('/frontend2/') || path === '/' || path.includes('calendar');
     if (!isPublicPage) {
         setTimeout(() => {
             window.location.href = '/frontend2/login.html';
@@ -1007,7 +1007,7 @@ export async function fetchJSON(url, opts = {}) {
             localStorage.removeItem(AUTH_TOKEN_KEY);
             localStorage.removeItem(USER_INFO_KEY);
             const currentPath = window.location.pathname + window.location.search;
-            const isPublicPage = currentPath === '/' || currentPath === '/frontend2' || currentPath === '/frontend2/' || currentPath.includes('index') || currentPath.includes('predict') || currentPath.includes('landing');
+            const isPublicPage = currentPath === '/' || currentPath === '/frontend2' || currentPath === '/frontend2/' || currentPath.includes('index') || currentPath.includes('predict') || currentPath.includes('landing') || currentPath.includes('calendar');
             if (!isPublicPage && !currentPath.includes('login') && !currentPath.includes('register')) {
                 window.location.href = `/frontend2/login.html?redirect=${encodeURIComponent(currentPath)}`;
             }

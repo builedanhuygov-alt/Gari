@@ -256,14 +256,21 @@ def create_task(
                 creator_user_id, assignee_user_id, notes,
                 diagnosis_id, cycle_id, crop_cycle_id, plant_id,
                 recurrence_rule, recurrence_interval, reminder_status,
+                time_window, growth_stage, rationale, conditions, source, schedule_origin,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         """, (
             creator_user_id, org_id, farm_id, plot_id, crop_id,
             title, description, due_date, priority, status, task_type,
             creator_user_id, assignee_user_id, notes,
             diagnosis_id, cycle_id, cycle_id, plant_id,
-            recurrence_rule, recurrence_interval
+            recurrence_rule, recurrence_interval,
+            data.get("time_window", "Buổi sáng sớm"),
+            data.get("growth_stage"),
+            data.get("rationale"),
+            data.get("conditions"),
+            data.get("source", "Khuyến nông Quốc gia & GAP Việt Nam"),
+            data.get("schedule_origin", "user_custom" if not data.get("schedule_origin") else data.get("schedule_origin"))
         ))
         conn.commit()
         task_id = cursor.lastrowid
@@ -462,7 +469,7 @@ def update_task(
         )
 
     # Generic updatable fields
-    for field in ("title", "description", "priority", "task_type", "notes", "crop_id", "recurrence_rule", "recurrence_interval"):
+    for field in ("title", "description", "priority", "task_type", "notes", "crop_id", "recurrence_rule", "recurrence_interval", "time_window", "growth_stage", "rationale", "conditions", "source", "schedule_origin"):
         if field in data and data[field] != task.get(field):
             updates.append(f"{field} = ?")
             params.append(data[field])

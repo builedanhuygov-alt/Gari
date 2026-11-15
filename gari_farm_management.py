@@ -198,6 +198,24 @@ def create_farm_ext(data: Dict[str, Any], user_id: int, org_id: Optional[int] = 
         or bool(data.get("is_test"))
     ) else 0
 
+    # Auto-resolve coordinates and altitude from province if not explicitly provided
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+    altitude_m = data.get("altitude_m")
+    if (latitude is None or longitude is None) and data.get("province"):
+        try:
+            import gari_smart_calendar
+            prov_match = gari_smart_calendar.lookup_province(data["province"])
+            if prov_match:
+                if latitude is None:
+                    latitude = prov_match["lat"]
+                if longitude is None:
+                    longitude = prov_match["lon"]
+                if altitude_m is None:
+                    altitude_m = prov_match.get("altitude_m", 0.0)
+        except Exception:
+            pass
+
     with gari_database.get_connection() as conn:
         cursor = conn.cursor()
         # Idempotency / Duplicate Check
@@ -215,8 +233,9 @@ def create_farm_ext(data: Dict[str, Any], user_id: int, org_id: Optional[int] = 
                 user_id, organization_id, name, code, location, province,
                 area_m2, area_hectare, area_unit, primary_crop, variety,
                 soil_type, irrigation_type, notes, status, is_test,
-                latitude, longitude
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                latitude, longitude, altitude_m, terrain, water_source,
+                planting_date, tree_age_years, growth_stage
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             user_id,
             target_org,
@@ -234,8 +253,14 @@ def create_farm_ext(data: Dict[str, Any], user_id: int, org_id: Optional[int] = 
             data.get("notes", ""),
             data.get("status", "active"),
             is_test_flag,
-            data.get("latitude"),
-            data.get("longitude")
+            latitude,
+            longitude,
+            altitude_m or 0.0,
+            data.get("terrain", "Bằng phẳng"),
+            data.get("water_source", "Nước ngầm / Giếng khoan"),
+            data.get("planting_date"),
+            float(data.get("tree_age_years") or 1.0),
+            data.get("growth_stage", "Kiến thiết cơ bản")
         ))
         conn.commit()
         new_farm_id = cursor.lastrowid
@@ -273,6 +298,14 @@ def update_farm_ext(farm_id: int, data: Dict[str, Any], user_id: int, org_id: Op
                 irrigation_type = COALESCE(?, irrigation_type),
                 status = COALESCE(?, status),
                 notes = COALESCE(?, notes),
+                latitude = COALESCE(?, latitude),
+                longitude = COALESCE(?, longitude),
+                altitude_m = COALESCE(?, altitude_m),
+                terrain = COALESCE(?, terrain),
+                water_source = COALESCE(?, water_source),
+                planting_date = COALESCE(?, planting_date),
+                tree_age_years = COALESCE(?, tree_age_years),
+                growth_stage = COALESCE(?, growth_stage),
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         """, (
@@ -289,6 +322,14 @@ def update_farm_ext(farm_id: int, data: Dict[str, Any], user_id: int, org_id: Op
             data.get("irrigation_type"),
             data.get("status"),
             data.get("notes"),
+            data.get("latitude"),
+            data.get("longitude"),
+            data.get("altitude_m"),
+            data.get("terrain"),
+            data.get("water_source"),
+            data.get("planting_date"),
+            float(data["tree_age_years"]) if data.get("tree_age_years") is not None else None,
+            data.get("growth_stage"),
             farm_id
         ))
         conn.commit()
