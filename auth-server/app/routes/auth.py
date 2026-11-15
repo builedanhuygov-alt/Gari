@@ -40,6 +40,60 @@ router = APIRouter(tags=["Authentication"])
 DUMMY_ARGON2_HASH = "$argon2id$v=19$m=65536,t=3,p=4$dGVzdHNhbHQxMjM0NTY3OA$9W/a2QG76m4B6f3x4f8wZg0kG8hR0mG0kG8hR0mG0kE"
 
 
+def build_user_response(user: User, db: Session) -> UserResponse:
+    """Builds a UserResponse with real-time entitlement and voucher status resolution."""
+    import json
+    from datetime import datetime, timezone
+    from app.routes.voucher import get_user_voucher_event
+    from app.schemas.auth import UserSubscription
+
+    user_resp = UserResponse.model_validate(user)
+
+    # Check for active VIP trial voucher
+    ev = get_user_voucher_event(db, user.id)
+    if ev and ev.sanitized_metadata:
+        try:
+            meta = json.loads(ev.sanitized_metadata)
+            expires_at_str = meta.get("expires_at")
+            if expires_at_str:
+                expires_at = datetime.fromisoformat(expires_at_str)
+                now = datetime.now(timezone.utc)
+                if now <= expires_at:
+                    delta = expires_at - now
+                    user_resp.subscription = UserSubscription(
+                        plan_id="vip_trial",
+                        plan_name=meta.get("plan_name", "VIP Trải nghiệm 7 Ngày"),
+                        is_vip=True,
+                        is_trial=True,
+                        daily_quota=meta.get("daily_quota", 5),
+                        activated_at=meta.get("activated_at"),
+                        expires_at=expires_at_str,
+                        days_left=max(0, delta.days)
+                    )
+                    user_resp.vip_trial = meta
+                else:
+                    user_resp.subscription = UserSubscription(
+                        plan_id="free",
+                        plan_name="Cá nhân Free",
+                        is_vip=False,
+                        is_trial=False,
+                        daily_quota=5
+                    )
+        except Exception:
+            pass
+
+    if not user_resp.subscription:
+        user_resp.subscription = UserSubscription(
+            plan_id="free",
+            plan_name="Cá nhân Free",
+            is_vip=False,
+            is_trial=False,
+            daily_quota=5
+        )
+
+    return user_resp
+
+
 def get_token_from_request(request: Request) -> Optional[str]:
     """Retrieves session token from HttpOnly cookie or Authorization Bearer header."""
     cookie_token = request.cookies.get(settings.COOKIE_NAME)
@@ -160,7 +214,7 @@ def register(
     return LoginResponse(
         success=True,
         message="Đăng ký tài khoản thành công.",
-        user=UserResponse.model_validate(user),
+        user=build_user_response(user, db),
         csrf_token=csrf_token
     )
 
@@ -240,7 +294,7 @@ def login(
     return LoginResponse(
         success=True,
         message="Đăng nhập thành công.",
-        user=UserResponse.model_validate(user),
+        user=build_user_response(user, db),
         csrf_token=csrf_token
     )
 
@@ -269,56 +323,7 @@ def logout(
 @router.get("/me", response_model=UserResponse)
 def get_me(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Returns the currently authenticated user profile with real-time entitlement resolution."""
-    import json
-    from datetime import datetime, timezone
-    from app.routes.voucher import get_user_voucher_event
-    from app.schemas.auth import UserSubscription
-
-    user_resp = UserResponse.model_validate(user)
-
-    # Check for active VIP trial voucher
-    ev = get_user_voucher_event(db, user.id)
-    if ev and ev.sanitized_metadata:
-        try:
-            meta = json.loads(ev.sanitized_metadata)
-            expires_at_str = meta.get("expires_at")
-            if expires_at_str:
-                expires_at = datetime.fromisoformat(expires_at_str)
-                now = datetime.now(timezone.utc)
-                if now <= expires_at:
-                    delta = expires_at - now
-                    user_resp.subscription = UserSubscription(
-                        plan_id="vip_trial",
-                        plan_name=meta.get("plan_name", "VIP Trải nghiệm 7 Ngày"),
-                        is_vip=True,
-                        is_trial=True,
-                        daily_quota=meta.get("daily_quota", 5),
-                        activated_at=meta.get("activated_at"),
-                        expires_at=expires_at_str,
-                        days_left=max(0, delta.days)
-                    )
-                    user_resp.vip_trial = meta
-                else:
-                    user_resp.subscription = UserSubscription(
-                        plan_id="free",
-                        plan_name="Cá nhân Free",
-                        is_vip=False,
-                        is_trial=False,
-                        daily_quota=5
-                    )
-        except Exception:
-            pass
-
-    if not user_resp.subscription:
-        user_resp.subscription = UserSubscription(
-            plan_id="free",
-            plan_name="Cá nhân Free",
-            is_vip=False,
-            is_trial=False,
-            daily_quota=5
-        )
-
-    return user_resp
+    return build_user_response(user, db)
 
 
 @router.post("/change-password", response_model=MessageResponse)
