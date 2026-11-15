@@ -17,11 +17,12 @@ def get_engine(database_url: str = settings.database_url):
 
     if database_url.startswith("postgresql"):
         if is_serverless:
-            # Serverless microVMs: use NullPool to immediately close idle connections and protect Neon pool limits
+            # Serverless microVMs: use NullPool to immediately close idle connections and protect Neon pool limits.
+            # pool_pre_ping is False because NullPool generates fresh connections per request (no stale pooled sockets).
             return create_engine(
                 database_url,
                 poolclass=NullPool,
-                pool_pre_ping=True
+                pool_pre_ping=False
             )
         else:
             # Long-running servers (e.g. Render / local dev): use managed connection pool

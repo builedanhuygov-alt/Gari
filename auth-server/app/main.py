@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
+import os
 
 from app.config import settings
 from app.database import init_db
@@ -18,8 +19,12 @@ from app.routes.admin import router as admin_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize isolated database schema
-    init_db()
+    # Startup: Initialize isolated database schema only when needed
+    # (e.g. SQLite local/testing or explicit AUTO_INIT_DB flag).
+    # In PostgreSQL production (Neon), schema is managed and persistent,
+    # strictly avoiding redundant cross-continental schema inspection on serverless cold starts.
+    if settings.database_url.startswith("sqlite") or os.getenv("AUTO_INIT_DB") == "1":
+        init_db()
     yield
     # Shutdown logic if needed
 

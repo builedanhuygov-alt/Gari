@@ -1,12 +1,14 @@
 {
   "version": 2,
+  "regions": ["sin1"],
   "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
   "public": false,
   "functions": {
     "api/index.py": {
-      "includeFiles": "auth-server/**"
+      "includeFiles": "auth-server/**",
+      "maxDuration": 30
     }
   },
   "headers": [

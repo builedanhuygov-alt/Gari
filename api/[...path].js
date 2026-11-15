@@ -230,7 +230,7 @@ async function handler(req, res) {
       method: req.method,
       path: upstreamPath,
       headers,
-      timeout: isAuthOrHealthRoute ? 3500 : Number(process.env.VERCEL_BACKEND_TIMEOUT_MS || 10000),
+      timeout: isAuthOrHealthRoute ? 25000 : Number(process.env.VERCEL_BACKEND_TIMEOUT_MS || 25000),
     }, (upstreamResponse) => {
       res.statusCode = upstreamResponse.statusCode || 502;
       for (const [key, value] of Object.entries(upstreamResponse.headers)) {

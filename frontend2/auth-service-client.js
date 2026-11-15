@@ -131,7 +131,7 @@ export class GariAuthServiceClient {
                     credentials: 'include',
                     headers: this._getHeaders(false)
                 }),
-                5000,
+                12000,
                 'Kiểm tra phiên làm việc quá thời gian chờ.'
             );
 
@@ -170,8 +170,8 @@ export class GariAuthServiceClient {
                 credentials: 'include',
                 body: JSON.stringify({ email, password, full_name: name })
             }),
-            8000,
-            'Yêu cầu tạo tài khoản quá thời gian chờ (8s).'
+            30000,
+            'Yêu cầu tạo tài khoản vượt quá thời gian phản hồi (30s). Vui lòng thử đăng nhập hoặc kiểm tra lại kết nối.'
         );
 
         const data = await res.json().catch(() => ({}));
@@ -203,8 +203,8 @@ export class GariAuthServiceClient {
                 credentials: 'include',
                 body: JSON.stringify({ email, password, remember_me: Boolean(rememberMe) })
             }),
-            8000,
-            'Yêu cầu đăng nhập quá thời gian chờ (8s).'
+            25000,
+            'Yêu cầu đăng nhập vượt quá thời gian phản hồi (25s). Vui lòng thử lại.'
         );
 
         const data = await res.json().catch(() => ({}));
@@ -228,7 +228,7 @@ export class GariAuthServiceClient {
                     headers: this._getHeaders(true),
                     credentials: 'include'
                 }),
-                4000,
+                10000,
                 'Yêu cầu đăng xuất quá thời gian chờ.'
             );
         } catch (_) {}
@@ -262,8 +262,8 @@ export class GariAuthServiceClient {
                     new_password: newPassword
                 })
             }),
-            8000,
-            'Đổi mật khẩu quá thời gian chờ.'
+            20000,
+            'Đổi mật khẩu quá thời gian chờ (20s).'
         );
 
         const data = await res.json().catch(() => ({}));
