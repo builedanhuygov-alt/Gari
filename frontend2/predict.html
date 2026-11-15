@@ -2843,6 +2843,26 @@
             const linkForgotPass = document.getElementById('linkForgotPass');
             if (linkForgotPass) linkForgotPass.onclick = () => setAuthTab(tabReset, formReset);
 
+            window.openAuthModal = function(tab) {
+                const gateway = document.getElementById('authOnboardingGateway');
+                if (gateway) {
+                    gateway.style.display = 'block';
+                    gateway.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (tab === 'register' && tabReg && formReg) {
+                        setAuthTab(tabReg, formReg);
+                        document.getElementById('regName')?.focus();
+                    } else if (tab === 'reset' && tabReset && formReset) {
+                        setAuthTab(tabReset, formReset);
+                        document.getElementById('resetEmail')?.focus();
+                    } else if (tabLogin && formLogin) {
+                        setAuthTab(tabLogin, formLogin);
+                        document.getElementById('loginEmail')?.focus();
+                    }
+                } else {
+                    window.location.href = tab === 'register' ? '/frontend2/register.html' : '/frontend2/login.html';
+                }
+            };
+
             // Form Submissions
             if (formLogin) {
                 formLogin.onsubmit = async (e) => {
@@ -2989,9 +3009,12 @@
             initModals();
         }
 
-        function syncAuthState(user) {
+        function syncAuthState(user, state) {
             activeUser = user;
             const headerEl = document.getElementById('authenticatedUserHeader');
+            if (typeof window.updateGariAuthShell === 'function') {
+                try { window.updateGariAuthShell(user, state); } catch (e) { console.warn('Shell sync error:', e); }
+            }
             const gatewayEl = document.getElementById('authOnboardingGateway');
             const lockedBanner = document.getElementById('diagnosisLockedBanner');
 

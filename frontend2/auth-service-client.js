@@ -39,9 +39,23 @@ export class GariAuthServiceClient {
         // Defaults to same-origin
         this.baseUrl = (baseUrl || window.__GARI_AUTH_API_URL__ || '').replace(/\/$/, '');
         this.currentUser = null;
+        this.state = 'loading'; // 'loading' | 'authenticated' | 'unauthenticated' | 'error'
         this.authListeners = [];
         this.csrfToken = null;
         this._initPromise = null;
+
+        // Cross-tab synchronization via storage event (token-free synchronization)
+        if (typeof window !== 'undefined') {
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'gari_auth_sync_event') {
+                    this.checkCurrentSession();
+                }
+            });
+        }
+    }
+
+    getState() {
+        return this.state;
     }
 
     async init() {
@@ -88,16 +102,36 @@ export class GariAuthServiceClient {
     onAuthStateChanged(callback) {
         if (typeof callback === 'function') {
             this.authListeners.push(callback);
-            if (this.currentUser !== undefined && this.currentUser !== null) {
-                callback(this.currentUser);
+            // Immediately execute with current known state
+            if (this.state && this.state !== 'loading') {
+                try { callback(this.currentUser, this.state); } catch (e) { console.error(e); }
+            } else if (this.currentUser !== null) {
+                try { callback(this.currentUser, 'authenticated'); } catch (e) { console.error(e); }
             }
         }
     }
 
-    _notifyListeners(user) {
+    _notifyListeners(user, state) {
+        const authState = state || (user ? 'authenticated' : 'unauthenticated');
+        this.state = authState;
         this.authListeners.forEach(cb => {
-            try { cb(user); } catch (e) { console.error('[GARI Auth Service] Listener error:', e); }
+            try { cb(user, authState); } catch (e) { console.error('[GARI Auth Service] Listener error:', e); }
         });
+        if (typeof window !== 'undefined') {
+            try {
+                window.dispatchEvent(new CustomEvent('gari:auth-state-changed', {
+                    detail: { user, state: authState }
+                }));
+            } catch (_) {}
+        }
+    }
+
+    _broadcastAuthEvent(type) {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+                localStorage.setItem('gari_auth_sync_event', JSON.stringify({ type, t: Date.now() }));
+            } catch (_) {}
+        }
     }
 
     _normalizeUser(user) {
@@ -125,6 +159,8 @@ export class GariAuthServiceClient {
     }
 
     async checkCurrentSession() {
+        this.state = 'loading';
+        this._notifyListeners(this.currentUser, 'loading');
         try {
             const res = await withTimeout(
                 fetch(`${this.baseUrl}/api/v1/auth/me`, {
@@ -136,21 +172,33 @@ export class GariAuthServiceClient {
             );
 
             if (res.ok) {
-                const user = await res.json();
-                this.currentUser = this._normalizeUser(user);
+                const data = await res.json();
+                const rawUser = data.user || data;
+                this.currentUser = this._normalizeUser(rawUser);
+                this.state = 'authenticated';
                 sessionStorage.setItem('gari_user_cache', JSON.stringify(this.currentUser));
-                localStorage.setItem('gari_user', JSON.stringify(this.currentUser));
-                this._notifyListeners(this.currentUser);
+                this._notifyListeners(this.currentUser, 'authenticated');
                 return this.currentUser;
+            }
+            if (res.status === 401) {
+                this.currentUser = null;
+                this.state = 'unauthenticated';
+                sessionStorage.removeItem('gari_user_cache');
+                this._notifyListeners(null, 'unauthenticated');
+                return null;
             }
         } catch (e) {
             console.debug('[GARI Auth Service] Session check error:', e?.message || e);
+            // On network error, retain cached user to prevent unnecessary logout
+            this.state = this.currentUser ? 'authenticated' : 'error';
+            this._notifyListeners(this.currentUser, this.state);
+            return this.currentUser;
         }
 
         this.currentUser = null;
+        this.state = 'unauthenticated';
         sessionStorage.removeItem('gari_user_cache');
-        localStorage.removeItem('gari_user');
-        this._notifyListeners(null);
+        this._notifyListeners(null, 'unauthenticated');
         return null;
     }
 
@@ -181,9 +229,11 @@ export class GariAuthServiceClient {
 
         if (data.csrf_token) this.csrfToken = data.csrf_token;
         this.currentUser = this._normalizeUser(data.user);
+        this.state = 'authenticated';
         sessionStorage.setItem('gari_user_cache', JSON.stringify(this.currentUser));
         localStorage.setItem('gari_user', JSON.stringify(this.currentUser));
-        this._notifyListeners(this.currentUser);
+        this._notifyListeners(this.currentUser, 'authenticated');
+        this._broadcastAuthEvent('register');
         return { success: true, user: this.currentUser };
     }
 
@@ -214,9 +264,11 @@ export class GariAuthServiceClient {
 
         if (data.csrf_token) this.csrfToken = data.csrf_token;
         this.currentUser = this._normalizeUser(data.user);
+        this.state = 'authenticated';
         sessionStorage.setItem('gari_user_cache', JSON.stringify(this.currentUser));
         localStorage.setItem('gari_user', JSON.stringify(this.currentUser));
-        this._notifyListeners(this.currentUser);
+        this._notifyListeners(this.currentUser, 'authenticated');
+        this._broadcastAuthEvent('login');
         return { success: true, user: this.currentUser };
     }
 
@@ -234,9 +286,11 @@ export class GariAuthServiceClient {
         } catch (_) {}
 
         this.currentUser = null;
+        this.state = 'unauthenticated';
         sessionStorage.removeItem('gari_user_cache');
         localStorage.removeItem('gari_user');
-        this._notifyListeners(null);
+        this._notifyListeners(null, 'unauthenticated');
+        this._broadcastAuthEvent('logout');
         return { success: true };
     }
 

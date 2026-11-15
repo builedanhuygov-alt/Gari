@@ -1,5 +1,12 @@
 // Gari AI Lab — Vietnamese-First AgriTech SaaS Core UI Framework (frontend2/app.js)
 // Clean vanilla JS, zero heavy external dependencies.
+import { GariAuthServiceClient } from '/frontend2/auth-service-client.js';
+
+if (typeof window !== 'undefined' && !window.gariAuth) {
+    try {
+        window.gariAuth = new GariAuthServiceClient();
+    } catch (_) {}
+}
 
 const svg = (paths) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 
@@ -170,6 +177,18 @@ function updateThemeIcons() {
  * If invalid or expired, redirects to login page.
  */
 export async function checkAuth(redirectIfUnauth = true) {
+    if (typeof window !== 'undefined' && window.gariAuth && typeof window.gariAuth.checkCurrentSession === 'function') {
+        const user = await window.gariAuth.checkCurrentSession();
+        if (user) {
+            return user;
+        }
+        if (redirectIfUnauth) {
+            const currentPath = window.location.pathname + window.location.search;
+            window.location.href = `/frontend2/login.html?redirect=${encodeURIComponent(currentPath)}`;
+        }
+        return null;
+    }
+
     try {
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -234,9 +253,18 @@ export async function logout() {
     localStorage.removeItem('gari_host_token');
     sessionStorage.clear();
     toast('Đã đăng xuất thành công.');
-    setTimeout(() => {
-        window.location.href = '/frontend2/login.html';
-    }, 300);
+
+    if (typeof updateShellAuthUI === 'function') {
+        try { updateShellAuthUI(null, 'unauthenticated'); } catch (_) {}
+    }
+
+    const path = window.location.pathname;
+    const isPublicPage = path.includes('predict') || path.includes('index') || path.endsWith('/frontend2/') || path === '/';
+    if (!isPublicPage) {
+        setTimeout(() => {
+            window.location.href = '/frontend2/login.html';
+        }, 300);
+    }
 }
 
 export function formatAccountType(type) {
@@ -252,6 +280,156 @@ export function formatAccountType(type) {
 /**
  * Initializes the SaaS shell for a given page with complete Vietnamese rendering
  */
+/**
+ * Synchronizes the SaaS shell UI (Topbar Auth, Workspace badge, Sidebar Footer)
+ * atomically across the entire app whenever the authentication state changes.
+ */
+export function updateShellAuthUI(user, state) {
+    const isAuth = !!(user && (user.email || user.id || user.identity?.email));
+    const userFullName = isAuth 
+        ? ((user.profile && (user.profile.full_name || user.profile.name)) || (user.identity && user.identity.display_name) || user.full_name || user.name || 'Người dùng Gari')
+        : 'Khách nông hộ';
+    const rawRole = (user && (user.profile?.account_type || user.account_type || user.subscription?.plan_name)) || '';
+    const userAccountType = isAuth ? formatAccountType(rawRole) : 'Chưa đăng nhập';
+    const userEmail = isAuth ? ((user.identity && user.identity.email) || user.email || '') : '';
+    const initials = isAuth ? getInitials(userFullName) : 'G';
+    const isHostAdmin = !!(user && (user.is_host_admin || user.system_role?.is_admin));
+
+    // 1. Workspace Plan Badge in Sidebar
+    const workspacePlan = document.querySelector('#workspaceSelector .workspace-plan');
+    if (workspacePlan) {
+        workspacePlan.textContent = isAuth ? userAccountType : 'Khách tham quan';
+    }
+
+    // 2. Sidebar Footer User Card
+    const sidebarAvatar = document.getElementById('sidebarAvatar');
+    if (sidebarAvatar) sidebarAvatar.textContent = initials;
+
+    const sidebarUserName = document.getElementById('sidebarUserName');
+    if (sidebarUserName) sidebarUserName.textContent = userFullName;
+
+    const sidebarUserCard = document.getElementById('sidebarUserCard');
+    if (sidebarUserCard) {
+        const roleContainer = sidebarUserCard.querySelector('.sidebar-user-role');
+        if (roleContainer) {
+            if (isAuth) {
+                roleContainer.innerHTML = `<span class="pulse-online"></span> ${userAccountType}`;
+            } else {
+                roleContainer.innerHTML = `<span style="color:var(--primary); font-weight:600; display:inline-flex; align-items:center; gap:4px;">Đăng nhập ngay →</span>`;
+            }
+        }
+        sidebarUserCard.style.cursor = 'pointer';
+        sidebarUserCard.title = isAuth ? `Hồ sơ: ${userFullName} (${userAccountType})` : 'Đăng nhập tài khoản GARI';
+        sidebarUserCard.onclick = () => {
+            if (isAuth) {
+                window.location.href = '/frontend2/settings.html';
+            } else {
+                if (typeof window.openAuthModal === 'function') {
+                    window.openAuthModal('login');
+                } else {
+                    window.location.href = '/frontend2/login.html';
+                }
+            }
+        };
+    }
+
+    // 3. Topbar Auth Section
+    const topbarAuth = document.getElementById('topbarAuthSection');
+    if (topbarAuth) {
+        if (isAuth) {
+            topbarAuth.innerHTML = `
+                <div class="user-profile topbar-avatar-only" id="userProfileBtn" title="Hồ sơ: ${userFullName} (${userAccountType})">
+                    <div class="user-avatar" id="topbarAvatar">${initials}</div>
+                    <span class="user-avatar-caret" style="margin-left:4px; font-size:11px; opacity:0.7;">▾</span>
+                </div>
+                <div class="user-dropdown-panel" id="userDropdownPanel">
+                    <div class="user-dropdown-header">
+                        <div style="font-weight:700; font-size:13px; color:var(--text-main);" id="dropdownFullName">${userFullName}</div>
+                        <div style="font-size:11.5px; color:var(--text-muted);" id="dropdownEmail">${userEmail}</div>
+                        <div style="margin-top:4px;"><span class="pill pill-neutral" id="dropdownAccountType">${userAccountType}</span></div>
+                    </div>
+                    <div class="user-dropdown-divider"></div>
+                    <a href="/frontend2/farms.html" class="user-dropdown-item">
+                        <span>🌾</span> <span>Nông trại của tôi</span>
+                    </a>
+                    <a href="/frontend2/data-management.html" class="user-dropdown-item">
+                        <span>🛡️</span> <span>Dữ liệu cá nhân (DSR)</span>
+                    </a>
+                    <a href="/frontend2/privacy-policy.html" class="user-dropdown-item">
+                        <span>📜</span> <span>Chính sách bảo mật</span>
+                    </a>
+                    <a href="/frontend2/settings.html" class="user-dropdown-item">
+                        <span>⚙️</span> <span>Cài đặt tài khoản</span>
+                    </a>
+                    ${isHostAdmin ? `
+                    <div class="user-dropdown-divider"></div>
+                    <a href="/host" class="user-dropdown-item" style="color:var(--primary); font-weight:700;">
+                        <span>⚡</span> <span>Bảng điều khiển Máy chủ (Host)</span>
+                    </a>` : ''}
+                    <div class="user-dropdown-divider"></div>
+                    <button type="button" class="user-dropdown-item logout-btn" id="btnLogoutAction">
+                        <span>🚪</span> <span style="color:var(--danger); font-weight:600;">Đăng xuất</span>
+                    </button>
+                </div>
+            `;
+            const userBtn = topbarAuth.querySelector('#userProfileBtn');
+            const userDropdown = topbarAuth.querySelector('#userDropdownPanel');
+            const notifDropdown = document.getElementById('notificationsDropdown');
+            if (userBtn && userDropdown) {
+                userBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (notifDropdown) notifDropdown.classList.remove('show');
+                    userDropdown.classList.toggle('show');
+                };
+            }
+            const logoutBtn = topbarAuth.querySelector('#btnLogoutAction');
+            if (logoutBtn) {
+                logoutBtn.onclick = () => {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất khỏi Gari AI Lab?')) {
+                        logout();
+                    }
+                };
+            }
+        } else {
+            topbarAuth.innerHTML = `
+                <div class="topbar-auth-guest" id="topbarAuthGuest">
+                    <button type="button" class="btn-topbar-login" id="btnTopbarLogin" title="Đăng nhập tài khoản GARI">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                        <span>Đăng nhập</span>
+                    </button>
+                    <button type="button" class="btn-topbar-register" id="btnTopbarRegister" title="Tạo tài khoản GARI mới">
+                        <span>Đăng ký</span>
+                    </button>
+                </div>
+            `;
+            const btnLogin = topbarAuth.querySelector('#btnTopbarLogin');
+            if (btnLogin) {
+                btnLogin.onclick = () => {
+                    if (typeof window.openAuthModal === 'function') {
+                        window.openAuthModal('login');
+                    } else {
+                        window.location.href = '/frontend2/login.html';
+                    }
+                };
+            }
+            const btnReg = topbarAuth.querySelector('#btnTopbarRegister');
+            if (btnReg) {
+                btnReg.onclick = () => {
+                    if (typeof window.openAuthModal === 'function') {
+                        window.openAuthModal('register');
+                    } else {
+                        window.location.href = '/frontend2/register.html';
+                    }
+                };
+            }
+        }
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.updateGariAuthShell = updateShellAuthUI;
+}
+
 export async function setupSaaSShell(activeKey = 'overview', activeTitle = 'Tổng quan nông nghiệp', redirectIfUnauth = true) {
     initTheme();
 
@@ -415,50 +593,30 @@ export async function setupSaaSShell(activeKey = 'overview', activeTitle = 'Tổ
                     </div>
                 </div>
 
-                <!-- User Profile Dropdown Button -->
-                <div style="position:relative;">
-                    <div class="user-profile topbar-avatar-only" id="userProfileBtn" title="Hồ sơ: ${userFullName} (${userAccountType})">
-                        <div class="user-avatar" id="topbarAvatar">${initials}</div>
-                        <span class="user-avatar-caret">▾</span>
-                    </div>
-
-                    <!-- Dropdown Panel -->
-                    <div class="user-dropdown-panel" id="userDropdownPanel">
-                        <div class="user-dropdown-header">
-                            <div style="font-weight:700; font-size:13px; color:var(--text-main);" id="dropdownFullName">${userFullName}</div>
-                            <div style="font-size:11.5px; color:var(--text-muted);" id="dropdownEmail">${userEmail}</div>
-                            <div style="margin-top:4px;"><span class="pill pill-neutral" id="dropdownAccountType">${userAccountType}</span></div>
-                        </div>
-                        <div class="user-dropdown-divider"></div>
-                        <a href="/frontend2/farms.html" class="user-dropdown-item">
-                            <span>🌾</span> <span>Nông trại của tôi</span>
-                        </a>
-                        <a href="/frontend2/data-management.html" class="user-dropdown-item">
-                            <span>🛡️</span> <span>Dữ liệu cá nhân (DSR)</span>
-                        </a>
-                        <a href="/frontend2/privacy-policy.html" class="user-dropdown-item">
-                            <span>📜</span> <span>Chính sách bảo mật</span>
-                        </a>
-                        <a href="/frontend2/settings.html" class="user-dropdown-item">
-                            <span>⚙️</span> <span>Cài đặt tài khoản</span>
-                        </a>
-                        ${currentUser && currentUser.is_host_admin ? `
-                        <div class="user-dropdown-divider"></div>
-                        <a href="/host" class="user-dropdown-item" style="color:var(--primary); font-weight:700;">
-                            <span>⚡</span> <span>Bảng điều khiển Máy chủ (Host)</span>
-                        </a>` : ''}
-                        <div class="user-dropdown-divider"></div>
-                        <button type="button" class="user-dropdown-item logout-btn" id="btnLogoutAction">
-                            <span>🚪</span> <span style="color:var(--danger); font-weight:600;">Đăng xuất</span>
-                        </button>
-                    </div>
-                </div>
+                <!-- Topbar Auth Section (Reactive: Login/Register buttons or User Avatar Profile) -->
+                <div class="topbar-auth-section" id="topbarAuthSection"></div>
             </div>
         `;
     }
 
     ensureCommandPalette();
     bindShellEvents();
+    updateShellAuthUI(currentUser, currentUser ? 'authenticated' : 'unauthenticated');
+
+    // Subscribe to reactive auth state updates from window.gariAuth
+    if (typeof window !== 'undefined' && window.gariAuth && typeof window.gariAuth.onAuthStateChanged === 'function') {
+        window.gariAuth.onAuthStateChanged((user, state) => {
+            try { updateShellAuthUI(user, state); } catch (_) {}
+        });
+    }
+
+    if (typeof window !== 'undefined') {
+        window.addEventListener('gari:auth-state-changed', (e) => {
+            const { user, state } = e.detail || {};
+            try { updateShellAuthUI(user, state); } catch (_) {}
+        });
+    }
+
     fetchLiveWeather();
     fetchNotifications();
     initBottomNav(activeKey);

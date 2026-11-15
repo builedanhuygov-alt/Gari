@@ -913,6 +913,89 @@ button, input, select, textarea {
 }
 
 /* ==========================================================================
+   Topbar Auth Controls (Single Source of Truth)
+   ========================================================================== */
+
+.topbar-auth-section {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.topbar-auth-guest {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-topbar-login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: var(--radius-full, 9999px);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.28);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+.btn-topbar-login:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.38);
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+.btn-topbar-login:active {
+    transform: translateY(0);
+}
+
+.btn-topbar-register {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    color: var(--text-main, #0f172a);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: var(--radius-full, 9999px);
+    border: 1px solid var(--border, #e2e8f0);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+.btn-topbar-register:hover {
+    background: var(--surface-muted, #f1f5f9);
+    border-color: var(--primary, #10b981);
+    color: var(--primary, #10b981);
+}
+
+@media (max-width: 640px) {
+    .btn-topbar-register {
+        display: none !important;
+    }
+    .btn-topbar-login {
+        padding: 5px 10px;
+        font-size: 12px;
+        gap: 4px;
+    }
+}
+
+/* ==========================================================================
    Notifications Dropdown Panel
    ========================================================================== */
 
