@@ -590,7 +590,78 @@ def resolve_or_provision_supabase_user(payload: Dict[str, Any], metadata: Option
         return user
 
 
+def validate_neon_session(raw_token: str) -> Optional[Dict[str, Any]]:
+    """Validates raw session token against Neon PostgreSQL database if DATABASE_URL is configured."""
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url or not raw_token or len(raw_token) < 20:
+        return None
+    try:
+        import hashlib
+        import json
+        import psycopg2
+        from datetime import datetime, timezone
+
+        t_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+        now = datetime.now(timezone.utc)
+
+        with psycopg2.connect(db_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT s.expires_at, s.revoked_at, u.id, u.email, u.full_name, u.account_type, u.is_active
+                    FROM sessions s
+                    JOIN users u ON s.user_id = u.id
+                    WHERE s.token_hash = %s
+                """, (t_hash,))
+                row = cur.fetchone()
+                if not row:
+                    return None
+                expires_at, revoked_at, uid, email, full_name, account_type, is_active = row
+                if revoked_at is not None or not is_active:
+                    return None
+                if expires_at and expires_at < now:
+                    return None
+
+                is_admin = account_type in ("admin", "superadmin")
+                is_vip = is_admin
+
+                # Check VIP trial voucher
+                cur.execute("""
+                    SELECT sanitized_metadata FROM security_events
+                    WHERE user_id = %s AND event_type = 'VOUCHER_ACTIVATED'
+                    ORDER BY id DESC LIMIT 1
+                """, (uid,))
+                v_row = cur.fetchone()
+                if v_row and v_row[0]:
+                    try:
+                        meta = json.loads(v_row[0])
+                        exp_str = meta.get("expires_at")
+                        if exp_str and datetime.fromisoformat(exp_str) >= now:
+                            is_vip = True
+                    except Exception:
+                        pass
+
+                return {
+                    "id": uid,
+                    "email": email,
+                    "full_name": full_name or email,
+                    "name": full_name or email,
+                    "is_active": True,
+                    "is_admin": is_admin,
+                    "is_vip": is_vip,
+                    "account_type": "vip" if is_vip else (account_type or "free"),
+                    "moderation_status": "clean",
+                    "feature_restrictions": ""
+                }
+    except Exception as e:
+        logger.debug("Neon session check exception: %s", e)
+        return None
+
+
 def validate_session(token: str) -> Optional[Dict[str, Any]]:
+    # Neon PostgreSQL session check
+    neon_user = validate_neon_session(token)
+    if neon_user:
+        return neon_user
     """Validate a Supabase JWT or legacy session token and return the associated user dict if valid and unexpired."""
     if not token or len(token) < 20:
         return None
@@ -722,9 +793,10 @@ def extract_token_from_request(request: Request) -> Optional[str]:
         return auth_header[7:].strip()
 
     # 2. Check HttpOnly cookie
-    cookie_token = request.cookies.get("gari_session")
-    if cookie_token:
-        return cookie_token.strip()
+    for cookie_name in ("gari_auth_session", "gari_session", "session"):
+        cookie_token = request.cookies.get(cookie_name)
+        if cookie_token:
+            return cookie_token.strip()
 
     return None
 
