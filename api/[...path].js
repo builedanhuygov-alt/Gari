@@ -104,7 +104,7 @@ function handleBackendUnavailable(pathStr, res, err = null) {
   const isTimeout = Boolean(err && (err.message === 'Upstream timeout' || err.code === 'ETIMEDOUT'));
 
   // 2. AI Inference routes when backend is not connected
-  if (pathStr.startsWith('predict') || pathStr.startsWith('diagnose') || pathStr.includes('inference')) {
+  if (pathStr.startsWith('predict') || pathStr.startsWith('diagnose') || pathStr.includes('inference') || pathStr.includes('diagnose') || pathStr.startsWith('plant/')) {
     return sendJson(
       res,
       isTimeout ? 504 : 503,

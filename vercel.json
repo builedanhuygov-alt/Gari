@@ -9,6 +9,9 @@
     "api/index.py": {
       "includeFiles": "auth-server/**",
       "maxDuration": 30
+    },
+    "api/[...path].js": {
+      "maxDuration": 60
     }
   },
   "headers": [

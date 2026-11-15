@@ -21,6 +21,7 @@ $LogsDir = Join-Path $ProjectRoot "logs"
 if (!(Test-Path $LogsDir)) { New-Item -ItemType Directory -Path $LogsDir | Out-Null }
 $PidFile = Join-Path $LogsDir "gari_backend.pid"
 $LogFile = Join-Path $LogsDir "gari_backend.log"
+$ErrFile = Join-Path $LogsDir "gari_backend_err.log"
 
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host ">> [GARI BACKEND] Initializing Self-Hosted Server (${HostAddress}:${Port})..." -ForegroundColor Cyan
@@ -63,10 +64,20 @@ $env:PORT = "$Port"
 $env:MODEL_PRELOAD_ENABLED = "true"
 $env:MODEL_IDLE_TIMEOUT_SECONDS = "86400"
 $env:INFERENCE_TIMEOUT_SECONDS = "60"
+if (!$env:SESSION_SECRET -or $env:SESSION_SECRET.Length -lt 32) {
+    $bytes = New-Object byte[] 32
+    [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+    $env:SESSION_SECRET = [System.BitConverter]::ToString($bytes) -replace '-'
+}
+if (!$env:JWT_SECRET -or $env:JWT_SECRET.Length -lt 32) {
+    $bytes = New-Object byte[] 32
+    [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+    $env:JWT_SECRET = [System.BitConverter]::ToString($bytes) -replace '-'
+}
 
 Write-Host "[*] Launching Uvicorn server on ${HostAddress}:${Port} (Preload: Enabled)..." -ForegroundColor Cyan
 $processArgs = "-m uvicorn api_server:app --host $HostAddress --port $Port --no-access-log"
-$proc = Start-Process -FilePath $PythonBin -ArgumentList $processArgs -PassThru -NoNewWindow -RedirectStandardOutput $LogFile -RedirectStandardError $LogFile
+$proc = Start-Process -FilePath $PythonBin -ArgumentList $processArgs -PassThru -NoNewWindow -RedirectStandardOutput $LogFile -RedirectStandardError $ErrFile
 
 $proc.Id | Out-File -FilePath $PidFile -Encoding ascii
 Write-Host "[*] Process launched with PID: $($proc.Id). Awaiting health readiness..." -ForegroundColor Cyan
