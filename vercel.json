@@ -170,6 +170,10 @@
       "destination": "/api/[...path]?path=$1"
     },
     {
+      "source": "/uploads/(.*)",
+      "destination": "/api/[...path]?path=uploads/$1"
+    },
+    {
       "source": "/static/frontend2/(.*)",
       "destination": "/frontend2/$1"
     },

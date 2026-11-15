@@ -213,7 +213,9 @@ async function handler(req, res) {
     }
   }
 
-  const upstreamPath = `${origin.pathname.replace(/\/$/, '')}/api/${segments.map(encodeURIComponent).join('/')}${req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''}`;
+  const upstreamPath = pathStr.startsWith('uploads/')
+    ? `${origin.pathname.replace(/\/$/, '')}/${segments.map(encodeURIComponent).join('/')}${req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''}`
+    : `${origin.pathname.replace(/\/$/, '')}/api/${segments.map(encodeURIComponent).join('/')}${req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''}`;
   const headers = { ...req.headers, host: origin.host };
   delete headers.connection;
   if (bufferedBody !== null) {

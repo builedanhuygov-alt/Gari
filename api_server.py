@@ -186,6 +186,7 @@ async def add_cache_control_headers(request: Request, call_next):
 app.mount("/static/frontend2", StaticFiles(directory=str(FRONTEND2_DIR)), name="frontend2_static")
 app.mount("/frontend2", StaticFiles(directory=str(FRONTEND2_DIR), html=True), name="frontend2")
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="api_uploads")
 
 
 @app.get("/", response_class=HTMLResponse)
