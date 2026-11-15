@@ -43,6 +43,24 @@
           "value": "public, max-age=31536000, immutable"
         }
       ]
+    },
+    {
+      "source": "/static/frontend2/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/frontend2/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -131,100 +149,112 @@
       "destination": "/api/[...path]?path=$1"
     },
     {
+      "source": "/static/frontend2/(.*)",
+      "destination": "/frontend2/$1"
+    },
+    {
       "source": "/",
-      "destination": "/frontend2/index.html"
+      "destination": "/frontend2"
     },
     {
       "source": "/frontend2",
-      "destination": "/frontend2/index.html"
+      "destination": "/frontend2"
     },
     {
       "source": "/frontend2/",
-      "destination": "/frontend2/index.html"
+      "destination": "/frontend2"
     },
     {
       "source": "/host",
-      "destination": "/frontend2/host.html"
+      "destination": "/frontend2/host"
     },
     {
       "source": "/host-login",
-      "destination": "/frontend2/host-login.html"
+      "destination": "/frontend2/host-login"
     },
     {
       "source": "/expert",
-      "destination": "/frontend2/expert-portal.html"
+      "destination": "/frontend2/expert-portal"
     },
     {
       "source": "/login",
-      "destination": "/frontend2/login.html"
+      "destination": "/frontend2/login"
     },
     {
       "source": "/register",
-      "destination": "/frontend2/register.html"
+      "destination": "/frontend2/register"
     },
     {
       "source": "/forgot-password",
-      "destination": "/frontend2/forgot-password.html"
+      "destination": "/frontend2/forgot-password"
     },
     {
       "source": "/predict",
-      "destination": "/frontend2/predict.html"
+      "destination": "/frontend2/predict"
     },
     {
       "source": "/crops",
-      "destination": "/frontend2/crops.html"
+      "destination": "/frontend2/crops"
     },
     {
       "source": "/farms",
-      "destination": "/frontend2/farms.html"
+      "destination": "/frontend2/farms"
     },
     {
       "source": "/calendar",
-      "destination": "/frontend2/calendar.html"
+      "destination": "/frontend2/calendar"
     },
     {
       "source": "/risk",
-      "destination": "/frontend2/risk.html"
+      "destination": "/frontend2/risk"
     },
     {
       "source": "/reports",
-      "destination": "/frontend2/reports.html"
+      "destination": "/frontend2/reports"
     },
     {
       "source": "/organization",
-      "destination": "/frontend2/organization.html"
+      "destination": "/frontend2/organization"
     },
     {
       "source": "/pricing",
-      "destination": "/frontend2/pricing.html"
+      "destination": "/frontend2/pricing"
     },
     {
       "source": "/support",
-      "destination": "/frontend2/support.html"
+      "destination": "/frontend2/support"
     },
     {
       "source": "/settings",
-      "destination": "/frontend2/settings.html"
+      "destination": "/frontend2/settings"
+    },
+    {
+      "source": "/community",
+      "destination": "/frontend2/community"
+    },
+    {
+      "source": "/admin",
+      "destination": "/frontend2/admin"
     },
     {
       "source": "/api-docs",
-      "destination": "/frontend2/api-docs.html"
+      "destination": "/frontend2/api-docs"
     },
     {
       "source": "/terms-of-service",
-      "destination": "/frontend2/terms-of-service.html"
+      "destination": "/frontend2/terms-of-service"
     },
     {
       "source": "/privacy-policy",
-      "destination": "/frontend2/privacy-policy.html"
+      "destination": "/frontend2/privacy-policy"
     },
     {
       "source": "/refund-policy",
-      "destination": "/frontend2/refund-policy.html"
+      "destination": "/frontend2/refund-policy"
     },
     {
       "source": "/cookie-policy",
-      "destination": "/frontend2/cookie-policy.html"
+      "destination": "/frontend2/cookie-policy"
     }
   ]
 }

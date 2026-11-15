@@ -170,24 +170,16 @@ function updateThemeIcons() {
  * If invalid or expired, redirects to login page.
  */
 export async function checkAuth(redirectIfUnauth = true) {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (!token) {
-        localStorage.removeItem(USER_INFO_KEY);
-        if (redirectIfUnauth) {
-            const currentPath = window.location.pathname + window.location.search;
-            window.location.href = `/frontend2/login.html?redirect=${encodeURIComponent(currentPath)}`;
-        }
-        return null;
-    }
-
     try {
-        const headers = { 'Authorization': `Bearer ${token}` };
-        const res = await fetch('/api/auth/me', { headers, credentials: 'include' });
+        const token = localStorage.getItem(AUTH_TOKEN_KEY);
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const res = await fetch('/api/v1/auth/me', { headers, credentials: 'include' });
         if (res.ok) {
             const data = await res.json();
-            if (data.success && data.user) {
-                localStorage.setItem(USER_INFO_KEY, JSON.stringify(data.user));
-                return data.user;
+            const user = (data && data.user) ? data.user : (data && data.email ? data : null);
+            if (user) {
+                localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
+                return user;
             }
         }
         if (res.status === 401) {
@@ -201,7 +193,7 @@ export async function checkAuth(redirectIfUnauth = true) {
             return null;
         }
     } catch (err) {
-        console.warn('[GARI Shell] Trực tuyến gián đoạn, kiểm tra bộ nhớ phiên:', err?.message || err);
+        console.warn('[GARI Shell] Session check offline fallback:', err?.message || err);
         // On network error, retain cached user to prevent unnecessary logout
         try {
             const cached = JSON.parse(localStorage.getItem(USER_INFO_KEY));
@@ -212,6 +204,8 @@ export async function checkAuth(redirectIfUnauth = true) {
     }
 
     // Invalid session fallback
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(USER_INFO_KEY);
     if (redirectIfUnauth) {
         const currentPath = window.location.pathname + window.location.search;
         window.location.href = `/frontend2/login.html?redirect=${encodeURIComponent(currentPath)}`;
