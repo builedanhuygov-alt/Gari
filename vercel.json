@@ -258,6 +258,10 @@
       "destination": "/frontend2/community"
     },
     {
+      "source": "/admin/infrastructure",
+      "destination": "/frontend2/admin-infrastructure"
+    },
+    {
       "source": "/admin",
       "destination": "/frontend2/admin"
     },

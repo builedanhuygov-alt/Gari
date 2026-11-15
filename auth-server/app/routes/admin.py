@@ -293,3 +293,35 @@ def list_security_events(
         "page_size": page_size,
         "events": [SecurityEventResponse.model_validate(e) for e in events]
     }
+
+
+@router.get("/infrastructure/status")
+def get_admin_infrastructure_status(
+    admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Authoritative infrastructure telemetry for GARI Hosting Control Center."""
+    from app.services.infrastructure import InfrastructureTelemetryService
+    return InfrastructureTelemetryService.get_full_infrastructure_report()
+
+
+@router.post("/infrastructure/probe")
+def trigger_admin_infrastructure_probe(
+    admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Triggers an authoritative infrastructure probe across all cloud and local providers."""
+    from app.services.infrastructure import InfrastructureTelemetryService
+    report = InfrastructureTelemetryService.get_full_infrastructure_report()
+    log_security_event(
+        db,
+        "ADMIN_INFRASTRUCTURE_PROBE",
+        user_id=admin.id,
+        metadata={"overall_status": report.get("overall_status"), "probe_timestamp": report.get("generated_at")}
+    )
+    return {
+        "success": True,
+        "message": "Đã thực hiện kiểm tra hạ tầng toàn diện thành công.",
+        "report": report
+    }
+

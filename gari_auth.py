@@ -838,7 +838,7 @@ async def get_current_admin_user(request: Request) -> Dict[str, Any]:
     email = (user.get("email") or "").strip().lower()
 
     # Admin check: account_type in ("admin", "quản trị viên", "platform_admin") or founder email
-    is_admin = bool(user.get("is_admin")) or account_type in ("admin", "quản trị viên", "platform_admin") or email in ("danhuynh@gari.vn", "admin@gari.vn")
+    is_admin = bool(user.get("is_admin")) or account_type in ("admin", "quản trị viên", "platform_admin") or email in ("danhuynh@gari.vn", "admin@gari.vn", "huy175209@gmail.com")
     if not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

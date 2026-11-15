@@ -298,8 +298,16 @@ async def host_login_page():
     return FileResponse(FRONTEND2_DIR / "host-login.html")
 
 
-@app.get("/admin", response_class=HTMLResponse)
-async def admin_page():
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_page():
+    return FileResponse(FRONTEND2_DIR / "admin.html")
+
+
+@app.get("/admin/infrastructure", response_class=HTMLResponse)
+async def admin_infrastructure_page():
+    infra_path = FRONTEND2_DIR / "admin-infrastructure.html"
+    if infra_path.exists():
+        return FileResponse(infra_path)
     return FileResponse(FRONTEND2_DIR / "admin.html")
 
 
@@ -3275,7 +3283,36 @@ async def get_admin_audit_logs_api(
     return {
         "success": True,
         "total": len(logs),
-        "audit_logs": logs
+        "audit_logs": logs
+    }
+
+
+# -----------------------------------------------------------------------------
+# EPIC E11: GARI Hosting & Infrastructure Control Center Endpoints
+# -----------------------------------------------------------------------------
+
+@app.get("/api/admin/infrastructure/status")
+@app.get("/api/v1/admin/infrastructure/status")
+async def get_admin_infrastructure_status_api(
+    admin_user: Dict[str, Any] = Depends(get_current_admin_user)
+):
+    from gari_infrastructure_service import InfrastructureTelemetryService
+    report = InfrastructureTelemetryService.get_full_infrastructure_report()
+    return report
+
+
+@app.post("/api/admin/infrastructure/probe")
+@app.post("/api/v1/admin/infrastructure/probe")
+async def trigger_admin_infrastructure_probe_api(
+    admin_user: Dict[str, Any] = Depends(get_current_admin_user)
+):
+    from gari_infrastructure_service import InfrastructureTelemetryService
+    report = InfrastructureTelemetryService.get_full_infrastructure_report()
+    return {
+        "success": True,
+        "message": "Đã hoàn thành kiểm tra hạ tầng toàn diện.",
+        "admin": admin_user.get("email"),
+        "report": report
     }
 
 

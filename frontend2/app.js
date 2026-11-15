@@ -107,6 +107,18 @@ export function getNavGroups(currentUser) {
         });
     }
 
+    // Platform & Hosting Control Center (Admins only)
+    const isAdmin = !!(currentUser && (currentUser.account_type === 'admin' || currentUser.is_host_admin || currentUser.is_admin));
+    if (isAdmin) {
+        groups.push({
+            title: 'QUẢN TRỊ HẠ TẦNG',
+            links: [
+                { key: 'admin-infrastructure', href: '/admin/infrastructure', label: 'Hosting Control Center', icon: ICONS.admin, badge: 'P0' },
+                { key: 'admin', href: '/frontend2/admin.html', label: 'Quản trị Nền tảng', icon: ICONS.admin },
+            ]
+        });
+    }
+
     // Centralized Feature Availability Filtering
     const features = window.GARI_FEATURES || { farms: false, community: false, hostConsole: true };
     const filteredGroups = groups.map(g => ({
